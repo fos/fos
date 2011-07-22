@@ -23,10 +23,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="window.py" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="window.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fospyside/window.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="69" column="28" selection-start="2128" selection-end="2128" vertical-scroll-proportion="0.66339064">
+            <state line="34" column="0" selection-start="1101" selection-end="1101" vertical-scroll-proportion="-5.357143">
               <folding />
             </state>
           </provider>
@@ -35,7 +35,16 @@
       <file leaf-file-name="demo1.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/examples/demo1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="8" column="8" selection-start="139" selection-end="139" vertical-scroll-proportion="0.0">
+            <state line="0" column="0" selection-start="0" selection-end="139" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="demo2.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/demo2.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="7" column="29" selection-start="132" selection-end="132" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -68,10 +77,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="actor.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="actor.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fospyside/actor.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="65" column="8" selection-start="1331" selection-end="1331" vertical-scroll-proportion="0.0">
+            <state line="49" column="0" selection-start="1667" selection-end="1667" vertical-scroll-proportion="0.55773956">
               <folding />
             </state>
           </provider>
@@ -98,12 +107,13 @@
       <list>
         <option value="$PROJECT_DIR$/window.py" />
         <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/fospyside/actor.py" />
         <option value="$PROJECT_DIR$/fospyside/camera.py" />
         <option value="$PROJECT_DIR$/fospyside/world.py" />
         <option value="$PROJECT_DIR$/fospyside/__init__.py" />
         <option value="$PROJECT_DIR$/examples/demo1.py" />
         <option value="$PROJECT_DIR$/fospyside/window.py" />
+        <option value="$PROJECT_DIR$/examples/demo2.py" />
+        <option value="$PROJECT_DIR$/fospyside/actor.py" />
       </list>
     </option>
   </component>
@@ -327,13 +337,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/fospyside/actor.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="8" selection-start="1331" selection-end="1331" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/fospyside/vsml.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="336" column="23" selection-start="10813" selection-end="10823" vertical-scroll-proportion="0.5540541">
@@ -369,16 +372,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/examples/demo1.py">
+    <entry file="file://$PROJECT_DIR$/fospyside/window.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="8" selection-start="139" selection-end="139" vertical-scroll-proportion="0.0">
+        <state line="34" column="0" selection-start="1101" selection-end="1101" vertical-scroll-proportion="-5.357143">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fospyside/window.py">
+    <entry file="file://$PROJECT_DIR$/examples/demo1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="69" column="28" selection-start="2128" selection-end="2128" vertical-scroll-proportion="0.66339064">
+        <state line="0" column="0" selection-start="0" selection-end="139" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/demo2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="29" selection-start="132" selection-end="132" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fospyside/actor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="0" selection-start="1667" selection-end="1667" vertical-scroll-proportion="0.55773956">
           <folding />
         </state>
       </provider>
