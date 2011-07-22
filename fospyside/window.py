@@ -11,21 +11,33 @@ except ImportError:
 
 
 class Window(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480, bgcolor = (0,0,0) ):
+        """ Create a window
+        Parameters
+        ----------
+        `caption` : str or unicode
+            Initial caption (title) of the window.
+        `width` : int
+            Width of the window, in pixels.  Defaults to 640, or the
+            screen width if `fullscreen` is True.
+        `height` : int
+            Height of the window, in pixels.  Defaults to 480, or the
+            screen height if `fullscreen` is True.
+        `bgcolor` : tuple
+            Specify the background RGB color as 3-tuple with values
+            between 0 and 1
+        """
         QtGui.QWidget.__init__(self, parent)
 
         self.world = World()
 
-        self.add_actor( TriangleActor() )
-        self.add_actor( Axes() )
-
-        self.glWidget = GLWidget( self )
+        self.glWidget = GLWidget( parent = self, width = width, height = height, bgcolor = bgcolor )
 
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
 
-        self.setWindowTitle(self.tr("fos - pyside"))
+        self.setWindowTitle(self.tr(caption))
 
 
     def keyPressEvent(self, event):
@@ -41,20 +53,27 @@ class Window(QtGui.QWidget):
     def set_camera(self, camera):
         self.world.camera = camera
 
+    def screenshot(self, filename):
+        """ Store current OpenGL context as image
+        """
+        self.glWidget.grabFrameBuffer().save( filename )
+
 
 class GLWidget(QtOpenGL.QGLWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, width = None, height = None, bgcolor = None):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.lastPos = QtCore.QPoint()
-        self.bgcolor = QtGui.QColor.fromRgb(0, 0, 0)
+        self.bgcolor = QtGui.QColor.fromRgb(bgcolor[0], bgcolor[1], bgcolor[2])
         self.parent = parent
+        self.width = width
+        self.height = height
 
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
 
     def sizeHint(self):
-        return QtCore.QSize(600, 400)
+        return QtCore.QSize(self.width, self.height)
 
     def initializeGL(self):
         self.qglClearColor(self.bgcolor)

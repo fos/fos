@@ -26,7 +26,34 @@
       <file leaf-file-name="window.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fospyside/window.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="86" column="0" selection-start="2262" selection-end="2262" vertical-scroll-proportion="1.5847666">
+            <state line="69" column="28" selection-start="2128" selection-end="2128" vertical-scroll-proportion="0.66339064">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="demo1.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/examples/demo1.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="8" column="8" selection-start="139" selection-end="139" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fospyside/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1" column="19" selection-start="40" selection-end="40" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="55" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -74,6 +101,8 @@
         <option value="$PROJECT_DIR$/fospyside/actor.py" />
         <option value="$PROJECT_DIR$/fospyside/camera.py" />
         <option value="$PROJECT_DIR$/fospyside/world.py" />
+        <option value="$PROJECT_DIR$/fospyside/__init__.py" />
+        <option value="$PROJECT_DIR$/examples/demo1.py" />
         <option value="$PROJECT_DIR$/fospyside/window.py" />
       </list>
     </option>
@@ -137,6 +166,20 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fospyside" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="fospyside" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="examples" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Favorites" />
@@ -161,6 +204,20 @@
       <option name="TEST_TYPE" value="TEST_SCRIPT" />
       <option name="PATTERN" value="" />
       <option name="PUREUNITTEST" value="true" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <module name="fospyside" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
       <method />
     </configuration>
     <configuration default="true" type="PythonDocTestRunConfigurationType" factoryName="Python's doctests">
@@ -270,13 +327,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="0" selection-start="47" selection-end="47" vertical-scroll-proportion="0.035629455">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/fospyside/actor.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="65" column="8" selection-start="1331" selection-end="1331" vertical-scroll-proportion="0.0">
@@ -291,13 +341,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fospyside/world.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="0" selection-start="30" selection-end="30" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/fospyside/camera.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="20" column="17" selection-start="373" selection-end="373" vertical-scroll-proportion="0.0">
@@ -305,9 +348,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="55" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fospyside/world.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="0" selection-start="30" selection-end="30" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fospyside/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1" column="19" selection-start="40" selection-end="40" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/examples/demo1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="8" selection-start="139" selection-end="139" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/fospyside/window.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="86" column="0" selection-start="2262" selection-end="2262" vertical-scroll-proportion="1.5847666">
+        <state line="69" column="28" selection-start="2128" selection-end="2128" vertical-scroll-proportion="0.66339064">
           <folding />
         </state>
       </provider>
