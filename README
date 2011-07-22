@@ -1,0 +1,3 @@
+Start IPython >= 0.11 with:
+
+  ipython --gui qt
