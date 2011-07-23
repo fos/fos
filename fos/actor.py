@@ -190,15 +190,11 @@ class Axes(Actor):
         """ Draw three axes
         """
         super(Axes, self).__init__()
-
         self.scale = scale
 
     def draw(self):
-
         #glPushMatrix()
-
         glLineWidth(2.0)
-
         glBegin (GL_LINES)
         # x axes
         glColor3f(1.0, 0.0, 0.0)
@@ -213,7 +209,6 @@ class Axes(Actor):
         glVertex3f(0.0,0.0,0.0)
         glVertex3f(0.0,0.0,self.scale)
         glEnd()
-
         #glPopMatrix()
 
 class TriangleActor(Actor):
@@ -221,11 +216,8 @@ class TriangleActor(Actor):
         super(TriangleActor, self).__init__()
 
     def draw(self):
-
         glColor3f(1.0, 0.0, 1.0)
-
         glBegin(GL_QUADS)
-
         x1 = +0.06
         y1 = -0.14
         x2 = +0.14
@@ -234,13 +226,10 @@ class TriangleActor(Actor):
         y3 = +0.00
         x4 = +0.30
         y4 = +0.22
-
         self.quad(x1, y1, x2, y2, y2, x2, y1, x1)
-
         glEnd()
 
     def quad(self, x1, y1, x2, y2, x3, y3, x4, y4):
-
         glVertex3d(x1, y1, -0.05)
         glVertex3d(x2, y2, -0.05)
         glVertex3d(x3, y3, -0.05)
@@ -250,3 +239,53 @@ class TriangleActor(Actor):
         glVertex3d(x3, y3, +0.05)
         glVertex3d(x2, y2, +0.05)
         glVertex3d(x1, y1, +0.05)
+
+
+class PolygonLines(Actor):
+
+    def __init__(self,
+                 vertices,
+                 connectivity,
+                 colors = None):
+        """ A PolygonLines, a generic irregular data structure
+
+        vertices : Nx3
+            Local 3D coordinates x,y,z
+        connectivity : Mx2
+            Polygon line topology
+        colors : Nx4 or 1x4, float [0,1]
+            Color per vertex
+
+        """
+        super(PolygonLines, self).__init__()
+
+        self.vertices = vertices
+        self.connectivity = connectivity.ravel()
+
+        # this coloring section is for per/vertex color
+        if colors is None:
+            # default colors for each line
+            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.vertices), axis=0)
+        else:
+            # colors array is half the size of the connectivity array
+            assert( len(self.vertices) == len(colors) )
+            self.colors = colors
+
+        # create pointers
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.connectivity_ptr = self.connectivity.ctypes.data
+        self.connectivity_nr = self.connectivity.size
+        self.colors_ptr = self.colors.ctypes.data
+
+    def draw(self):
+        glPushMatrix()
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
+        glDrawElements(GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glPopMatrix()

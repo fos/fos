@@ -71,9 +71,9 @@ class SimpleRotationCamera(VSMLCamera):
         self.angle += angle
         self.camera_line_of_sight[0] = np.sin( self.angle )
         self.camera_line_of_sight[2] = -np.cos( self.angle )
-        print("Rotate camera")
-        print self.angle
-        print self.camera_line_of_sight
+        #print("Rotate camera")
+        #print self.angle
+        #print self.camera_line_of_sight
         self.update()
 
     def move(self, amount):
@@ -82,8 +82,8 @@ class SimpleRotationCamera(VSMLCamera):
         #self.look_at_point[0] += self.camera_line_of_sight[0] * amount
         #self.look_at_point[2] += self.camera_line_of_sight[2] * amount
         self.camera_distance_from_lookat += amount
-        print("Move camera")
-        print self.look_at_point
+        #print("Move camera")
+        #print self.look_at_point
         self.update()
 
     def update(self):
@@ -97,8 +97,8 @@ class SimpleRotationCamera(VSMLCamera):
         ]
         lu = camera_position + self.look_at_point + self.camera_up_vector
         vsml.lookAt(*lu )
-        print("Camera update called.")
-        print lu
+        #print("Camera update called.")
+        #print lu
 
 
 class SimpleCamera(Camera):
