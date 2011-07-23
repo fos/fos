@@ -1,3 +1,5 @@
-Start IPython >= 0.11 with:
+Start IPython >= 0.11 and type:
 
-  ipython --gui qt
+  %gui qt
+
+Before you start with the demos in the examples folder.

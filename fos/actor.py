@@ -125,7 +125,9 @@ class ShaderActor(object):
         print("aPosition")
         print self.aPosition
         # TODO: retrieve tuple array row-major order QMatrix4x4(vsml.get_projection())
-
+        # VBO: http://www.songho.ca/opengl/gl_vbo.html
+        # http://www.opengl.org/wiki/Tutorial2:_VAOs,_VBOs,_Vertex_and_Fragment_Shaders_%28C_/_SDL%29
+        
         self.tri = ( 60.0,  10.0,  0.0, 110.0, 110.0, 0.0, 10.0,  110.0, 0.0)
 
         self.mode = GL_LINES

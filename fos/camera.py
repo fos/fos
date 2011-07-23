@@ -104,3 +104,7 @@ class SimpleRotationCamera(VSMLCamera):
 class SimpleCamera(Camera):
     pass
 # http://nehe.gamedev.net/article/camera_class_tutorial/18010/
+# http://www.flipcode.com/archives/OpenGL_Camera.shtml
+# Google: OpenGL camera class
+# VTK cameras
+# Rotations: http://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/3drota.htm
