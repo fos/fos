@@ -39,6 +39,13 @@ class Actor(object):
         # relative to the Region it is associated with
         self.transformation = None
 
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
+
+
 class DynamicActor(Actor):
 
     def __init__(self):
