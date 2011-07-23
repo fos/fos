@@ -60,7 +60,28 @@ class Window(QtGui.QWidget):
         """ Store current OpenGL context as image
         """
         self.glWidget.grabFrameBuffer().save( filename )
+        
+    def keyPressEvent(self, event):
+        key = event.key()
 
+        if key == QtCore.Qt.Key_Up:
+            print("Up")
+        elif key == QtCore.Qt.Key_Down:
+            print("Down")
+        elif key == QtCore.Qt.Key_Left:
+            print("Left")
+        elif key == QtCore.Qt.Key_Right:
+            self.world.camera.reset()
+        elif key == QtCore.Qt.Key_R:
+            self.world.camera.reset()
+            self.glWidget.repaint()
+        elif key == QtCore.Qt.Key_Escape:
+            self.close()
+        else:
+            super(Window, self).keyPressEvent( event )
+
+
+# if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): # & == bit wise "and"!
 
 class GLWidget(QtOpenGL.QGLWidget):
     def __init__(self, parent=None, width = None, height = None, bgcolor = None):
@@ -110,14 +131,19 @@ class GLWidget(QtOpenGL.QGLWidget):
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
-
+        print "dx, dy", dx, dy
         if event.buttons() & QtCore.Qt.LeftButton:
-            pass
-        elif event.buttons() & QtCore.Qt.RightButton:
+            # should rotate
             if dx > 0:
-                self.parent.world.camera.rotate_xz( 0.01 )
+                vsml.rotate( 5, 0, 1, 0 )
+                #self.parent.world.camera.rotate_xz( 0.01 )
             else:
-                self.parent.world.camera.rotate_xz(- 0.01 )
+                vsml.rotate( -5, 0, 1, 0 )
+                #self.parent.world.camera.rotate_xz(- 0.01 )
+
+        elif event.buttons() & QtCore.Qt.RightButton:
+            # should pan
+            vsml.translate( dx, dy, 0 )
             #self.parent.world.camera.translate(0,-dy,0 )
             
         self.lastPos = QtCore.QPoint(event.pos())
@@ -126,6 +152,10 @@ class GLWidget(QtOpenGL.QGLWidget):
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
         #self.parent.world.camera.translate(0,0, numSteps )
-        self.parent.world.camera.move( -numSteps )
+        # self.parent.world.camera.move( -numSteps )
+        if e.delta() > 0:
+            vsml.scale( 2, 2, 2 )
+        else:
+            vsml.scale( 1./2, 1./2, 1./2 )
         self.repaint()
 

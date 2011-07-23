@@ -199,8 +199,9 @@ class VSML(object):
         mat = np.zeros( (4,4), dtype = np.float32)
 
         mat[0,0] = x
-        mat[2,2] = y
-        mat[3,3] = z
+        mat[1,1] = y
+        mat[2,2] = z
+        mat[3,3] = 1.0
 
         if aType == self.MatrixTypes.MODELVIEW:
             self.multMatrix(self.MatrixTypes.MODELVIEW, mat)

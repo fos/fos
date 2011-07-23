@@ -46,6 +46,9 @@ class VSMLCamera(Camera):
     def rotate(self, angle, x, y, z):
         vsml.rotate(angle, x, y, z, vsml.MatrixTypes.MODELVIEW)
 
+
+
+
 # http://www.lighthouse3d.com/tutorials/glut-tutorial/keyboard-example-moving-around-the-world/
 class SimpleRotationCamera(VSMLCamera):
 
@@ -53,17 +56,21 @@ class SimpleRotationCamera(VSMLCamera):
         """ This camera uses the lookAt function to move """
         super(SimpleRotationCamera, self).__init__()
 
-        self.look_at_point = [0, 0, 0]
-        self.camera_distance_from_lookat = 20
-        self.angle = 0.0
-        self.camera_line_of_sight = [0, 0, -1]
-        self.camera_up_vector = [0, 1, 0]
+        self.setup()
         
         #self.camera_right_vector = [1, 0, 0]
 
         self.scroll_speed = 10
         self.mouse_speed = 0.1
         self.update()
+
+    def setup(self):
+        self.look_at_point = [0, 0, 0]
+        self.camera_distance_from_lookat = 20
+        self.angle = 0.0
+        self.camera_line_of_sight = [0, 0, -1]
+        self.camera_up_vector = [0, 1, 0]
+
 
     def rotate_xz(self, angle):
         """ Move on a circle on the xz plane
@@ -86,6 +93,10 @@ class SimpleRotationCamera(VSMLCamera):
         #print self.look_at_point
         self.update()
 
+    def reset(self):
+        self.setup()
+        self.update()
+
     def update(self):
         super(SimpleRotationCamera, self).reset()
         # setup the initial look at updating the modelview
@@ -96,6 +107,7 @@ class SimpleRotationCamera(VSMLCamera):
             self.look_at_point[2] - self.camera_line_of_sight[2] * self.camera_distance_from_lookat
         ]
         lu = camera_position + self.look_at_point + self.camera_up_vector
+        super(SimpleRotationCamera, self).reset()
         vsml.lookAt(*lu )
         #print("Camera update called.")
         #print lu
