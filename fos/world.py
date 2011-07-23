@@ -1,11 +1,11 @@
-from camera import VSMLCamera
+from camera import *
 
 class World(object):
 
     def __init__(self):
 
         self.actors = []
-        self.camera = VSMLCamera()
+        self.camera = SimpleRotationCamera()
 
     def add_actor(self, actor):
         if not actor in self.actors:

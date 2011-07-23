@@ -111,13 +111,18 @@ class GLWidget(QtOpenGL.QGLWidget):
         if event.buttons() & QtCore.Qt.LeftButton:
             pass
         elif event.buttons() & QtCore.Qt.RightButton:
-            self.parent.world.camera.translate(dx,0,0 )
-            self.parent.world.camera.translate(0,-dy,0 )
+            if dx > 0:
+                self.parent.world.camera.rotate_xz( 0.01 )
+            else:
+                self.parent.world.camera.rotate_xz(- 0.01 )
+            #self.parent.world.camera.translate(0,-dy,0 )
             
         self.lastPos = QtCore.QPoint(event.pos())
         self.repaint()
 
     def wheelEvent(self, e):
-        numSteps = e.delta() / 15
-        self.parent.world.camera.translate(0,0, numSteps )
+        numSteps = e.delta() / 15 / 8
+        #self.parent.world.camera.translate(0,0, numSteps )
+        self.parent.world.camera.move( numSteps )
         self.repaint()
+

@@ -20,6 +20,74 @@ vert = """#version 130
 frag = """#version 130
         in vec4 vColor; void main(){    gl_FragColor = vec4(vColor.x, vColor.y, vColor.z,  vColor.w); }"""
 
+class Actor(object):
+
+    def __init__(self):
+
+        # is this actor currently visible
+        self.visible = True
+
+        # is this actor currently selected
+        self.selected = False
+
+        # affine transformation of the actor
+        # relative to the Region it is associated with
+        self.transformation = None
+
+class DynamicActor(Actor):
+
+    def __init__(self):
+        """ Dynamic actor either implemented as a list
+        of static actors, or with data arrays having a temporal dimension
+        """
+
+        # is the actor currently playing
+        self.playing = False
+
+        # the reference to the first time frame
+        self.current_time_frame = 0
+
+    def next(self):
+        """ Next time step
+        """
+        pass
+
+    def previous(self):
+        """ Previous time step
+        """
+        pass
+
+    def play(self):
+        """ Start playing
+        """
+        pass
+
+    def pause(self):
+        """ Pause playing
+        """
+        pass
+
+    def stop(self):
+        """ Stop playing and reset to start
+        """
+        pass
+        
+
+
+
+class AABB(object):
+
+    def __init__(self):
+        """ Axis Aligned Bounding Box
+        """
+        pass
+
+class CartesianCoordianteSystemAxes(object):
+
+    def __init__(self):
+            """ Actor displaying the three cartesian, orthogonal coordinates
+            """
+            pass
 
 class ShaderActor(object):
     def __init__(self):

@@ -7,7 +7,7 @@
 
 # also see http://sourceforge.net/projects/libmymath/files/libmymath%20v1.3.1/
 
-from fos.lib.pyglet.gl import *
+from pyglet.gl import *
 import numpy as np
 from ctypes import *
 
