@@ -18,7 +18,10 @@ vert = """#version 130
                     gl_Position = projMatrix * modelviewMatrix * vec4(aPosition.x , aPosition.y, aPosition.z, 1.0);
             }"""
 frag = """#version 130
-        in vec4 vColor; void main(){    gl_FragColor = vec4(vColor.x, vColor.y, vColor.z,  vColor.w); }"""
+        in vec4 vColor; void main(){
+        // gl_FragColor = vec4(vColor.x, vColor.y, vColor.z,  vColor.w);
+        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+         }"""
 
 class Actor(object):
 
@@ -75,6 +78,13 @@ class DynamicActor(Actor):
 
 
 
+class ScaleBar(object):
+
+    def __init__(self):
+        """ ScaleBar actor with text
+        """
+        pass
+
 class AABB(object):
 
     def __init__(self):
@@ -115,18 +125,27 @@ class ShaderActor(object):
 
         # TODO: retrieve tuple array row-major order QMatrix4x4(vsml.get_projection())
 
+        self.tri = ( 60.0,  10.0,  0.0, 110.0, 110.0, 0.0, 10.0,  110.0, 0.0)
+
 
     def draw(self):
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
-        
-        #program.setAttributeArray(vertexLocation, triangleVertices, 3)
-        #program.setUniformValue(matrixLocation, pmvMatrix)
-        #program.setUniformValue(colorLocation, color)
-        #glDrawArrays(GL_TRIANGLES, 0, 3)
-        #self.program.disableAttributeArray(vertexLocation)
 
+        self.program.setUniformValueArray( self.projMatrix,
+            QMatrix4x4( tuple(vsml.projection.T.ravel().tolist()) ),
+            16 )
+
+        self.program.setUniformValueArray( self.modelviewMatrix,
+            QMatrix4x4( tuple(vsml.modelview.T.ravel().tolist()) ),
+            16 )
+
+        self.program.setAttributeArray( self.aPosition, self.tri, 3)
+
+        glDrawArrays(GL_TRIANGLES, 0, 3)
+
+        self.program.disableAttributeArray( self.aPosition )
 
     
 
