@@ -44,11 +44,14 @@ class Window(QtGui.QWidget):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
 
-    def add_actor(self, actor):
-        self.world.add_actor( actor )
+    def new_region(self, regionname, transform, resolution ):
+        self.world.new_region( regionname, transform, resolution )
 
-    def remove_actor(self, actor):
-        self.world.remove_actor( actor )
+    def add_actor_to_region(self, regionname, actor):
+        self.world.add_actor_to_region( regionname, actor )
+
+    def remove_actor_from_region(self, regionname, actor):
+        self.world.remove_actor_from_region( regionname, actor )
 
     def set_camera(self, camera):
         self.world.camera = camera
@@ -123,6 +126,6 @@ class GLWidget(QtOpenGL.QGLWidget):
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
         #self.parent.world.camera.translate(0,0, numSteps )
-        self.parent.world.camera.move( numSteps )
+        self.parent.world.camera.move( -numSteps )
         self.repaint()
 

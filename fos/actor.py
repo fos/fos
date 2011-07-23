@@ -1,7 +1,9 @@
-from pyglet.gl import *
-from PySide.QtOpenGL import QGLShader, QGLShaderProgram
+import numpy as np
 
-from PySide.QtGui import QMatrix4x4
+from pyglet.gl import *
+
+from PySide.QtOpenGL import QGLShader, QGLShaderProgram
+from PySide.QtGui import QMatrix4x4, QVector3D
 
 from vsml import vsml
 
@@ -74,9 +76,6 @@ class DynamicActor(Actor):
         """ Stop playing and reset to start
         """
         pass
-        
-
-
 
 class ScaleBar(object):
 
@@ -123,13 +122,38 @@ class ShaderActor(object):
         self.projMatrix = self.program.uniformLocation("projMatrix")
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
 
+        print("aPosition")
+        print self.aPosition
         # TODO: retrieve tuple array row-major order QMatrix4x4(vsml.get_projection())
 
         self.tri = ( 60.0,  10.0,  0.0, 110.0, 110.0, 0.0, 10.0,  110.0, 0.0)
 
+        self.mode = GL_LINES
+        self.type = GL_UNSIGNED_INT
+
+        self.vertices = np.array( [ [0,0,0],[10,10,0]], dtype = np.float32 )
+        self.connectivity = np.array( [ 0, 1], dtype = np.uint32 )
+
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.indices = self.connectivity
+        self.indices_ptr = self.indices.ctypes.data
+        self.indices_nr = self.indices.size
+
+        self.vertex_vbo = GLuint(0)
+        glGenBuffers(1, self.vertex_vbo)
+        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
+        glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
+
+        self.indices_vbo = GLuint(0)
+        glGenBuffers(1, self.indices_vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
+        # uint32 has 4 bytes
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.indices_nr, self.indices_ptr, GL_STATIC_DRAW)
+
 
     def draw(self):
-
+        print "draw"
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
 
@@ -141,15 +165,26 @@ class ShaderActor(object):
             QMatrix4x4( tuple(vsml.modelview.T.ravel().tolist()) ),
             16 )
 
-        self.program.setAttributeArray( self.aPosition, self.tri, 3)
+        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
-        glDrawArrays(GL_TRIANGLES, 0, 3)
+        # bind the indices buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
+
+        glDrawElements(self.mode,self.indices_nr,self.type,0)
+
+
+        #self.program.setUniformValueArray( self.aPosition,
+#            *self.tri, len(self.tri) )
+
+
+        #glDrawArrays(GL_TRIANGLES, 0, 3)
 
         self.program.disableAttributeArray( self.aPosition )
 
     
 
-class Axes(object):
+class Axes(Actor):
 
     def __init__(self, scale = 10.0):
         """ Draw three axes
@@ -181,11 +216,13 @@ class Axes(object):
 
         #glPopMatrix()
 
-class TriangleActor(object):
+class TriangleActor(Actor):
     def __init__(self):
-        pass
+        super(TriangleActor, self).__init__()
 
     def draw(self):
+
+        glColor3f(1.0, 0.0, 1.0)
 
         glBegin(GL_QUADS)
 
