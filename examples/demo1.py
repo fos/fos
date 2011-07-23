@@ -1,6 +1,6 @@
 # Need to start with ipython --gui qt
 
-from fospyside import *
+from fos import *
 w = Window()
 
 w.add_actor( TriangleActor() )

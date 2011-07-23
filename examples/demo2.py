@@ -1,7 +1,7 @@
 # Need to start with ipython --gui qt
 # Shows a Shader
 
-from fospyside import *
+from fos import *
 w = Window()
 w.show()
 
