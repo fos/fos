@@ -131,31 +131,62 @@ class GLWidget(QtOpenGL.QGLWidget):
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
-        print "dx, dy", dx, dy
         if event.buttons() & QtCore.Qt.LeftButton:
             # should rotate
-            if dx > 0:
-                vsml.rotate( 5, 0, 1, 0 )
-                #self.parent.world.camera.rotate_xz( 0.01 )
-            else:
-                vsml.rotate( -5, 0, 1, 0 )
-                #self.parent.world.camera.rotate_xz(- 0.01 )
+            if dx != 0:
+                # rotate around yup
+                if dx > 0:
+                    angle = -0.01
+                else:
+                    angle = 0.01
+                self.parent.world.camera.rotate_around_focal( angle, "yup" )
+
+            if dy != 0:
+                # rotate around right
+                if dy > 0:
+                    angle = -0.01
+                else:
+                    angle = 0.01
+                self.parent.world.camera.rotate_around_focal( angle, "right" )
 
         elif event.buttons() & QtCore.Qt.RightButton:
             # should pan
-            vsml.translate( dx, dy, 0 )
-            #self.parent.world.camera.translate(0,-dy,0 )
+
+            if dx > 0:
+                pandx = -1.0
+            elif dx < 0:
+                pandx = 1.0
+            else:
+                pandx = 0.0
+
+
+            if dy > 0:
+                pandy = 0.5
+            elif dy < 0:
+                pandy = -0.5
+            else:
+                pandy = 0.0
+
+            self.parent.world.camera.pan( pandx, pandy )
             
         self.lastPos = QtCore.QPoint(event.pos())
+
         self.repaint()
 
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
-        #self.parent.world.camera.translate(0,0, numSteps )
-        # self.parent.world.camera.move( -numSteps )
-        if e.delta() > 0:
-            vsml.scale( 2, 2, 2 )
+        print "numsteps", numSteps
+        shift = False
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
+            print "ctrl modifier"
+
+        if (e.modifiers() & QtCore.Qt.ShiftModifier):
+            shift = True
+
+        if shift:
+            self.parent.world.camera.move_forward_all( numSteps )
         else:
-            vsml.scale( 1./2, 1./2, 1./2 )
+            self.parent.world.camera.move_forward( numSteps )
+
         self.repaint()
 

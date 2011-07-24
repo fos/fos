@@ -41,7 +41,7 @@ class World(object):
 
     def __init__(self):
         self.regions = {}
-        self.camera = SimpleRotationCamera()
+        self.camera = SimpleCamera()
 
     def new_region(self, regionname, transform, resolution ):
         if regionname in self.regions:

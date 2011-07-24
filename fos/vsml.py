@@ -285,34 +285,28 @@ class VSML(object):
 
         up = np.array( [xUp, yUp, zUp], dtype = np.float32 )
 
-        right = np.cross(dir, up)
-        right = normalize(right)
+        right = normalize( np.cross(dir, up) )
 
-        up = np.cross(right,dir)
-        up = normalize(up)
+        up = normalize( np.cross(right,dir) )
 
         # build the matrix
         out = np.zeros( (4,4), dtype = np.float32 )
         out[0,:3] = right
         out[1,:3] = up
         out[2,:3] = -dir
+        out[3,3] = 1.0
 
+        self.multMatrix(self.MatrixTypes.MODELVIEW, out)
+
+        out = np.eye( 4, dtype = np.float32 )
         out[0,3] = -xPos
         out[1,3] = -yPos
         out[2,3] = -zPos
-        out[3,3] = 1.0
-
-        # mulitply on the matrix stack
-        # self.modelview = np.dot(out, self.modelview)
-        # self.modelview = out
         self.multMatrix(self.MatrixTypes.MODELVIEW, out)
 
         if DEBUG:
             print "lookat: modelview vsml", np.array( vsml.get_modelview() )
-        #print "modelview orig", self.get_modelview_matrix()
 
-        # self.modelview = gletools.Mat4(*out.T.ravel().tolist())
-    
 
     def perspective(self, fov, ratio, nearp, farp):
         """
