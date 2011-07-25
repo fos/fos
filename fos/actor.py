@@ -298,3 +298,16 @@ class PolygonLines(Actor):
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
         glPopMatrix()
+
+class GlumpyImage(Actor):
+
+    def __init__(self):
+        """ Test if we can blit Glumpy Images """
+        super(GlumpyImage, self).__init__()
+
+        import numpy, glumpy
+        Z = numpy.random.random((32,32)).astype(numpy.float32)
+        self.I = glumpy.Image(Z)
+
+    def draw(self):
+        self.I.blit(0,0,300,300)
