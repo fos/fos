@@ -6,24 +6,7 @@ from PySide.QtOpenGL import QGLShader, QGLShaderProgram
 from PySide.QtGui import QMatrix4x4, QVector3D
 
 from vsml import vsml
-
-vert = """#version 130
-            in vec3 aPosition;
-            in vec4 aColor; // This is the per-vertex color
-            // matrices
-            uniform mat4 projMatrix;
-            uniform mat4 modelviewMatrix;
-            out vec4 vColor;   // This is the output to the geometry shader
-            void main()
-            {
-                    vColor = vec4(aColor.x , aColor.y , aColor.z, aColor.w); 
-                    gl_Position = projMatrix * modelviewMatrix * vec4(aPosition.x , aPosition.y, aPosition.z, 1.0);
-            }"""
-frag = """#version 130
-        in vec4 vColor; void main(){
-        // gl_FragColor = vec4(vColor.x, vColor.y, vColor.z,  vColor.w);
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-         }"""
+from .shader.lib import *
 
 class Actor(object):
 
@@ -105,32 +88,19 @@ class CartesianCoordianteSystemAxes(object):
             """
             pass
 
-class ShaderActor(object):
+class ShaderActor(Actor):
     def __init__(self):
         """ Only create this actor of a valid OpenGL context exists
         """
+        super(ShaderActor, self).__init__()
 
-        shader = QGLShader(QGLShader.Fragment)
-        shader.compileSourceCode(frag)
-
-        self.program = QGLShaderProgram()
-        self.program.addShader(shader)
-
-        shader = QGLShader(QGLShader.Vertex)
-        shader.compileSourceCode(vert)
-
-        self.program.addShader(shader)
-
-        self.program.link()
-        self.program.bind()
-
+        self.program = get_shader_program( "propagate", "120" )
+        
         self.aPosition = self.program.attributeLocation("aPosition")
         self.aColor = self.program.attributeLocation("aColor")
         self.projMatrix = self.program.uniformLocation("projMatrix")
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
 
-        print("aPosition")
-        print self.aPosition
         # TODO: retrieve tuple array row-major order QMatrix4x4(vsml.get_projection())
         # VBO: http://www.songho.ca/opengl/gl_vbo.html
         # http://www.opengl.org/wiki/Tutorial2:_VAOs,_VBOs,_Vertex_and_Fragment_Shaders_%28C_/_SDL%29
@@ -140,29 +110,90 @@ class ShaderActor(object):
         self.mode = GL_LINES
         self.type = GL_UNSIGNED_INT
 
-        self.vertices = np.array( [ [0,0,0],[10,10,0]], dtype = np.float32 )
-        self.connectivity = np.array( [ 0, 1], dtype = np.uint32 )
+        #self.vertices = np.array( [ [0,0,0],[10,10,0]], dtype = np.float32 )
+        #self.connectivity = np.array( [ 0, 1], dtype = np.uint32 )
+
+
+        self.vertices = np.array( [ [0,0,0],
+                           [5,5,0],
+                           [5,10,0],
+                           [10,5,0]], dtype = np.float32 )
+
+        self.connectivity = np.array( [ 0, 1, 1, 2, 1, 3 ], dtype = np.uint32 ).ravel()
+
+        self.colors = np.array( [ [0, 0, 1, 1],
+                           [1, 0, 1, 1],
+                           [0, 0, 1, 0.5],
+                           [1.0, 0.4, 1, 0.5]] , dtype = np.float32 )
+
 
         self.vertices_ptr = self.vertices.ctypes.data
-        self.indices = self.connectivity
-        self.indices_ptr = self.indices.ctypes.data
-        self.indices_nr = self.indices.size
+        self.connectivity_ptr = self.connectivity.ctypes.data
+        self.connectivity_nr = self.connectivity.size
+        self.colors_ptr = self.colors.ctypes.data
 
-        self.vertex_vbo = GLuint(0)
-        glGenBuffers(1, self.vertex_vbo)
-        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
-        glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
+        #self.vertex_vbo = GLuint(0)
+        #glGenBuffers(1, self.vertex_vbo)
+        #glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
+        #glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
+        #glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
-        self.indices_vbo = GLuint(0)
-        glGenBuffers(1, self.indices_vbo)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
+        #self.indices_vbo = GLuint(0)
+        #glGenBuffers(1, self.indices_vbo)
+        #glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
         # uint32 has 4 bytes
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.indices_nr, self.indices_ptr, GL_STATIC_DRAW)
+        #glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.indices_nr, self.indices_ptr, GL_STATIC_DRAW)
 
 
     def draw(self):
+        
+        print "the draw"
+
+        #glPushMatrix()
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
+        glDrawElements(GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        #print "d"
+        #glPopMatrix()
+        
+    def draw1(self):
+        
         print "draw"
+        self.program.bind()
+
+        self.program.setUniformValueArray( self.projMatrix,
+            QMatrix4x4( tuple(vsml.projection.T.ravel().tolist()) ),
+            16 )
+
+        self.program.setUniformValueArray( self.modelviewMatrix,
+            QMatrix4x4( tuple(vsml.modelview.T.ravel().tolist()) ),
+            16 )
+
+        #glPushMatrix()
+        #glEnable(GL_BLEND)
+        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnableClientState(GL_VERTEX_ARRAY)
+       # print "a"
+        #glEnableClientState(GL_COLOR_ARRAY)
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        #print "b"
+        #glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
+        glDrawElements(GL_LINES, self.indices_nr, GL_UNSIGNED_INT, self.indices_ptr)
+        #print "c"
+        #glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)
+        #print "d"
+        #glPopMatrix()
+
+
+    def draw_vbo(self):
+        
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
 
