@@ -1,6 +1,7 @@
 import numpy as np
 
 from pyglet.gl import *
+from ctypes import *
 
 from PySide.QtOpenGL import QGLShader, QGLShaderProgram
 from PySide.QtGui import QMatrix4x4, QVector3D
@@ -88,6 +89,22 @@ class CartesianCoordianteSystemAxes(object):
             """
             pass
 
+def modelview_matrix(array_type=c_float, glGetMethod=glGetFloatv):
+    """
+    Returns the current modelview matrix.
+    """
+    m = (array_type*16)()
+    glGetMethod(GL_MODELVIEW_MATRIX, m)
+    print "modelview matrix", np.array(m)
+
+def projection_matrix(array_type=c_float, glGetMethod=glGetFloatv):
+    """
+    Returns the current modelview matrix.
+    """
+    m = (array_type*16)()
+    glGetMethod(GL_PROJECTION_MATRIX, m)
+    print "projection matrix", np.array(m)
+
 class ShaderActor(Actor):
     def __init__(self):
         """ Only create this actor of a valid OpenGL context exists
@@ -97,7 +114,9 @@ class ShaderActor(Actor):
         self.program = get_shader_program( "propagate", "120" )
         
         self.aPosition = self.program.attributeLocation("aPosition")
+        print "aPosition", self.aPosition
         self.aColor = self.program.attributeLocation("aColor")
+        print "aColor", self.aColor
         self.projMatrix = self.program.uniformLocation("projMatrix")
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
 
@@ -136,19 +155,23 @@ class ShaderActor(Actor):
         #glGenBuffers(1, self.vertex_vbo)
         #glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
         #glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
-        #glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
+        #glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
-        #self.indices_vbo = GLuint(0)
-        #glGenBuffers(1, self.indices_vbo)
-        #glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
+        #self.connectivity_vbo = GLuint(0)
+        #glGenBuffers(1, self.connectivity_vbo)
+        #glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
         # uint32 has 4 bytes
-        #glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.indices_nr, self.indices_ptr, GL_STATIC_DRAW)
+        #glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
 
 
-    def draw(self):
-        
+    def draw2(self):
+
         print "the draw"
-
+        self.program.bind()
+        print "vsml projection", vsml.projection
+        print "vsml modelview", vsml.modelview
+        print "opengl projection", projection_matrix()
+        print "opengl modelview", modelview_matrix()
         #glPushMatrix()
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -161,18 +184,20 @@ class ShaderActor(Actor):
         glDisableClientState(GL_VERTEX_ARRAY)
         #print "d"
         #glPopMatrix()
+        glUseProgram(0)
         
-    def draw1(self):
-        
-        print "draw"
+    def draw(self):
+        # works fine with gl_Vertex and no bound buffers!
+        # binding buffers interfers
+        print "draw qmatrix"
         self.program.bind()
 
         self.program.setUniformValueArray( self.projMatrix,
-            QMatrix4x4( tuple(vsml.projection.T.ravel().tolist()) ),
+            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
             16 )
 
         self.program.setUniformValueArray( self.modelviewMatrix,
-            QMatrix4x4( tuple(vsml.modelview.T.ravel().tolist()) ),
+            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
             16 )
 
         #glPushMatrix()
@@ -184,44 +209,62 @@ class ShaderActor(Actor):
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
         #print "b"
         #glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
-        glDrawElements(GL_LINES, self.indices_nr, GL_UNSIGNED_INT, self.indices_ptr)
+        glDrawElements(GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr)
         #print "c"
         #glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
         #print "d"
         #glPopMatrix()
+        self.program.release()
 
+    def drawwrong(self):
 
-    def draw_vbo(self):
-        
+        self.program.bind()
+
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
 
         self.program.setUniformValueArray( self.projMatrix,
-            QMatrix4x4( tuple(vsml.projection.T.ravel().tolist()) ),
+            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
             16 )
 
         self.program.setUniformValueArray( self.modelviewMatrix,
-            QMatrix4x4( tuple(vsml.modelview.T.ravel().tolist()) ),
+            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
+            16 )
+        
+        self.program.enableAttributeArray(self.aPosition)
+        self.program.setAttributeArray(self.aPosition, self.tri,  3)
+
+        glDrawArrays(GL_TRIANGLES, 0, 3)
+
+        self.program.disableAttributeArray(self.aPosition)
+
+    def drawee(self):
+
+        self.program.bind()
+
+        # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
+        self.program.enableAttributeArray( self.aPosition )
+
+        self.program.setUniformValueArray( self.projMatrix,
+            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
+            16 )
+
+        self.program.setUniformValueArray( self.modelviewMatrix,
+            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
             16 )
 
         glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0)
+        glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
         # bind the indices buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
 
-        glDrawElements(self.mode,self.indices_nr,self.type,0)
-
-
-        #self.program.setUniformValueArray( self.aPosition,
-#            *self.tri, len(self.tri) )
-
-
-        #glDrawArrays(GL_TRIANGLES, 0, 3)
+        glDrawElements(self.mode,self.connectivity_nr,self.type,0)
 
         self.program.disableAttributeArray( self.aPosition )
 
+        glUseProgram(0)
     
 
 class Axes(Actor):

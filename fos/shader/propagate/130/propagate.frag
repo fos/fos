@@ -1,6 +1,6 @@
 #version 130
 
-in vec4 vColor;
+// in vec4 vColor;
 
 void main()
 {
