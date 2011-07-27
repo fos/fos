@@ -211,6 +211,9 @@ class TreeActor(Actor):
         # maximum 2d texture
         myint = GLint(0)
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, myint)
+        oint = GLint(0)
+        glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_EXT, oint)
+        print "Max texture buffer size", oint.value
         self.max_tex = myint.value
 
         if self.tex_size < self.max_tex:
@@ -271,92 +274,94 @@ class TreeActor(Actor):
         self.shader.unbind()
 
 
-class ShaderActor(Actor):
-    def __init__(self):
-        """ Only create this actor of a valid OpenGL context exists
-        """
-        super(ShaderActor, self).__init__()
+class PolygonLines(Actor):
 
-        self.program = get_shader_program( "propagate", "120" )
+    def __init__(self,
+             vertices,
+             connectivity,
+             colors = None,
+             radius = None,
+             affine = None):
+        """ A PolygonLines, composed of many (branching) polygons
+
+        vertices : Nx3
+            3D Coordinates x,y,z
+        connectivity : Mx1
+            Tree topology
+        colors : Nx4 or 1x4
+            Per connection color
+        affine : 4x4
+            Affine transformation of the actor
+
+        Notes
+        -----
+        Only create this actor of a valid OpenGL context exists
+        """
+        super(PolygonLines, self).__init__()
+
+        self.program = get_shader_program( "propagate", "130" )
         
         self.aPosition = self.program.attributeLocation("aPosition")
-        print "aPosition", self.aPosition
         self.aColor = self.program.attributeLocation("aColor")
-        print "aColor", self.aColor
+        
         self.projMatrix = self.program.uniformLocation("projMatrix")
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
 
-        # TODO: retrieve tuple array row-major order QMatrix4x4(vsml.get_projection())
-        # VBO: http://www.songho.ca/opengl/gl_vbo.html
-        # http://www.opengl.org/wiki/Tutorial2:_VAOs,_VBOs,_Vertex_and_Fragment_Shaders_%28C_/_SDL%29
-        # http://www.opengl.org/wiki/Buffer_Objects
-        
-        self.tri = ( 60.0,  10.0,  0.0, 110.0, 110.0, 0.0, 10.0,  110.0, 0.0)
+        if affine is None:
+            self.affine = np.eye(4, dtype = np.float32)
+        else:
+            self.affine = affine
 
-        self.mode = GL_LINES
-        self.type = GL_UNSIGNED_INT
+        # unfortunately, we need to duplicate vertices if we want per line color
+        self.vertices = vertices[connectivity,:]
 
-        #self.vertices = np.array( [ [0,0,0],[10,10,0]], dtype = np.float32 )
-        #self.connectivity = np.array( [ 0, 1], dtype = np.uint32 )
+        # we have a simplified connectivity now
+        self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
 
+        # this coloring section is for per/vertex color
+        if colors is None:
+            # default colors for each line
+            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/2, axis=0)
+        else:
+            # colors array is half the size of the connectivity array
+            assert( len(self.connectivity)/2 == len(colors) )
+            self.colors = colors
 
-        self.vertices = np.array( [ [0,0,0],
-                           [5,5,0],
-                           [5,10,0],
-                           [10,5,0]], dtype = np.float32 )
-
-        self.connectivity = np.array( [ 0, 1, 1, 2, 1, 3 ], dtype = np.uint32 ).ravel()
-
-        self.colors = np.array( [ [0, 0, 1, 1],
-                           [1, 0, 1, 1],
-                           [0, 0, 1, 0.5],
-                           [1.0, 0.4, 1, 0.5]] , dtype = np.float32 )
-
+        # we want per line color
+        # duplicating the color array, we have the colors per vertex
+        self.colors =  np.repeat(self.colors, 2, axis=0)
 
         self.vertices_ptr = self.vertices.ctypes.data
         self.connectivity_ptr = self.connectivity.ctypes.data
         self.connectivity_nr = self.connectivity.size
         self.colors_ptr = self.colors.ctypes.data
 
-        #self.vertex_vbo = GLuint(0)
-        #glGenBuffers(1, self.vertex_vbo)
-        #glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
-        #glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
-        #glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0)
+        # for vertices location
+        glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
+        self.vertex_vbo = GLuint(0)
+        glGenBuffers(1, self.vertex_vbo)
+        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
+        glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
+        glDisableVertexAttribArray(self.aPosition)
 
-        #self.connectivity_vbo = GLuint(0)
-        #glGenBuffers(1, self.connectivity_vbo)
-        #glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
+        # for colors
+        glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
+        self.colors_vbo = GLuint(0)
+        glGenBuffers(1, self.colors_vbo)
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
+        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
+        glDisableVertexAttribArray(self.aColor)
+
+        # for indices
+        self.connectivity_vbo = GLuint(0)
+        glGenBuffers(1, self.connectivity_vbo)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
         # uint32 has 4 bytes
-        #glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
 
-
-    def draw2(self):
-
-        print "the draw"
-        self.program.bind()
-        print "vsml projection", vsml.projection
-        print "vsml modelview", vsml.modelview
-        print "opengl projection", projection_matrix()
-        print "opengl modelview", modelview_matrix()
-        #glPushMatrix()
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
-        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
-        glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
-        glDrawElements(GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr)
-        glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)
-        #print "d"
-        #glPopMatrix()
-        glUseProgram(0)
         
     def draw(self):
-        # works fine with gl_Vertex and no bound buffers!
-        # binding buffers interfers
-        print "draw qmatrix"
+
         self.program.bind()
 
         self.program.setUniformValueArray( self.projMatrix,
@@ -366,75 +371,24 @@ class ShaderActor(Actor):
         self.program.setUniformValueArray( self.modelviewMatrix,
             QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
             16 )
-
-        #glPushMatrix()
-        #glEnable(GL_BLEND)
-        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnableClientState(GL_VERTEX_ARRAY)
-       # print "a"
-        #glEnableClientState(GL_COLOR_ARRAY)
-        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
-        #print "b"
-        #glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
-        glDrawElements(GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr)
-        #print "c"
-        #glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)
-        #print "d"
-        #glPopMatrix()
-        self.program.release()
-
-    def drawwrong(self):
-
-        self.program.bind()
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
-
-        self.program.setUniformValueArray( self.projMatrix,
-            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
-            16 )
-
-        self.program.setUniformValueArray( self.modelviewMatrix,
-            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
-            16 )
-        
-        self.program.enableAttributeArray(self.aPosition)
-        self.program.setAttributeArray(self.aPosition, self.tri,  3)
-
-        glDrawArrays(GL_TRIANGLES, 0, 3)
-
-        self.program.disableAttributeArray(self.aPosition)
-
-    def drawee(self):
-
-        self.program.bind()
-
-        # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
-        self.program.enableAttributeArray( self.aPosition )
-        # TODO:
-        # is this equivalent to
-        # glEnableVertexAttribArray
-        # see http://www.opengl.org/wiki/VBO_-_more
-        self.program.setUniformValueArray( self.projMatrix,
-            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
-            16 )
-
-        self.program.setUniformValueArray( self.modelviewMatrix,
-            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
-            16 )
-
         glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
         glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
+        glEnableVertexAttribArray(self.aColor)
+        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.colors_vbo)
+        glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
+        
         # bind the indices buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
 
-        glDrawElements(self.mode,self.connectivity_nr,self.type,0)
+        glDrawElements( GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, 0 )
 
         self.program.disableAttributeArray( self.aPosition )
 
-        glUseProgram(0)
+        self.program.release()
     
 
 class Axes(Actor):
@@ -494,7 +448,7 @@ class TriangleActor(Actor):
         glVertex3d(x1, y1, +0.05)
 
 
-class PolygonLines(Actor):
+class PolygonLinesOLD(Actor):
 
     def __init__(self,
                  vertices,

@@ -24,4 +24,8 @@ def a():
 
     act = TreeActor(vertices = vert, connectivity = conn, radius = vert_width,colors = cols)
     w.add_actor_to_region( "Main", act )
+
+    ax = Axes()
+    w.add_actor_to_region( "Main", ax )
+
     return act

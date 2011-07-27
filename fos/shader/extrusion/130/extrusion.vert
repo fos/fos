@@ -2,7 +2,6 @@
 in vec3 aPosition;
 in vec4 aColor; // This is the per-vertex color
 
-
 // matrices
 uniform mat4 projMatrix;
 uniform mat4 modelviewMatrix;
