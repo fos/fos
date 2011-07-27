@@ -1,12 +1,18 @@
 # Need to start with ipython --gui qt
-
+import sys
 from fos import *
 
-w = Window()
+from PySide.QtGui import QApplication
 
-w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
 
-w.add_actor_to_region( "Main", TriangleActor() )
-w.add_actor_to_region( "Main", Axes() )
+    w = Window()
+    w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+    w.add_actor_to_region( "Main", Axes() )
+    w.show()
 
-w.show()
+    sys.exit(app.exec_())
+    
+
+

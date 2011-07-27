@@ -39,6 +39,8 @@ class Window(QtGui.QWidget):
 
         self.setWindowTitle(self.tr(caption))
 
+        self.show()
+
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
