@@ -277,7 +277,7 @@ class PolygonLinesExtruded(Actor):
         self.radius_unit = GLuint()
         glGenTextures(1, byref(self.radius_unit))
         glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
-        glTexBufferEXT( GL_TEXTURE_BUFFER_EXT, GL_ALPHA32F_ARB, self.radius_vbo )
+        glTexBufferEXT( GL_TEXTURE_BUFFER_EXT, GL_ALPHA32F_ARB, self.radius_vbo ) #    GL_RGBA32F_ARB
         glBindTexture(GL_TEXTURE_BUFFER_EXT, 0)
 
         # for indices
@@ -304,6 +304,8 @@ class PolygonLinesExtruded(Actor):
             16 )
 
         self.program.setUniformValue( self.radiusSampler, 0 )
+        
+        glActiveTexture(GL_TEXTURE0) # do i need this?
         glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html

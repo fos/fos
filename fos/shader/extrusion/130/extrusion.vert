@@ -16,7 +16,10 @@ uniform samplerBuffer radiusSampler;
 void main()
 {
 
-    vWidth = texelFetch( radiusSampler, gl_VertexID );
+    vec4 widthVec;
+    widthVec = texelFetchBuffer( radiusSampler, gl_VertexID );
+    //  I was assuming with GL_ALPHA32F_ARB I only have one component
+    vWidth = widthVec.x;
 
     /*
 
