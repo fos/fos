@@ -117,6 +117,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         #glViewport((width - side) / 2, (height - side) / 2, side, side)
         if height == 0:
             height = 1
+        vsml.setSize( width, height )
         ratio =  width * 1.0 / height
         glViewport(0, 0, width, height)
         vsml.loadIdentity(vsml.MatrixTypes.PROJECTION)

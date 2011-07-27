@@ -3,7 +3,7 @@ from pyglet.gl import *
 
 from fos.vsml import vsml
 
-from PySide.QtGui import QMatrix4x4
+from PySide.QtGui import QMatrix4x4, QVector2D
 
 from fos.shader import get_vary_line_width_shader
 from fos.shader.lib import *
@@ -212,6 +212,8 @@ class PolygonLinesExtruded(Actor):
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
         self.radiusSampler = self.program.uniformLocation("radiusSampler")
 
+        self.viewport = self.program.uniformLocation("viewport")
+
         if affine is None:
             self.affine = np.eye(4, dtype = np.float32)
         else:
@@ -304,7 +306,9 @@ class PolygonLinesExtruded(Actor):
             16 )
 
         self.program.setUniformValue( self.radiusSampler, 0 )
-        
+
+        #self.program.setUniformValue( self.viewport, QVector2D( vsml.width, self.height) )
+
         #glActiveTexture(GL_TEXTURE0) # do i need this?
         #glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
 

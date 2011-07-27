@@ -1,17 +1,13 @@
-# Need to start with ipython --gui qt
-# Shows a Shader
-
-import numpy as np
-
+import sys
 from fos import *
+import numpy as np
+from PySide.QtGui import QApplication
 
-w = Window()
-w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
-w.show()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
 
-
-def a():
-    global w
+    w = Window()
+    w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],
@@ -29,6 +25,5 @@ def a():
     act = PolygonLinesExtruded(vertices = vert, connectivity = conn, colors = cols, radius = rad)
 
     w.add_actor_to_region( "Main", act )
-    return act
 
 

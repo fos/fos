@@ -40,6 +40,15 @@ class VSML(object):
         self.mMatrixStack[self.MatrixTypes.MODELVIEW] = []
         self.mMatrixStack[self.MatrixTypes.PROJECTION] = []
 
+        #self.windows = {}
+
+    def setSize(self, width, height):
+        """ Stores the width and height of the currently active OpenGL context
+        """
+        #self.windows[winId] = { 'width' : width, 'height' : height}
+        self.width = width
+        self.height = height
+
     def loadIdentity(self, aType):
         """
         /** Similar to glLoadIdentity.
