@@ -20,6 +20,8 @@ void main()
     widthVec = texelFetchBuffer( radiusSampler, gl_VertexID );
     //  I was assuming with GL_ALPHA32F_ARB I only have one component
     vWidth = widthVec.x;
+    // WARNING: 2:19: deprecated130(#55) 'texelFetchBuffer' is deprecated since GLSL1.3, we suggest to use 'texelFetch'
+    // but when using texelFetch, I get segfault
 
     /*
 

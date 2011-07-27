@@ -202,7 +202,7 @@ class PolygonLinesExtruded(Actor):
         Only create this actor of a valid OpenGL context exists
         """
         super(PolygonLinesExtruded, self).__init__()
-
+        
         self.program = get_shader_program( "extrusion", "130" )
 
         self.aPosition = self.program.attributeLocation("aPosition")
@@ -305,8 +305,8 @@ class PolygonLinesExtruded(Actor):
 
         self.program.setUniformValue( self.radiusSampler, 0 )
         
-        glActiveTexture(GL_TEXTURE0) # do i need this?
-        glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
+        #glActiveTexture(GL_TEXTURE0) # do i need this?
+        #glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
