@@ -175,7 +175,7 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
-        print "numsteps", numSteps
+        #print "numsteps", numSteps
         shift = False
         if (e.modifiers() & QtCore.Qt.ControlModifier):
             print "ctrl modifier"

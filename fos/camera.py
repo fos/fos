@@ -232,8 +232,6 @@ class SimpleCamera(VSMLCamera):
         u,v,w = self.get_yup()
         vsml.lookAt( x,y,z,a,b,c,u,v,w )
 
-        print self
-
     def __repr__(self):
         ret = "Camera Information\n"
         ret += "Location: {0}\n".format(self.location)
