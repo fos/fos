@@ -94,7 +94,6 @@ void main()
     computedWinCoord3.xyz = vec3(winCoord1.xy + perp.xy * extrude2, winCoord1.z );
 
     // Unproject the window-coordinates BACK to clip-space
-    // unprojectCoord(computedWinCoord0, gl_PositionIn[0].w, viewport, clipCoord0);
     unProjectCoord(computedWinCoord0, gl_PositionIn[0].w, viewport, clipCoord0);
     unProjectCoord(computedWinCoord1, gl_PositionIn[0].w, viewport, clipCoord1);
     unProjectCoord(computedWinCoord2, gl_PositionIn[1].w, viewport, clipCoord2);
