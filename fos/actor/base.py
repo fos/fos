@@ -1,7 +1,11 @@
 
 class Actor(object):
 
-    def __init__(self):
+    def __init__(self, name):
+        """ The base class for Actors
+        """
+
+        self.name = name
 
         # is this actor currently visible
         self.visible = True

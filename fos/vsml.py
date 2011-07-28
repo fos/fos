@@ -62,7 +62,7 @@ class VSML(object):
         elif aType == self.MatrixTypes.MODELVIEW:
             self.modelview = np.eye(4, dtype = np.float32 )
         else:
-            print "pushMatrix: wrong matrix type"
+            print "loadIdentity: wrong matrix type"
 
     def pushMatrix(self, aType):
         """
@@ -264,7 +264,7 @@ class VSML(object):
             self.multMatrix(self.MatrixTypes.PROJECTION, mat)
 
 
-    def loadMatrix(self, aType, aMatrix):
+    def loadMatrix(self, aMatrix, aType = MatrixTypes.MODELVIEW ):
         """
         /** Similar to gLoadMatrix.
           *
@@ -273,7 +273,14 @@ class VSML(object):
         */
         void loadMatrix(MatrixTypes aType, float *aMatrix);
         """
-        pass
+        if aType == self.MatrixTypes.PROJECTION:
+            self.projection = aMatrix.astype( np.float32 )
+        elif aType == self.MatrixTypes.MODELVIEW:
+            self.modelview = aMatrix.astype( np.float32 )
+        else:
+            print "loadMatrix: wrong matrix type"
+
+        print "new modelview", self.modelview
 
 
     def lookAt(self, xPos, yPos, zPos, xLook, yLook, zLook, xUp, yUp, zUp):

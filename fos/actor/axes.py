@@ -3,15 +3,18 @@ from .base import *
 
 class Axes(Actor):
 
-    def __init__(self, scale = 10.0):
+    def __init__(self, name = "Cartesian Axes", scale = 10.0, linewidth = 1.0):
         """ Draw three axes
         """
-        super(Axes, self).__init__()
+        super(Axes, self).__init__( name )
+
         self.scale = scale
+        self.linewidth = linewidth
 
     def draw(self):
+
         #glPushMatrix()
-        glLineWidth(2.0)
+        glLineWidth(self.linewidth)
         glBegin (GL_LINES)
         # x axes
         glColor3f(1.0, 0.0, 0.0)

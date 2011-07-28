@@ -1,6 +1,6 @@
 import sys
 from fos import *
-
+import numpy as np
 from PySide.QtGui import QApplication
 
 if __name__ == '__main__':
@@ -20,10 +20,9 @@ if __name__ == '__main__':
                        [1, 0, 1, 1],
                        [0, 0, 1, 0.5]] , dtype = np.float32 )
 
-    rad = np.array( [5,5,5,10], dtype = np.float32 )
+    rad = np.array( [4,4,4,10], dtype = np.float32 )
 
-    act = PolygonLines(vertices = vert, connectivity = conn, colors = cols)
+    act = PolygonLinesExtruded( name = "Extrude Polylines", vertices = vert, connectivity = conn, colors = cols, radius = rad)
     w.add_actor_to_region( "Main", act )
 
     sys.exit(app.exec_())
-

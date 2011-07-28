@@ -1,184 +1,16 @@
 import numpy as np
 from pyglet.gl import *
 
-from fos.vsml import vsml
-
 from PySide.QtGui import QMatrix4x4, QVector2D
 
-from fos.shader import get_vary_line_width_shader
 from fos.shader.lib import *
+from fos.vsml import vsml
 from .base import *
-
-class TreeActor(Actor):
-
-    def __init__(self,
-                 vertices,
-                 connectivity,
-                 colors = None,
-                 radius = None,
-                 affine = None):
-        """ A TreeRegion, composed of many trees
-
-        vertices : Nx3
-            3D Coordinates x,y,z
-        connectivity : Mx1
-            Tree topology
-        colors : Nx4 or 1x4
-            Per connection color
-        radius : N
-            Per vertex radius
-        affine : 4x4
-            Affine transformation of the actor
-
-        """
-        super(TreeActor, self).__init__()
-
-        if affine is None:
-            self.affine = np.eye(4, dtype = np.float32)
-        else:
-            self.affine = affine
-        #self._update_glaffine()
-
-        self.vertices = vertices
-        self.connectivity = connectivity
-
-        # unfortunately, we need to duplicate vertices if we want per line color
-        self.vertices = self.vertices[self.connectivity,:]
-
-        # we have a simplified connectivity now
-        self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
-
-        # this coloring section is for per/vertex color
-        if colors is None:
-            # default colors for each line
-            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/2, axis=0)
-        else:
-            # colors array is half the size of the connectivity array
-            assert( len(self.connectivity)/2 == len(colors) )
-            self.colors = colors
-
-        # we want per line color
-        # duplicating the color array, we have the colors per vertex
-        self.colors =  np.repeat(self.colors, 2, axis=0)
-
-        # the sample 1d texture data array
-        if not radius is None:
-            self.mytex = radius.astype( np.float32 )
-        else:
-            self.mytex = np.ones( len(self.vertices), dtype = np.float32 )
-
-        # create indicies, seems to be slow with nested loops
-        self.indices = self.connectivity
-        self.indices_ptr = self.indices.ctypes.data
-        self.indices_nr = self.indices.size
-
-        # duplicate colors to make it "per vertex"
-        self.colors_ptr = self.colors.ctypes.data
-
-        self.vertices_ptr = self.vertices.ctypes.data
-        self.mode = GL_LINES
-        self.type = GL_UNSIGNED_INT
-
-        self.shader = get_vary_line_width_shader()
-
-        self.aPosition_loc = self.shader.retrieveAttribLocation( "aPosition" )
-        self.aColor_loc = self.shader.retrieveAttribLocation( "aColor" )
-
-        # VBO related
-        glVertexAttribPointer(self.aPosition_loc, 3, GL_FLOAT, GL_FALSE, 0, 0)
-        self.vertex_vbo = GLuint(0)
-        glGenBuffers(1, self.vertex_vbo)
-        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
-        glBufferData(GL_ARRAY_BUFFER_ARB, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
-        glDisableVertexAttribArray(self.aPosition_loc)
-
-        # for indices
-        self.indices_vbo = GLuint(0)
-        glGenBuffers(1, self.indices_vbo)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
-        # uint32 has 4 bytes
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.indices_nr, self.indices_ptr, GL_STATIC_DRAW)
-
-        # for colors
-        glVertexAttribPointer(self.aColor_loc, 4, GL_FLOAT, GL_FALSE, 0, 0)
-        self.colors_vbo = GLuint(0)
-        glGenBuffers(1, self.colors_vbo)
-        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
-        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
-        glDisableVertexAttribArray(self.aColor_loc)
-
-        # check if we allow to enable texture for radius information
-        self.tex_size = int( np.sqrt( self.mytex.size ) ) + 1
-
-        # maximum 2d texture
-        myint = GLint(0)
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, myint)
-        oint = GLint(0)
-        glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_EXT, oint)
-        
-        self.max_tex = myint.value
-
-        if self.tex_size < self.max_tex:
-            self.mytex_ptr = self.mytex.ctypes.data
-            self.use_tex = True
-            self.mytex.resize( self.tex_size )
-            self.mytex_ptr = self.mytex.ctypes.data
-            self.init_texture_2d()
-        else:
-            raise Exception("Too many vertices to use texture for radius mapping")
-
-    def init_texture_2d(self):
-        # self.tex_unit = gen_texture()
-        self.tex_unit = GLuint()
-        glGenTextures(1, byref(self.tex_unit))
-
-        glBindTexture(GL_TEXTURE_2D, self.tex_unit)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        # target, level, internalformat, width, border, format, type, pixels
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE32F_ARB, self.tex_size, self.tex_size, 0, GL_LUMINANCE, GL_FLOAT, self.mytex_ptr)
-        glBindTexture(GL_TEXTURE_2D, 0)
-
-    def draw(self):
-
-        # http://www.opengl.org/wiki/GlVertexAttribPointer
-
-        # bind the shader
-        self.shader.bind()
-
-        self.shader.uniform_matrixf( 'projMatrix', vsml.get_projection())
-        self.shader.uniform_matrixf( 'modelviewMatrix', vsml.get_modelview())
-
-        self.shader.uniformi( 'textureWidth', self.tex_size)
-        self.shader.uniformi( 'widthSampler', 0)
-
-        if self.use_tex:
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, self.tex_unit)
-
-        glEnableVertexAttribArray(self.aPosition_loc)
-        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.vertex_vbo)
-        glVertexAttribPointer(self.aPosition_loc, 3, GL_FLOAT, GL_FALSE, 0, 0)
-
-        glEnableVertexAttribArray(self.aColor_loc)
-        glBindBuffer(GL_ARRAY_BUFFER_ARB, self.colors_vbo)
-        glVertexAttribPointer(self.aColor_loc, 4, GL_FLOAT, GL_FALSE, 0, 0)
-
-        # bind the indices buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.indices_vbo)
-
-        glDrawElements(self.mode,self.indices_nr,self.type,0)
-
-        glDisableVertexAttribArray(self.aPosition_loc)
-        glDisableVertexAttribArray(self.aColor_loc)
-
-        # unbind the shader
-        self.shader.unbind()
-
 
 class PolygonLinesExtruded(Actor):
 
     def __init__(self,
+             name,
              vertices,
              connectivity,
              colors = None,
@@ -186,6 +18,8 @@ class PolygonLinesExtruded(Actor):
              affine = None):
         """ A PolygonLinesExtruded, composed of many (branching) polygons
 
+        name : string
+            The name of the actor
         vertices : Nx3
             3D Coordinates x,y,z
         connectivity : Mx1
@@ -201,7 +35,7 @@ class PolygonLinesExtruded(Actor):
         -----
         Only create this actor of a valid OpenGL context exists
         """
-        super(PolygonLinesExtruded, self).__init__()
+        super(PolygonLinesExtruded, self).__init__(name)
         
         self.program = get_shader_program( "extrusion", "130" )
 
@@ -337,16 +171,18 @@ class PolygonLinesExtruded(Actor):
 
 
 
-
 class PolygonLines(Actor):
 
     def __init__(self,
+             name,
              vertices,
              connectivity,
              colors = None,
              affine = None):
         """ A PolygonLines, composed of many (branching) polygons
 
+        name : str
+            The name of the actor
         vertices : Nx3
             3D Coordinates x,y,z
         connectivity : Mx1
@@ -358,9 +194,10 @@ class PolygonLines(Actor):
 
         Notes
         -----
-        Only create this actor of a valid OpenGL context exists
+        Only create this actor when a valid OpenGL context exists.
+        Uses Vertex-Buffer objects and dummy shaders.
         """
-        super(PolygonLines, self).__init__()
+        super(PolygonLines, self).__init__( name )
 
         self.program = get_shader_program( "propagate", "130" )
 
@@ -427,6 +264,8 @@ class PolygonLines(Actor):
 
         self.program.bind()
 
+        # we just retrieve the matrices from vsml. they are
+        # updated from the Region's transformation
         self.program.setUniformValueArray( self.projMatrix,
             QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
             16 )

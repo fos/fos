@@ -1,6 +1,6 @@
+import numpy as np
 from pyglet.gl import *
 from vsml import vsml
-import numpy as np
 
 class Camera(object):
 
@@ -17,9 +17,14 @@ class Camera(object):
     def info(self):
         pass
 
-# for ideas:
+# ideas
 # http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/auto/mlab_camera.html
 # http://www.opengl.org/resources/faq/technical/viewing.htm
+# http://nehe.gamedev.net/article/camera_class_tutorial/18010/
+# http://www.flipcode.com/archives/OpenGL_Camera.shtml
+# Google: OpenGL camera class
+# VTK cameras
+# Rotations: http://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/3drota.htm
 
 class VSMLCamera(Camera):
 
@@ -45,70 +50,6 @@ class VSMLCamera(Camera):
 
     def rotate(self, angle, x, y, z):
         vsml.rotate(angle, x, y, z, vsml.MatrixTypes.MODELVIEW)
-
-
-# http://www.lighthouse3d.com/tutorials/glut-tutorial/keyboard-example-moving-around-the-world/
-class SimpleRotationCamera(VSMLCamera):
-
-    def __init__(self):
-        """ This camera uses the lookAt function to move """
-        super(SimpleRotationCamera, self).__init__()
-
-        self.setup()
-        
-        #self.camera_right_vector = [1, 0, 0]
-
-        self.scroll_speed = 10
-        self.mouse_speed = 0.1
-        self.update()
-
-    def setup(self):
-        self.look_at_point = [0, 0, 0]
-        self.camera_distance_from_lookat = 20
-        self.angle = 0.0
-        self.camera_line_of_sight = [0, 0, -1]
-        self.camera_up_vector = [0, 1, 0]
-
-
-    def rotate_xz(self, angle):
-        """ Move on a circle on the xz plane
-        """
-        self.angle += angle
-        self.camera_line_of_sight[0] = np.sin( self.angle )
-        self.camera_line_of_sight[2] = -np.cos( self.angle )
-        #print("Rotate camera")
-        #print self.angle
-        #print self.camera_line_of_sight
-        self.update()
-
-    def move(self, amount):
-        """ Move along the light of sight
-        """
-        #self.look_at_point[0] += self.camera_line_of_sight[0] * amount
-        #self.look_at_point[2] += self.camera_line_of_sight[2] * amount
-        self.camera_distance_from_lookat += amount
-        #print("Move camera")
-        #print self.look_at_point
-        self.update()
-
-    def reset(self):
-        self.setup()
-        self.update()
-
-    def update(self):
-        super(SimpleRotationCamera, self).reset()
-        # setup the initial look at updating the modelview
-        # vsml.lookAt(*self.lu)
-        camera_position = [
-            self.look_at_point[0] + self.camera_line_of_sight[0] * self.camera_distance_from_lookat,
-            self.look_at_point[1] + self.camera_line_of_sight[1] * self.camera_distance_from_lookat,
-            self.look_at_point[2] - self.camera_line_of_sight[2] * self.camera_distance_from_lookat
-        ]
-        lu = camera_position + self.look_at_point + self.camera_up_vector
-        super(SimpleRotationCamera, self).reset()
-        vsml.lookAt(*lu )
-        #print("Camera update called.")
-        #print lu
 
 
 class SimpleCamera(VSMLCamera):
@@ -232,6 +173,17 @@ class SimpleCamera(VSMLCamera):
         u,v,w = self.get_yup()
         vsml.lookAt( x,y,z,a,b,c,u,v,w )
 
+    def draw(self):
+        """ Draw focal point and update
+        """
+        self.update()
+        # would like to draw a point at the focal position
+        #glPointSize(10.0)
+        #glBegin(GL_POINTS)
+        #glColor3f(1.0, 0.0, 0.0)
+        #glVertex3f(0.0, 0.0, 0.0)
+        #glEnd()
+
     def __repr__(self):
         ret = "Camera Information\n"
         ret += "Location: {0}\n".format(self.location)
@@ -240,13 +192,3 @@ class SimpleCamera(VSMLCamera):
         ret += "Y up direction : {0}\n".format(self.get_yup())
         ret += "Right direction : {0}\n".format(self.get_right())
         return ret
-
-
-
-            
-
-# http://nehe.gamedev.net/article/camera_class_tutorial/18010/
-# http://www.flipcode.com/archives/OpenGL_Camera.shtml
-# Google: OpenGL camera class
-# VTK cameras
-# Rotations: http://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/3drota.htm

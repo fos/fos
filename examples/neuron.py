@@ -24,7 +24,7 @@ if __name__ == '__main__':
     w = Window()
     w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
 
-    act = PolygonLinesExtruded(vertices = pos, connectivity = connectivity, colors=colors, radius = radius)
+    act = PolygonLinesExtruded( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors, radius = radius)
 
     w.add_actor_to_region( "Main", act )
 

@@ -1,3 +1,4 @@
+from pyglet.gl import *
 from camera import *
 
 class Region(object):
@@ -20,22 +21,29 @@ class Region(object):
 
     def add_actor(self, actor):
         if actor in self.actors:
-            print("Actor {0} already exist in Region {1}".format(actor, self.regionname) )
+            print("Actor {0} already exist in Region {1}".format(actor.name, self.regionname) )
         else:
-            self.actors[actor] = actor
+            self.actors[actor.name] = actor
 
     def remove_actor(self, actor):
-        if actor in self.actors:
-            del self.actors[actor]
+        if actor.name in self.actors:
+            del self.actors[actor.name]
         else:
-            print("Actor {0} does not exist in Region {1}".format(actor, self.regionname) )
+            print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
 
     def draw_actors(self):
         """ Draw all visible actors in the region
         """
         for k, actor in self.actors.items():
             if actor.visible:
+                # use transformation matrix of the region to setup the modelview
+                vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
+                vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, self.transform.get_transform_numpy() )
+                glMatrixMode(GL_MODELVIEW)
+                glLoadMatrixf(vsml.get_modelview())
                 actor.draw()
+                # take back the old camera modelview
+                vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
 
 class World(object):
 

@@ -26,7 +26,7 @@ connectivity = np.concatenate(con)
 
 # varying radius
 rad = np.cumsum(np.random.randn(len(positions)))
-rad = rad - rad.min()
+rad = (rad - rad.min()) + 1.0
 rad = rad / rad.max()
 
 if __name__ == '__main__':
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     w = Window()
     w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
 
-    act = PolygonLinesExtruded(vertices = positions, connectivity = connectivity, radius = rad)
+    act = PolygonLinesExtruded( name = "Tractography", vertices = positions, connectivity = connectivity, radius = rad)
 
     w.add_actor_to_region( "Main", act )
 
