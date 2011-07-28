@@ -212,7 +212,7 @@ class PolygonLinesExtruded(Actor):
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
         self.radiusSampler = self.program.uniformLocation("radiusSampler")
 
-        self.viewport = self.program.uniformLocation("viewport")
+        self.viewport = self.program.uniformLocation("viewportWH")
 
         if affine is None:
             self.affine = np.eye(4, dtype = np.float32)
@@ -239,7 +239,8 @@ class PolygonLinesExtruded(Actor):
         self.colors =  np.repeat(self.colors, 2, axis=0)
 
         if radius is None:
-            self.radius = np.ones( len(self.vertices), dtype = np.float32 )
+            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 2
+            print self.radius
         else:
             self.radius = radius.astype( np.float32 )
 
@@ -259,39 +260,42 @@ class PolygonLinesExtruded(Actor):
 
         # for colors
         glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
-        self.colors_vbo = GLuint(0)
+        self.colors_vbo = GLuint(1)
         glGenBuffers(1, self.colors_vbo)
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
         glDisableVertexAttribArray(self.aColor)
 
         # for radius
-        
-        # create buffer object
-        self.radius_vbo = GLuint(0)
-        glGenBuffers(1, self.radius_vbo)
-        glBindBuffer(GL_TEXTURE_BUFFER_EXT, self.radius_vbo)
-        # init buffer object
-        glBufferData(GL_TEXTURE_BUFFER_EXT, 4 * self.radius.size, self.radius_ptr, GL_STATIC_DRAW)
-
-        # texture
-        from ctypes import byref
-        self.radius_unit = GLuint()
-        glGenTextures(1, byref(self.radius_unit))
-        glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
-        glTexBufferEXT( GL_TEXTURE_BUFFER_EXT, GL_ALPHA32F_ARB, self.radius_vbo ) #    GL_RGBA32F_ARB
-        glBindTexture(GL_TEXTURE_BUFFER_EXT, 0)
 
         # for indices
-        self.connectivity_vbo = GLuint(0)
+        self.connectivity_vbo = GLuint(2)
         glGenBuffers(1, self.connectivity_vbo)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
         # uint32 has 4 bytes
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+
+        # create buffer object
+        self.radius_vbo = GLuint(3)
+        glGenBuffers(1, self.radius_vbo)
+        glBindBuffer(GL_TEXTURE_BUFFER_EXT, self.radius_vbo)
+        # init buffer object
+        glBufferData(GL_TEXTURE_BUFFER_EXT, 4 * self.radius.size, self.radius_ptr, GL_STATIC_DRAW)
+       # glBindBuffer(GL_TEXTURE_BUFFER_EXT, 0)
+
+        # texture
+        from ctypes import byref
+        self.radius_unit = GLuint(0)
+        glGenTextures(1, byref(self.radius_unit))
+        glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
+        glTexBufferEXT( GL_TEXTURE_BUFFER_EXT, GL_LUMINANCE32F_ARB, self.radius_vbo ) #    GL_RGBA32F_ARB GL_ALPHA32F_ARB
+       # glBindTexture(GL_TEXTURE_BUFFER_EXT, 0)
 
         oint = GLint(0)
         glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_EXT, oint)
-        print "Max texture buffer size", oint.value
+        #print "Max texture buffer size", oint.value
 
     def draw(self):
 
@@ -307,10 +311,7 @@ class PolygonLinesExtruded(Actor):
 
         self.program.setUniformValue( self.radiusSampler, 0 )
 
-        #self.program.setUniformValue( self.viewport, QVector2D( vsml.width, self.height) )
-
-        #glActiveTexture(GL_TEXTURE0) # do i need this?
-        #glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
+        #self.program.setUniformValue( self.viewport, QVector2D( vsml.width, vsml.height) )
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
@@ -324,12 +325,18 @@ class PolygonLinesExtruded(Actor):
         # bind the indices buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
 
+        glActiveTexture(GL_TEXTURE0) # do i need this?
+        #glBindBuffer(GL_TEXTURE_BUFFER_EXT, self.radius_vbo)
+        glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
+
         glDrawElements( GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, 0 )
 
         self.program.disableAttributeArray( self.aPosition )
         self.program.disableAttributeArray( self.aColor )
 
         self.program.release()
+
+
 
 
 class PolygonLines(Actor):
@@ -430,7 +437,7 @@ class PolygonLines(Actor):
             16 )
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
-        self.program.enableAttributeArray( self.aPosition )
+        glEnableVertexAttribArray( self.aPosition )
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbo)
         glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
 

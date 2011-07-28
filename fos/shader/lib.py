@@ -32,20 +32,23 @@ def get_shader_program(name, version):
     program = QGLShaderProgram()
 
     if frag:
-        shader = QGLShader(QGLShader.Fragment)
-        shader.compileSourceCode(frag)
-        program.addShader(shader)
+        fshader = QGLShader(QGLShader.Fragment)
+        fshader.compileSourceCode(frag)
+        program.addShader(fshader)
 
     if vert:
-        shader = QGLShader(QGLShader.Vertex)
-        shader.compileSourceCode(vert)
-        program.addShader(shader)
+        vshader = QGLShader(QGLShader.Vertex)
+        vshader.compileSourceCode(vert)
+        program.addShader(vshader)
 
     if geom:
-        shader = QGLShader(QGLShader.Geometry)
-        shader.compileSourceCode(geom)
-        program.addShader(shader)
+        gshader = QGLShader(QGLShader.Geometry)
+        gshader.compileSourceCode(geom)
+        program.addShader(gshader)
 
+    print "link"
     program.link()
+    print "bind"
+    program.bind()
 
     return program

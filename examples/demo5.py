@@ -20,10 +20,12 @@ if __name__ == '__main__':
                        [1, 0, 1, 1],
                        [0, 0, 1, 0.5]] , dtype = np.float32 )
 
-    rad = np.array( [5,5,5,10], dtype = np.float32 )
+    rad = np.array( [10,10,10,10], dtype = np.float32 )
 
-    act = PolygonLinesExtruded(vertices = vert, connectivity = conn, colors = cols, radius = rad)
+    w.show()
 
+    act = PolygonLinesExtruded(vertices = vert, connectivity = conn, colors = cols)
     w.add_actor_to_region( "Main", act )
 
 
+    sys.exit(app.exec_())

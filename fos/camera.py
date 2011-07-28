@@ -135,7 +135,7 @@ class SimpleCamera(VSMLCamera):
 
         self.rotation_speed_factor = 1.5
         self.move_speed_factor = 1.0
-        self.pan_speed_factor = 0.5
+        self.pan_speed_factor = 1.0
 
     def reset(self):
         self.setup()

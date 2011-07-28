@@ -4,8 +4,6 @@
 layout(lines) in;
 layout(triangle_strip, max_vertices=6) out;
 
-uniform ivec2 viewport;
-
 in vec4 vColor[2]; // One for each vertex in the line
 in float vWidth[2]; // one width for each vertex in the line
 out vec4 vColor0; // Output color, pass from GS -> FS
@@ -76,7 +74,7 @@ void main()
     vec3 dir;
     vec2 perp;
 
-    const ivec4 viewport = ivec4(0, 0, viewport[0], viewport[1]);
+    ivec4 viewport = ivec4(0, 0, 640, 480);
 
     // viewport should be a uniform ivec4 that you set
     projectCoord(gl_PositionIn[0], viewport, winCoord0);
