@@ -239,7 +239,7 @@ class PolygonLinesExtruded(Actor):
         self.colors =  np.repeat(self.colors, 2, axis=0)
 
         if radius is None:
-            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 4
+            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 2
         else:
             self.radius = radius.astype( np.float32 )
 
