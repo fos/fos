@@ -115,7 +115,7 @@ class TreeActor(Actor):
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, myint)
         oint = GLint(0)
         glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_EXT, oint)
-        print "Max texture buffer size", oint.value
+        
         self.max_tex = myint.value
 
         if self.tex_size < self.max_tex:
@@ -239,8 +239,7 @@ class PolygonLinesExtruded(Actor):
         self.colors =  np.repeat(self.colors, 2, axis=0)
 
         if radius is None:
-            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 2
-            print self.radius
+            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 4
         else:
             self.radius = radius.astype( np.float32 )
 

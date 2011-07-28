@@ -46,9 +46,7 @@ def get_shader_program(name, version):
         gshader.compileSourceCode(geom)
         program.addShader(gshader)
 
-    print "link"
     program.link()
-    print "bind"
     program.bind()
 
     return program
