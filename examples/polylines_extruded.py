@@ -14,7 +14,7 @@ if __name__ == '__main__':
                        [5,10,0],
                        [10,5,0]], dtype = np.float32 )
 
-    conn = np.array( [ 0, 1, 1, 2, 1, 3 ], dtype = np.uint32 )
+    conn = np.array( [ 0, 1, 1, 2, 1,3 ], dtype = np.uint32 )
 
     cols = np.array( [ [0, 0, 1, 1],
                        [1, 0, 1, 1],

@@ -44,7 +44,7 @@ class PolygonLinesExtruded(Actor):
 
         self.projMatrix = self.program.uniformLocation("projMatrix")
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
-        self.radiusSampler = self.program.uniformLocation("radiusSampler")
+        self.radiusSampler = self.program.uniformLocation("widthSampler")
 
         self.viewport = self.program.uniformLocation("viewportWH")
 
@@ -55,6 +55,7 @@ class PolygonLinesExtruded(Actor):
 
         # unfortunately, we need to duplicate vertices if we want per line color
         self.vertices = vertices[connectivity,:]
+        radius = radius[connectivity]
 
         # we have a simplified connectivity now
         self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
@@ -73,7 +74,7 @@ class PolygonLinesExtruded(Actor):
         self.colors =  np.repeat(self.colors, 2, axis=0)
 
         if radius is None:
-            self.radius = np.ones( len(self.vertices), dtype = np.float32 ) * 2
+            self.radius = np.ones( len(self.vertices), dtype = np.float32 )
         else:
             self.radius = radius.astype( np.float32 )
 
@@ -99,8 +100,6 @@ class PolygonLinesExtruded(Actor):
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
         glDisableVertexAttribArray(self.aColor)
 
-        # for radius
-
         # for indices
         self.connectivity_vbo = GLuint(2)
         glGenBuffers(1, self.connectivity_vbo)
@@ -109,7 +108,7 @@ class PolygonLinesExtruded(Actor):
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-
+        # for radius
         # create buffer object
         self.radius_vbo = GLuint(3)
         glGenBuffers(1, self.radius_vbo)
@@ -144,7 +143,7 @@ class PolygonLinesExtruded(Actor):
 
         self.program.setUniformValue( self.radiusSampler, 0 )
 
-        #self.program.setUniformValue( self.viewport, QVector2D( vsml.width, vsml.height) )
+        #self.program.setUniformValue( self.viewport, QVector2D( 100, 100) )
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
