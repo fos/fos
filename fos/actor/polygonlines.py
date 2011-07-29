@@ -1,7 +1,7 @@
 import numpy as np
 from pyglet.gl import *
 
-from PySide.QtGui import QMatrix4x4, QVector2D
+from PySide.QtGui import QMatrix4x4
 
 from fos.shader.lib import *
 from fos.vsml import vsml
@@ -46,7 +46,8 @@ class PolygonLinesExtruded(Actor):
         self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
         self.radiusSampler = self.program.uniformLocation("widthSampler")
 
-        self.viewport = self.program.uniformLocation("viewportWH")
+        self.viewportWidth = self.program.uniformLocation("viewportWidth")
+        self.viewportHeight = self.program.uniformLocation("viewportHeight")
 
         if affine is None:
             self.affine = np.eye(4, dtype = np.float32)
@@ -143,7 +144,8 @@ class PolygonLinesExtruded(Actor):
 
         self.program.setUniformValue( self.radiusSampler, 0 )
 
-        self.program.setUniformValue( self.viewport, QVector2D( 100, 100) )
+        self.program.setUniformValue( self.viewportWidth, vsml.width )
+        self.program.setUniformValue( self.viewportHeight, vsml.height )
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
