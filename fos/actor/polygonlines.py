@@ -143,7 +143,7 @@ class PolygonLinesExtruded(Actor):
 
         self.program.setUniformValue( self.radiusSampler, 0 )
 
-        #self.program.setUniformValue( self.viewport, QVector2D( 100, 100) )
+        self.program.setUniformValue( self.viewport, QVector2D( 100, 100) )
 
         # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
         self.program.enableAttributeArray( self.aPosition )
