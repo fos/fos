@@ -46,6 +46,9 @@ class Window(QtGui.QWidget):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
 
+    def add_region(self, region):
+        self.world.add_region( region )
+
     def new_region(self, regionname, transform, resolution ):
         self.world.new_region( regionname, transform, resolution )
 
