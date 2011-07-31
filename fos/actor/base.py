@@ -4,7 +4,6 @@ class Actor(object):
     def __init__(self, name):
         """ The base class for Actors
         """
-
         self.name = name
 
         # is this actor currently visible

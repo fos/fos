@@ -23,4 +23,4 @@ class Microcircuit(Actor):
         # - t_c_properties (pre, post)
 
         # need to create basic primitives
-        # sphere, tube
+        # sphere, tube, cone
