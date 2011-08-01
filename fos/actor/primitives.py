@@ -1,6 +1,6 @@
 import numpy as np
 from pyglet.gl import *
-from .base import Actor
+from fos.actor.base import Actor
 
 def makeUVSphere( radius, ordinates = 10, abscissa = 10):
 
@@ -101,6 +101,89 @@ def makeNSphere( iterations = 3 ):
 
     return np.array(p, dtype = np.float32 ), np.array(f, dtype = np.uint32 )
 
+
+def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
+
+    if r1 == 0.0 and r2 == 0.0:
+        print("Not both radii can be zero!")
+        return None
+
+    # Normal pointing from p1 to p2
+    n = (p1 - p2).astype( np.float32 )
+
+    if n[0] != 0.0 or n[1] != 0.0:
+        A = np.array( [n[1], -n[0], 0.0], dtype = np.float32 )
+    elif n[1] != 0.0 or n[2] != 0.0:
+        A = np.array( [0.0, n[2], -n[1]], dtype = np.float32 )
+    elif n[0] != 0.0 or n[2] != 0.0:
+        A = np.array( [n[0], 0.0, -n[1]], dtype = np.float32 )
+    else:
+        print("Cylinder coordinates well-posed. Cannot create perpendicular vector.")
+
+    B = np.cross( n, A )
+
+    n = 0
+    TWOPI =  2 * np.pi  
+    p = []
+    f = []
+    for i in range(resolution):
+        theta1 = i * TWOPI / (resolution)
+        sint1 = np.sin(theta1)
+        cost1 = np.cos(theta1)
+        theta2 = (i+1) * TWOPI / (resolution)
+        sint2 = np.sin(theta2)
+        cost2 = np.cos(theta2)
+
+        face = []
+        # first point, q0
+        p.append( [
+            p1[0] + r1 * cost1 * A[0] + r1 * sint1 * B[0],
+            p1[1] + r1 * cost1 * A[1] + r1 * sint1 * B[1],
+            p1[2] + r1 * cost1 * A[2] + r1 * sint1 * B[2]
+        ])
+        face.append( n )
+        n += 1
+
+        # second point, q1
+        p.append( [
+            p2[0] + r2 * cost1 * A[0] + r2 * sint1 * B[0],
+            p2[1] + r2 * cost1 * A[1] + r2 * sint1 * B[1],
+            p2[2] + r2 * cost1 * A[2] + r2 * sint1 * B[2]
+        ])
+        face.append( n )
+        n += 1
+
+        if r2 != 0.0:
+            p.append( [
+                p2[0] + r2 * cost2 * A[0] + r2 * sint2 * B[0],
+                p2[1] + r2 * cost2 * A[1] + r2 * sint2 * B[1],
+                p2[2] + r2 * cost2 * A[2] + r2 * sint2 * B[2]
+            ])
+            face.append( n )
+            n += 1
+
+        if r1 != 0.0:
+            p.append( [
+                p1[0] + r1 * cost2 * A[0] + r1 * sint2 * B[0],
+                p1[1] + r1 * cost2 * A[1] + r1 * sint2 * B[1],
+                p1[2] + r1 * cost2 * A[2] + r1 * sint2 * B[2]
+            ])
+            face.append( n )
+            n += 1
+
+        # Create triangles
+        if len(face) == 4:
+            f.append( [face[0], face[1], face[2]] )
+            f.append( [face[0], face[2], face[3]] )
+        elif len(face) == 3:
+            f.append( face )
+        else:
+            print("Wrong number of vertices in face.")
+
+    return np.array( p, dtype = np.float32 ), np.array( f, dtype = np.uint32 )
+
+    
 if __name__ == '__main__':
 
-    print makeNSphere( 2 )
+    #print makeNSphere( 2 )
+    print makeCylinder( np.array([0,0,0]), np.array([0,1,0]), 1, 1)

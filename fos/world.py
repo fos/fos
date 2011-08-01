@@ -34,6 +34,7 @@ class Region(object):
             self.actors[actor.name] = actor
 
     def remove_actor(self, actor):
+        # TODO: check if isinstance str
         if actor.name in self.actors:
             del self.actors[actor.name]
         else:
