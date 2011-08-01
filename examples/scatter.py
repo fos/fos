@@ -14,7 +14,10 @@ if __name__ == '__main__':
     region = Region( regionname = "Main", transform = mytransform, resolution = ("mm", "mm", "mm"),
                      extent = (np.array( [-5.0, -5, -5] ), np.array( [5, 5, 5] ) ) )
 
-    region.add_actor( Cylinder( "MySphere", np.array([-5,0,6]), np.array([0,5,0]), 1, 1, 10 ) )
+    data = np.random.random( (2000, 3) ) * 100
+    values = np.random.random( (2000, 1) )
+
+    region.add_actor( Scatter( "MySphere", data[:,0], data[:,1], data[:,2], values, iterations = 0 ) )
 
     w.add_region ( region )
 

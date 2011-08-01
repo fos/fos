@@ -1,20 +1,36 @@
 from pyglet.gl import *
 from camera import *
-from fos.actor import Box
+from fos.actor import Box, Actor
 
 class Region(object):
-    """ A Region is a spatial container concept and is defined as a cuboid box with
-    - a name as text string
-    - transformation from the parent region or world coordinate system,to the
-    - local coordinate system defined by the transformation
-    - resolution strings
-    - oriented-bounding box
-
-    Regions can be overlapping.
-    Static and dynamic actors are part of Region, defining the boundaries of the bounding box
-    """
 
     def __init__(self, regionname, transform, resolution, extent = None ):
+        """
+        Create a Region which is a spatial reference system and acts as a container
+        for Actors presenting datasets.
+
+        Parameters
+        ----------
+        regionname : str
+            The unique name of the Region
+        transform : fos.transform.Transform3D
+            The affine transformation of the Region, defining
+            origo and the axes orientation, i.e. the local coordinate
+            system of the Region
+        resolution : 3-tuple of strings
+            Identifiers of the "Unit of Measurement" ontology
+            denoting the spatial metric for one unit for each spatial axes
+        extent : 2-tuple of 3x1 numpy.array
+            First element is the minimal, the the second elemenet is
+            the maximal extension of the Region. This defines an
+            axis-aligned bounding box which can be overwritten by the
+            addition of Actors bigger then the extent.
+
+        Notes
+        -----
+        Regions can be overlapping.
+
+        """
         super(Region,self).__init__()
         
         self.regionname = regionname
@@ -34,11 +50,19 @@ class Region(object):
             self.actors[actor.name] = actor
 
     def remove_actor(self, actor):
-        # TODO: check if isinstance str
-        if actor.name in self.actors:
-            del self.actors[actor.name]
+        if isinstance( actor, Actor ):
+            if actor.name in self.actors:
+                del self.actors[actor.name]
+            else:
+                print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
+        elif isinstance( actor, str ):
+            # actor is the unique name of the actor
+            if actor in self.actors:
+                del self.actors[actor]
+            else:
+                print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
         else:
-            print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
+            print("Not a valid Actor instance or actor name.")
 
     def draw_actors(self):
         """ Draw all visible actors in the region

@@ -9,7 +9,7 @@ class Microcircuit(Actor):
         and pre and post connectivity
         """
 
-        # for skeletons
+        # for skeletons, these are PolygonLines
         # - vertices
         # - connectivity
         # - skeleton_properties (labels, ...)
@@ -21,6 +21,3 @@ class Microcircuit(Actor):
         # skeleton (tree)node with connectors
         # - connectivity
         # - t_c_properties (pre, post)
-
-        # need to create basic primitives
-        # sphere, tube, cone
