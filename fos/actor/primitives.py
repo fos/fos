@@ -122,6 +122,10 @@ def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
 
     B = np.cross( n, A )
 
+    # Normalize
+    A = A / np.linalg.norm( A )
+    B = B / np.linalg.norm( B )
+
     n = 0
     TWOPI =  2 * np.pi  
     p = []
