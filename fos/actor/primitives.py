@@ -1,11 +1,6 @@
 import numpy as np
 from pyglet.gl import *
-from fos.actor.base import Actor
-
-def makeUVSphere( radius, ordinates = 10, abscissa = 10):
-
-    pass
-# http://paulbourke.net/miscellaneous/sphere_cylinder/
+from .base import Actor
 
 class Sphere(Actor):
 
@@ -32,7 +27,31 @@ class Sphere(Actor):
         glDisableClientState(GL_VERTEX_ARRAY)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
-        
+
+class Cylinder(Actor):
+
+    def __init__(self, name, p1, p2, r1, r2, resolution = 4):
+        """ A Cylinder actor
+        """
+        super(Cylinder, self).__init__( name )
+
+        self.vertices, self.faces = makeCylinder( p1, p2, r1, r2, resolution )
+
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.faces_ptr = self.faces.ctypes.data
+        self.faces_nr = self.faces.size
+
+    def draw(self):
+        glDisable(GL_CULL_FACE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glLineWidth(1.0)
+        glColor3f(1.0, 1.0, 0.0)
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glDrawElements( GL_TRIANGLES, self.faces_nr, GL_UNSIGNED_INT, self.faces_ptr )
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glEnable(GL_CULL_FACE)
 
 def makeNSphere( iterations = 3 ):
     """ Sphere generation subdivision starting from octahedron
@@ -103,6 +122,13 @@ def makeNSphere( iterations = 3 ):
 
 
 def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
+    """ Cylinder or Cone generation
+
+    Notes
+    -----
+    http://paulbourke.net/miscellaneous/sphere_cylinder/
+    """
+    # TODO: implement capping
 
     if r1 == 0.0 and r2 == 0.0:
         print("Not both radii can be zero!")
@@ -185,9 +211,3 @@ def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
             print("Wrong number of vertices in face.")
 
     return np.array( p, dtype = np.float32 ), np.array( f, dtype = np.uint32 )
-
-    
-if __name__ == '__main__':
-
-    #print makeNSphere( 2 )
-    print makeCylinder( np.array([0,0,0]), np.array([0,1,0]), 1, 1)
