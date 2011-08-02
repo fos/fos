@@ -7,6 +7,12 @@ Dependencies
 * Pyglet: http://www.pyglet.org/
 * NumPy (Debian: python-numpy)
 
+Test
+----
+PYTHONPATH=$PYTHONPATH:.
+export PYTHONPATH
+python examples/sphere.py
+
 Developer Group
 ---------------
 http://groups.google.com/group/fos-devel

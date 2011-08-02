@@ -211,3 +211,43 @@ def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
             print("Wrong number of vertices in face.")
 
     return np.array( p, dtype = np.float32 ), np.array( f, dtype = np.uint32 )
+
+def make_cylinder_scatter( p1, p2, r1, r2, resolution = 4):
+    n = len(p1)
+    vertices = []
+    faces = []
+    face_offset = 0
+    for i in range(n):
+        vert, fac = makeCylinder( p1[i,:], p2[i,:], r1[i], r2[i], resolution )
+        vertices.append( vert )
+        fac += face_offset
+        faces.append( fac )
+        face_offset += len(vert)
+    vertices = np.concatenate( vertices ).astype( np.float32 )
+    faces = np.concatenate( faces ).astype( np.uint32 )
+    return vertices, faces
+
+def make_sphere_scatter( x, y, z, values, iterations = 3):
+    n = len(x)
+    vertices = []
+    faces = []
+    face_offset = 0
+    for i in range(n):
+        
+        vert, fac = makeNSphere( iterations )
+        if not values is None:
+            vert *= values[i]
+
+        # translate
+        vert[:,0] += x[i]
+        vert[:,1] += y[i]
+        vert[:,2] += z[i]
+
+        vertices.append( vert )
+        fac += face_offset
+        faces.append( fac )
+        face_offset += len(vert)
+
+    vertices = np.concatenate( vertices ).astype( np.float32 )
+    faces = np.concatenate( faces ).astype( np.uint32 )
+    return vertices, faces

@@ -47,6 +47,5 @@ def get_shader_program(name, version):
         program.addShader(gshader)
 
     program.link()
-    program.bind()
 
     return program

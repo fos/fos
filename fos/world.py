@@ -69,6 +69,7 @@ class Region(object):
         """
         for k, actor in self.actors.items():
             if actor.visible:
+                #print("Draw actor", actor.name)
                 # use transformation matrix of the region to setup the modelview
                 vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
                 vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, self.transform.get_transform_numpy() )

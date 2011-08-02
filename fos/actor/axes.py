@@ -29,6 +29,7 @@ class Axes(Actor):
         glVertex3f(0.0,0.0,0.0)
         glVertex3f(0.0,0.0,self.scale)
         glEnd()
+        glLineWidth(1.0)
         #glPopMatrix()
 
 class CartesianAxes(object):

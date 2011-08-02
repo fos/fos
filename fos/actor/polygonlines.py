@@ -56,7 +56,12 @@ class PolygonLinesExtruded(Actor):
 
         # unfortunately, we need to duplicate vertices if we want per line color
         self.vertices = vertices[connectivity,:]
-        radius = radius[connectivity]
+
+        if radius is None:
+            self.radius = np.ones( len(connectivity), dtype = np.float32 )
+        else:
+            radius = radius[connectivity]
+            self.radius = radius.astype( np.float32 )
 
         # we have a simplified connectivity now
         self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
@@ -74,11 +79,6 @@ class PolygonLinesExtruded(Actor):
         # duplicating the color array, we have the colors per vertex
         self.colors =  np.repeat(self.colors, 2, axis=0)
 
-        if radius is None:
-            self.radius = np.ones( len(self.vertices), dtype = np.float32 )
-        else:
-            self.radius = radius.astype( np.float32 )
-
         self.vertices_ptr = self.vertices.ctypes.data
         self.connectivity_ptr = self.connectivity.ctypes.data
         self.connectivity_nr = self.connectivity.size
@@ -91,6 +91,7 @@ class PolygonLinesExtruded(Actor):
         glGenBuffers(1, self.vertex_vbo)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbo)
         glBufferData(GL_ARRAY_BUFFER, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDisableVertexAttribArray(self.aPosition)
 
         # for colors
@@ -99,6 +100,7 @@ class PolygonLinesExtruded(Actor):
         glGenBuffers(1, self.colors_vbo)
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDisableVertexAttribArray(self.aColor)
 
         # for indices
@@ -116,7 +118,7 @@ class PolygonLinesExtruded(Actor):
         glBindBuffer(GL_TEXTURE_BUFFER_EXT, self.radius_vbo)
         # init buffer object
         glBufferData(GL_TEXTURE_BUFFER_EXT, 4 * self.radius.size, self.radius_ptr, GL_STATIC_DRAW)
-       # glBindBuffer(GL_TEXTURE_BUFFER_EXT, 0)
+        glBindBuffer(GL_TEXTURE_BUFFER_EXT, 0)
 
         # texture
         from ctypes import byref
@@ -124,7 +126,7 @@ class PolygonLinesExtruded(Actor):
         glGenTextures(1, byref(self.radius_unit))
         glBindTexture(GL_TEXTURE_BUFFER_EXT, self.radius_unit)
         glTexBufferEXT( GL_TEXTURE_BUFFER_EXT, GL_LUMINANCE32F_ARB, self.radius_vbo ) #    GL_RGBA32F_ARB GL_ALPHA32F_ARB
-       # glBindTexture(GL_TEXTURE_BUFFER_EXT, 0)
+        glBindTexture(GL_TEXTURE_BUFFER_EXT, 0)
 
         oint = GLint(0)
         glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE_EXT, oint)
@@ -243,6 +245,7 @@ class PolygonLines(Actor):
         glGenBuffers(1, self.vertex_vbo)
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbo)
         glBufferData(GL_ARRAY_BUFFER, 4 * self.vertices.size, self.vertices_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDisableVertexAttribArray(self.aPosition)
 
         # for colors
@@ -251,6 +254,7 @@ class PolygonLines(Actor):
         glGenBuffers(1, self.colors_vbo)
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         glDisableVertexAttribArray(self.aColor)
 
         # for indices
@@ -259,6 +263,7 @@ class PolygonLines(Actor):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
         # uint32 has 4 bytes
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
 
     def draw(self):

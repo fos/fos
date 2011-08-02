@@ -9,40 +9,30 @@ if __name__ == '__main__':
 
     w = Window()
 
-    region = Region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm"),
-                     extent = (np.array( [-5.0, -5, -5] ), np.array( [5, 5, 5] ) ) )
+    region = Region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],
-                       [5,10,0],
-                       [10,5,0],
+                       [10,3,0], # connector
                        [15,5,0],
-                       [12,3,0]], dtype = np.float32 )
-    conn = np.array( [ 0, 1, 1, 2, 1, 3, 4, 5 ], dtype = np.uint32 )
+                       [18,0,0]], dtype = np.float32 )
 
-    # each vertex is labeled with a skeleton id
-    vert_skeleton_labels = np.array( [1, 1, 1, 1, 2, 2] )
+    vert_labels = np.array( [1, 1, 2, 1, 1], dtype = np.uint32 )
+    vert_nodeides = np.array( [10, 11, 200, 20, 21], dtype = np.uint32 )
 
-    # each vertex has an unique ID
-    vert_ids = np.array( [1, 2, 3, 4, 5, 6] )
-
-    # connectors
-    cvert = np.array( [[12.5,5,0],
-                       [5.5,5,0]], dtype = np.float32 )
-    cvert_type = np.array( [1, 2] )
-    cvert_size = np.array( [5, 8] )
-    cvert_ids = np.array( [144, 212] )
-
-    # topological relation between skeleton vertices and connector
-    svert_cvert = np.array( [ [4, 144], [5, 144], [5, 212] ], dtype = np.uint32 )
-    # e.g. pre / postsynaptic
-    svert_cvert_type = np.array( [ [5, 6, 5]] )
-
-    act = PolygonLines( name = "Polygon Lines", vertices = vert, connectivity = conn)
+    conn = np.array( [ [0, 1], # parent
+                       [1, 2], # presyn
+                       [3, 2], # postsyn
+                       [3, 4] ], dtype = np.uint32 )
+    
+    conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
+    
+    act = Microcircuit( "Polygon Lines",  vert, conn, vert_labels, conn_labels )
     region.add_actor( act )
+    region.add_actor( Axes( name = "3 axes", scale = 10.0, linewidth = 5.0) )
 
     w.add_region ( region )
 
-    w.add_actor_to_region( "Main", Sphere( "MySphere", radius = 2, iterations = 2 ) )
-
     sys.exit(app.exec_())
+
+
