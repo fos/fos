@@ -1,5 +1,12 @@
-Start IPython >= 0.11 and type:
+FOS - Free on Shades - A scientific visualization library in Python & Cython
 
-  %gui qt
+Dependencies
+------------
+* Qt (Debian: libqt4-*)
+* PySide: http://developer.qt.nokia.com/wiki/PySideDownloads
+* Pyglet: http://www.pyglet.org/
+* NumPy (Debian: python-numpy)
 
-Before you start with the demos in the examples folder.
+Developer Group
+---------------
+http://groups.google.com/group/fos-devel
