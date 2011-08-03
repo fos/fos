@@ -68,8 +68,8 @@ class Microcircuit(Actor):
         preloc = vertices[ connectivity[np.where(connectivity_labels == con_pre)[0]].ravel() ]
         p1 = preloc[::2, :]
         p2 = preloc[1::2, :]
-        r1 = np.zeros( len(preloc/2), dtype = np.float32 )
-        r2 = np.ones( len(preloc/2), dtype = np.float32 ) * 0.2
+        r1 = np.ones( len(preloc/2), dtype = np.float32 ) * 0.2
+        r2 = np.zeros( len(preloc/2), dtype = np.float32 )
         self.pre_actor = ScatterCylinder( "PreConnector", p1, p2, r1, r2, resolution = 8 )
 
         # extract the post connectivity and create cones

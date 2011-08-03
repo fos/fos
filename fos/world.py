@@ -43,6 +43,8 @@ class Region(object):
             self.add_actor( Box( "AABB", extent[0], extent[1] ) )
 
 
+    # TODO: update function to update the extent. store extent in seperate variables. update the Box dimensions
+
     def add_actor(self, actor):
         if actor in self.actors:
             print("Actor {0} already exist in Region {1}".format(actor.name, self.regionname) )
