@@ -7,7 +7,7 @@ from PySide.QtGui import QApplication
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window()
+    w = Window( width = 1200, height = 800, bgcolor = (0,0,0) )
 
     mytransform = IdentityTranform()
 

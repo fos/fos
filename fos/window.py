@@ -93,7 +93,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.lastPos = QtCore.QPoint()
-        self.bgcolor = QtGui.QColor.fromRgb(bgcolor[0], bgcolor[1], bgcolor[2])
+        self.bgcolor = QtGui.QColor.fromRgbF(bgcolor[0], bgcolor[1], bgcolor[2], 1.0)
         self.parent = parent
         self.width = width
         self.height = height
