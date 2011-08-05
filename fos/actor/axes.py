@@ -1,5 +1,7 @@
+import numpy as np
 from pyglet.gl import *
 from .base import *
+from primitives import Cylinder
 
 class Axes(Actor):
 
@@ -11,8 +13,13 @@ class Axes(Actor):
         self.scale = scale
         self.linewidth = linewidth
 
+        # x axes arrow
+        self.x_cone = Cylinder( "XVone", np.array([self.scale*1.1-5,0,0]), np.array([self.scale*1.1,0,0]), 1 , 0, 10 )
+
     def draw(self):
 
+        self.x_cone.draw()
+        
         #glPushMatrix()
         glLineWidth(self.linewidth)
         glBegin (GL_LINES)
