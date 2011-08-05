@@ -178,11 +178,12 @@ class SimpleCamera(VSMLCamera):
         """
         self.update()
         # would like to draw a point at the focal position
-        #glPointSize(10.0)
-        #glBegin(GL_POINTS)
-        #glColor3f(1.0, 0.0, 0.0)
-        #glVertex3f(0.0, 0.0, 0.0)
-        #glEnd()
+        glPointSize(10.0)
+        glBegin(GL_POINTS)
+        glColor3f(1.0, 0.0, 0.0)
+        print self.focal
+        glVertex3f(self.focal[0], self.focal[1], self.focal[2])
+        glEnd()
 
     def __repr__(self):
         ret = "Camera Information\n"

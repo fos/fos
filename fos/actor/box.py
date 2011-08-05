@@ -4,7 +4,7 @@ from .base import *
 
 class Box(Actor):
 
-    def __init__(self, name, blf = None, trb = None, margin = 0):
+    def __init__(self, name, blf = None, trb = None, margin = 0, color = (1.0, 1.0, 1.0, 1.0)):
         """ Box from bottom-left-front and top-right-back point coordinates
         (Axis Aligned Bounding)
         """
@@ -19,6 +19,7 @@ class Box(Actor):
                            [3,7,5,1],
                            [7,6,4,5],
                            [6,2,0,4] ], dtype = np.uint32)
+        self.color = color
 
         self.update(blf, trb, margin)
 
@@ -50,7 +51,7 @@ class Box(Actor):
         glDisable(GL_CULL_FACE)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glLineWidth(1.0)
-        glColor3f(1.0, 1.0, 0.0)
+        glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
         glDrawElements( GL_QUADS, self.indices_nr, GL_UNSIGNED_INT, self.indices_ptr )
