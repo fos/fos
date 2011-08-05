@@ -87,14 +87,8 @@ class Region(object):
         for k, actor in self.actors.items():
             if actor.visible:
                 #print("Draw actor", actor.name)
-                # use transformation matrix of the region to setup the modelview
-                vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
-                vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, self.transform.get_transform_numpy() )
-                glMatrixMode(GL_MODELVIEW)
-                glLoadMatrixf(vsml.get_modelview())
                 actor.draw()
-                # take back the old camera modelview
-                vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
+
 
 class World(object):
 
@@ -137,4 +131,11 @@ class World(object):
         """
         self.camera.draw()
         for k, region in self.regions.items():
+            # use transformation matrix of the region to setup the modelview
+            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
+            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
+            glMatrixMode(GL_MODELVIEW)
+            glLoadMatrixf(vsml.get_modelview())
             region.draw_actors()
+            # take back the old camera modelview
+            vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
