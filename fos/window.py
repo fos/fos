@@ -27,6 +27,7 @@ class Window(QtGui.QWidget):
             Specify the background RGB color as 3-tuple with values
             between 0 and 1
         """
+        # TODO: add PySide.QtOpenGL.QGLFormat to configure the OpenGL context
         QtGui.QWidget.__init__(self, parent)
 
         self.world = World()
@@ -195,4 +196,3 @@ class GLWidget(QtOpenGL.QGLWidget):
             self.parent.world.camera.move_forward( numSteps )
 
         self.repaint()
-

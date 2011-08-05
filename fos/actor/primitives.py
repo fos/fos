@@ -1,7 +1,6 @@
 import numpy as np
 from pyglet.gl import *
 from .base import Actor
-from PySide import QtGui
 
 class Sphere(Actor):
 
@@ -13,7 +12,6 @@ class Sphere(Actor):
         self.vertices, self.faces = makeNSphere( iterations )
         self.vertices *= radius
         self.wireframe = wireframe
-        #self.color = QtGui.QColor.fromRgbF(color[0], color[1], color[2], 1.0)
         self.color = color
 
         self.vertices_ptr = self.vertices.ctypes.data
@@ -27,8 +25,6 @@ class Sphere(Actor):
         else:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glLineWidth(1.0)
-
-        #glColor3f( 1.0, 1.0, 0.0)
         glColor4f( self.color[0], self.color[1], self.color[2], self.color[3] )
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
@@ -39,12 +35,15 @@ class Sphere(Actor):
 
 class Cylinder(Actor):
 
-    def __init__(self, name, p1, p2, r1, r2, resolution = 4):
-        """ A Cylinder actor
+    def __init__(self, name, p1, p2, r1, r2, resolution = 4, color = (0.0, 1.0, 0.0, 1.0), wireframe = False):
+        """ A Cylinder actor. Creates cones if radius set to zero
         """
         super(Cylinder, self).__init__( name )
 
         self.vertices, self.faces = makeCylinder( p1, p2, r1, r2, resolution )
+
+        self.wireframe = wireframe
+        self.color = color
 
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
@@ -52,9 +51,12 @@ class Cylinder(Actor):
 
     def draw(self):
         glDisable(GL_CULL_FACE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        if self.wireframe:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glLineWidth(1.0)
-        glColor3f(1.0, 1.0, 0.0)
+        glColor4f( self.color[0], self.color[1], self.color[2], self.color[3] )
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
         glDrawElements( GL_TRIANGLES, self.faces_nr, GL_UNSIGNED_INT, self.faces_ptr )
@@ -128,7 +130,6 @@ def makeNSphere( iterations = 3 ):
             f[i][2] = pci
 
     return np.array(p, dtype = np.float32 ), np.array(f, dtype = np.uint32 )
-
 
 def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
     """ Cylinder or Cone generation
