@@ -23,6 +23,7 @@ class Transform3D(object):
     def set_scale(self, x=None, y=None, z=None ):
         """ Set the scale in the three dimensions
         """
+        # TODO: is this correct?
         if x:
             self.matrix[0,0] = x
         if y:

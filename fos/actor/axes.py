@@ -5,7 +5,7 @@ from primitives import Cylinder
 
 class Axes(Actor):
 
-    def __init__(self, name = "Cartesian Axes", scale = 10.0, linewidth = 1.0):
+    def __init__(self, name = "Cartesian Axes", scale = 1.0, linewidth = 1.0):
         """ Draw three axes
         """
         super(Axes, self).__init__( name )
@@ -14,11 +14,15 @@ class Axes(Actor):
         self.linewidth = linewidth
 
         # x axes arrow
-        self.x_cone = Cylinder( "XVone", np.array([self.scale*1.1-5,0,0]), np.array([self.scale*1.1,0,0]), 1 , 0, 10 )
+        self.x_cone = Cylinder( "XCone", np.array([0.8,0,0]), np.array([1.1,0,0]), 0.15, 0, 10, color = (1.0, 0, 0, 1.0) )
+        self.y_cone = Cylinder( "YCone", np.array([0,0.8,0]), np.array([0,1.1,0]), 0.15, 0, 10, color = (0, 1.0, 0, 1.0) )
+        self.z_cone = Cylinder( "ZCone", np.array([0,0,0.8]), np.array([0,0,1.1]), 0.15, 0, 10, color = (0, 0, 1.0, 1.0) )
 
     def draw(self):
 
         self.x_cone.draw()
+        self.y_cone.draw()
+        self.z_cone.draw()
         
         #glPushMatrix()
         glLineWidth(self.linewidth)

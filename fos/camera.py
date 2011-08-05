@@ -181,7 +181,6 @@ class SimpleCamera(VSMLCamera):
         glPointSize(10.0)
         glBegin(GL_POINTS)
         glColor3f(1.0, 0.0, 0.0)
-        print self.focal
         glVertex3f(self.focal[0], self.focal[1], self.focal[2])
         glEnd()
 
