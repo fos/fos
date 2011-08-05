@@ -10,39 +10,9 @@ class Box(Actor):
         """
         super(Box, self).__init__( name )
         
-        self.update(blf, trb, margin)
-
-        self.vertices_nr = self.vertices.shape[0]
-        self.indices_nr = self.indices.size
-
-        self.vertices_ptr = self.vertices.ctypes.data
-        self.indices_ptr = self.indices.ctypes.data
-
-    def update(self, c1, c2, margin):
-        """ c1 is botton-left-front, and c2 is top-right-back point
-        """
-        # add the margin on all sides
-        c1[0] = c1[0] - margin
-        c1[1] = c1[1] - margin
-        c1[2] = c1[2] - margin
-
-        c2[0] = c2[0] + margin
-        c2[1] = c2[1] + margin
-        c2[2] = c2[2] + margin
-
-        self.coord = (np.array(c1, dtype = np.float32),
-                      np.array(c2, dtype = np.float32))
-
-        self.vertices = np.array([
-               [c1[0],c1[1],c2[2]],
-               [c1[0],c1[1],c1[2]],
-               [c1[0],c2[1],c2[2]],
-               [c1[0],c2[1],c1[2]],
-               [c2[0],c1[1],c2[2]],
-               [c2[0],c1[1],c1[2]],
-               [c2[0],c2[1],c2[2]],
-               [c2[0],c2[1],c1[2]]], dtype = np.float32)
-
+        self.vertices = np.zeros( (8,3), dtype = np.float32 )
+        self.c1 = np.zeros( (3,1), dtype = np.float32 )
+        self.c2 = np.zeros( (3,1), dtype = np.float32 )
         self.indices = np.array([ [0,1,5,4],
                            [2,3,7,6],
                            [2,0,1,3],
@@ -50,6 +20,30 @@ class Box(Actor):
                            [7,6,4,5],
                            [6,2,0,4] ], dtype = np.uint32)
 
+        self.update(blf, trb, margin)
+
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.indices_ptr = self.indices.ctypes.data
+        self.indices_nr = self.indices.size
+
+    def update(self, c1, c2, margin):
+        """ c1 is botton-left-front, and c2 is top-right-back point
+        """
+        # add the margin on all sides
+        self.c1[0] = c1[0] - margin
+        self.c1[1] = c1[1] - margin
+        self.c1[2] = c1[2] - margin
+
+        self.c2[0] = c2[0] + margin
+        self.c2[1] = c2[1] + margin
+        self.c2[2] = c2[2] + margin
+
+        self.vertices[:4, 0] = self.c1[0]
+        self.vertices[4:, 0] = self.c2[0]
+        self.vertices[:2, 1] = self.vertices[4:6, 1] = self.c1[1]
+        self.vertices[2:4, 1] = self.vertices[6:8, 1] = self.c2[1]
+        self.vertices[::2, 2] = self.c2[2]
+        self.vertices[1::2, 2] = self.c1[2]
 
     def draw(self):
         #glPushMatrix()

@@ -4,7 +4,7 @@ from fos.actor import Box, Actor
 
 class Region(object):
 
-    def __init__(self, regionname, transform, resolution, extent = None ):
+    def __init__(self, regionname, transform, resolution, extent_min = None, extent_max = None ):
         """
         Create a Region which is a spatial reference system and acts as a container
         for Actors presenting datasets.
@@ -20,11 +20,12 @@ class Region(object):
         resolution : 3-tuple of strings
             Identifiers of the "Unit of Measurement" ontology
             denoting the spatial metric for one unit for each spatial axes
-        extent : 2-tuple of 3x1 numpy.array
-            First element is the minimal, the the second elemenet is
-            the maximal extension of the Region. This defines an
+        extent_min, extent_max : two 3x1 numpy.array
+            Defines the minimum and maximum extent of the Region along
+            all three axes. This implicitly defines an
             axis-aligned bounding box which can be overwritten by the
-            addition of Actors bigger then the extent.
+            addition of Actors bigger then the extent and calling the
+            update() function of the Region
 
         Notes
         -----
@@ -38,12 +39,26 @@ class Region(object):
         self.resolution = resolution
         self.actors = {}
         
-        if extent:
-            self.extent = extent
-            self.add_actor( Box( "AABB", extent[0], extent[1] ) )
+        if not extent_min is None and not extent_max is None:
+            self.extent_min = np.array( extent_min, dtype = np.float32 )
+            self.extent_max = np.array( extent_max, dtype = np.float32 )
+            self.add_actor( Box( "AABB", self.extent_min, self.extent_max ) )
 
+    def update_extent(self):
+        """
+        Loop over all contained actors and query for the min/max extent
+        and update the Region's extent accordingly
+        """
+        for name, actor in self.actors.items():
+            self.extent_min = np.vstack( (self.extent_min,actor.get_extent_min()) ).min( axis = 0 )
+            self.extent_max = np.vstack( (self.extent_max,actor.get_extent_max()) ).max( axis = 0 )
 
-    # TODO: update function to update the extent. store extent in seperate variables. update the Box dimensions
+        # update AABB
+        if "AABB" in self.actors:
+            self.actors['AABB'].update( self.extent_min, self.extent_max, 0.0 )
+
+    def update(self):
+        self.update_extent()
 
     def add_actor(self, actor):
         if actor in self.actors:

@@ -12,7 +12,7 @@ if __name__ == '__main__':
     mytransform = IdentityTranform()
 
     region = Region( regionname = "Main", transform = mytransform, resolution = ("mm", "mm", "mm"),
-                     extent = (np.array( [-5.0, -5, -5] ), np.array( [5, 5, 5] ) ) )
+                     extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
     w.add_region ( region )
 

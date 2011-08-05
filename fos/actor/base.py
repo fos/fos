@@ -22,6 +22,13 @@ class Actor(object):
     def hide(self):
         self.visible = False
 
+    def get_extent_min(self):
+        if not self.vertices is None:
+            return self.vertices.min( axis = 0 )
+
+    def get_extent_max(self):
+        if not self.vertices is None:
+            return self.vertices.max( axis = 0 )
 
 class DynamicActor(Actor):
 
