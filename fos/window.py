@@ -42,7 +42,6 @@ class Window(QtGui.QWidget):
 
         self.show()
 
-
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
@@ -50,17 +49,11 @@ class Window(QtGui.QWidget):
     def add_region(self, region):
         self.world.add_region( region )
 
-    def new_region(self, regionname, transform, resolution ):
-        self.world.new_region( regionname, transform, resolution )
-
-    def add_actor_to_region(self, regionname, actor):
-        self.world.add_actor_to_region( regionname, actor )
-
-    def remove_actor_from_region(self, regionname, actor):
-        self.world.remove_actor_from_region( regionname, actor )
-
     def set_camera(self, camera):
         self.world.camera = camera
+
+    def refocus_camera(self):
+        self.world.refocus_camera()
 
     def screenshot(self, filename):
         """ Store current OpenGL context as image
@@ -79,7 +72,8 @@ class Window(QtGui.QWidget):
         elif key == QtCore.Qt.Key_Right:
             self.world.camera.reset()
         elif key == QtCore.Qt.Key_R:
-            self.world.camera.reset()
+            self.world.refocus_camera()
+            self.world.camera.update()
             self.glWidget.repaint()
         elif key == QtCore.Qt.Key_Escape:
             self.close()
@@ -138,6 +132,12 @@ class GLWidget(QtOpenGL.QGLWidget):
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
+
+        if (event.modifiers() & QtCore.Qt.ShiftModifier):
+            shift = True
+        else:
+            shift = False
+            
         if event.buttons() & QtCore.Qt.LeftButton:
             # should rotate
             if dx != 0:
@@ -146,6 +146,10 @@ class GLWidget(QtOpenGL.QGLWidget):
                     angle = -0.01
                 else:
                     angle = 0.01
+
+                if shift:
+                    angle *= 2
+
                 self.parent.world.camera.rotate_around_focal( angle, "yup" )
 
             if dy != 0:
@@ -154,6 +158,10 @@ class GLWidget(QtOpenGL.QGLWidget):
                     angle = -0.01
                 else:
                     angle = 0.01
+
+                if shift:
+                    angle *= 2
+                    
                 self.parent.world.camera.rotate_around_focal( angle, "right" )
 
         elif event.buttons() & QtCore.Qt.RightButton:
@@ -183,16 +191,25 @@ class GLWidget(QtOpenGL.QGLWidget):
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
         #print "numsteps", numSteps
-        shift = False
         if (e.modifiers() & QtCore.Qt.ControlModifier):
-            print "ctrl modifier"
+            ctrl = True
+        else:
+            ctrl = False
 
         if (e.modifiers() & QtCore.Qt.ShiftModifier):
             shift = True
-
-        if shift:
-            self.parent.world.camera.move_forward_all( numSteps )
         else:
-            self.parent.world.camera.move_forward( numSteps )
+            shift = False
+
+        if ctrl:
+            if shift:
+                self.parent.world.camera.move_forward_all( numSteps * 10 )
+            else:
+                self.parent.world.camera.move_forward_all( numSteps )
+        else:
+            if shift:
+                self.parent.world.camera.move_forward( numSteps * 10 )
+            else:
+                self.parent.world.camera.move_forward( numSteps )
 
         self.repaint()

@@ -20,10 +20,16 @@ class Transform3D(object):
         if z:
             self.matrix[2,3] = z
 
+    def apply(self, point):
+        """ Apply transformation to a 3D point from the left.
+        Point needs to have shape (3,)
+        """
+        return np.dot( self.matrix[:3,:3], point) + self.matrix[:3,3]
+
     def set_scale(self, x=None, y=None, z=None ):
         """ Set the scale in the three dimensions
         """
-        # TODO: is this correct?
+        # TODO: is this correct? or rather SVD?
         if x:
             self.matrix[0,0] = x
         if y:
@@ -73,10 +79,10 @@ class Transform3D(object):
         from ctypes import c_float
         return (c_float*16)(*self.modelview.T.ravel().tolist())
 
-class IdentityTranform(Transform3D):
+class IdentityTransform(Transform3D):
 
     def __init__(self):
-        super(IdentityTranform, self).__init__( matrix = np.eye(4) )
+        super(IdentityTransform, self).__init__( matrix = np.eye(4) )
 
 
 def general_rotation(x, y, z, a, b, c, u, v, w, angle):

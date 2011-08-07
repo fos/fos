@@ -81,7 +81,14 @@ class SimpleCamera(VSMLCamera):
     def reset(self):
         self.setup()
         self.update()
-        
+
+    def set_focal(self, point):
+        self.focal = point
+
+    def set_location(self, point, yup):
+        self.location = point
+        self.yuppoint = self.location + yup
+
     def get_lookatdir(self):
         a = self.focal - self.location
         return a / np.linalg.norm( a )

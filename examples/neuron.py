@@ -1,11 +1,12 @@
 import h5py
 import sys
+import os.path as op
 from fos import *
 import numpy as np
 
 from PySide.QtGui import QApplication
 
-a=np.loadtxt("/home/stephan/03a_spindle2aFI.CNG.swc")
+a=np.loadtxt(op.join(op.dirname(__file__), "data", "rat-basal-forebrain.swc") )
 
 pos = a[:,2:5].astype( np.float32 )
 radius = a[:,5].astype( np.float32 ) * 4
@@ -22,12 +23,11 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     w = Window()
-    w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
-    act = PolygonLinesExtruded( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors, radius = radius)
+    act = PolygonLinesSimple( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors) #, radius = radius)
+    region.add_actor( act )
 
-    w.add_actor_to_region( "Main", act )
-
-    w.add_actor_to_region( "Main", Axes() )
+    w.add_region( region )
 
     sys.exit(app.exec_())

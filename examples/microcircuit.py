@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     w = Window()
 
-    region = Region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     
     act = Microcircuit( "Polygon Lines",  vert, conn, vert_labels, conn_labels )
     region.add_actor( act )
-    region.add_actor( Axes( name = "3 axes", scale = 10.0, linewidth = 5.0) )
-
+    region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
+    
     w.add_region ( region )
 
     sys.exit(app.exec_())

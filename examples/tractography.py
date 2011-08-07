@@ -1,11 +1,12 @@
 import sys
+import os.path as op
 from fos import *
 import numpy as np
 
 from PySide.QtGui import QApplication
 
 import nibabel as nib
-a=nib.trackvis.read('/home/stephan/data/project_atlas/PH0002/tp1/CMP/fibers/streamline_final_freesurferaparc.trk')
+a=nib.trackvis.read( op.join(op.dirname(__file__), "data", "tracks300.trk") )
 g=np.array(a[0], dtype=np.object)
 trk = [tr[0] for tr in a[0]]
 g=np.array(trk, dtype=np.object)
@@ -33,13 +34,11 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     w = Window()
-    w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
-    act = PolygonLinesExtruded( name = "Tractography", vertices = positions, connectivity = connectivity, radius = rad)
-
-    w.add_actor_to_region( "Main", act )
-
-    w.add_actor_to_region( "Main", Axes() )
-
+    act = PolygonLinesSimple( name = "Tractography", vertices = positions, connectivity = connectivity) #, radius = rad)
+    region.add_actor( act )
+    w.add_region( region )
+    w.refocus_camera()
     sys.exit(app.exec_())
 

@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     w = Window()
 
-    mytransform = IdentityTranform()
+    mytransform = IdentityTransform()
     mytransform.set_translation( x = 5 )
     mytransform.set_scale( 1.5, 1, 1 )
     mytransform.rotate( 45, 1.0, 0, 0 )
@@ -17,18 +17,18 @@ if __name__ == '__main__':
     region = Region( regionname = "Main", transform = mytransform, resolution = ("mm", "mm", "mm"),
                      extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
+    region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
     w.add_region ( region )
-    w.add_actor_to_region( "Main", Axes( name = "3 axes", linewidth = 5.0) )
 
-    mytransform = IdentityTranform()
-    mytransform.set_translation( x = -10 )
+    mytransform = IdentityTransform()
+    mytransform.set_translation( x = -40 )
 
     region2 = Region( regionname = "Main2", transform = mytransform, resolution = ("mm", "mm", "mm"),
                       extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
+    region2.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
     w.add_region( region2 )
-    w.add_actor_to_region( "Main2", Axes( name = "3 axes", linewidth = 2.0) )
 
-    w.show()
+    w.refocus_camera()
 
     sys.exit(app.exec_())

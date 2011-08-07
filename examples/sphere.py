@@ -9,14 +9,11 @@ if __name__ == '__main__':
 
     w = Window( width = 1200, height = 800, bgcolor = (0,0,0) )
 
-    mytransform = IdentityTranform()
-
-    region = Region( regionname = "Main", transform = mytransform, resolution = ("mm", "mm", "mm"),
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
                      extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
+    region.add_actor( Sphere( "MySphere", radius = 2, iterations = 2 ) )
+
     w.add_region ( region )
-
-
-    w.add_actor_to_region( "Main", Sphere( "MySphere", radius = 2, iterations = 2 ) )
 
     sys.exit(app.exec_())

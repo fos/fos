@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 from fos import *
+from pylab import cm
 
 from PySide.QtGui import QApplication
 
@@ -9,14 +10,12 @@ if __name__ == '__main__':
 
     w = Window()
 
-    mytransform = IdentityTranform()
-
-    region = Region( regionname = "Main", transform = mytransform, resolution = ("mm", "mm", "mm"),
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
                      extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
-    data = np.random.random( (1, 3) ) * 100
-    values = np.random.random( (1, 1) ) * 10
-    region.add_actor( Scatter( "MySphere", data[:,0], data[:,1], data[:,2], values, iterations = 0 ) )
+    data = np.random.random( (100, 3) ) * 100 - 50
+    values = np.random.random( (100, 1) ) * 10 - 5
+    region.add_actor( Scatter( "MySphere", data[:,0], data[:,1], data[:,2], values, iterations = 2 ) )
 
     w.add_region ( region )
 

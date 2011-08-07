@@ -9,7 +9,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     w = Window()
-    w.new_region( regionname = "Main", transform = IdentityTranform(), resolution = ("mm", "mm", "mm") )
+
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],
@@ -23,6 +24,9 @@ if __name__ == '__main__':
                        [0, 0, 1, 0.5]] , dtype = np.float32 )
 
     act = PolygonLines( name = "Polygon Lines", vertices = vert, connectivity = conn, colors = cols)
-    w.add_actor_to_region( "Main", act )
+
+    region.add_actor( act )
+
+    w.add_region( region )
 
     sys.exit(app.exec_())
