@@ -53,8 +53,11 @@ class ScatterCylinder(Actor):
         """
         super(ScatterCylinder, self).__init__( name )
 
-        self.vertices, self.faces = make_cylinder_scatter( p1, p2, r1, r2, resolution )
+        self.vertices, self.faces, self.colors = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
         self.wireframe = wireframe
+
+        if not self.colors is None:
+            self.colors_ptr = self.colors.ctypes.data
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
         self.faces_nr = self.faces.size
@@ -66,11 +69,19 @@ class ScatterCylinder(Actor):
             glLineWidth(1.0)
         else:
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glColor3f(1.0, 1.0, 0.0)
+
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+
+        if not self.colors is None:
+            glEnableClientState(GL_COLOR_ARRAY)
+            glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
+
         glDrawElements( GL_TRIANGLES, self.faces_nr, GL_UNSIGNED_INT, self.faces_ptr )
+
         glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+        
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
 

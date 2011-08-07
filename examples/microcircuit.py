@@ -24,10 +24,21 @@ if __name__ == '__main__':
                        [1, 2], # presyn
                        [3, 2], # postsyn
                        [3, 4] ], dtype = np.uint32 )
-    
+
+    # labels skeleton colors, and pre and postsynaptic colors
     conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
+
+    conn_color_map = {
+        1 : np.array([[1.0, 1.0, 0, 1.0]]),
+        2 : np.array([[1.0, 0.0, 0, 1.0]]),
+        3 : np.array([[0, 0, 1.0, 1.0]])
+    }
     
-    act = Microcircuit( "Polygon Lines",  vert, conn, vert_labels, conn_labels )
+    act = Microcircuit( "Polygon Lines", vertices = vert,
+                        connectivity = conn,
+                        vertices_labels = vert_labels,
+                        connectivity_labels = conn_labels,
+                        connectivity_colormap = conn_color_map )
     region.add_actor( act )
     region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
     

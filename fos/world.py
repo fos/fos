@@ -204,7 +204,7 @@ class World(object):
         # move along z axes sufficiently far to see all the regions
         # TODO: better
         dist = maxextent.max( axis = 0 ) - minextent.min( axis = 0 )
-        newloc[2] += dist[2] * 2
+        newloc[2] += dist[0] 
         self.camera.set_location( newloc, np.array([0.0,1.0,0.0]) )
         self.camera.update()
 

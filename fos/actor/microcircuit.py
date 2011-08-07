@@ -18,6 +18,7 @@ class Microcircuit(Actor):
              connectivity,
              vertices_labels,
              connectivity_labels,
+             connectivity_colormap,
              affine = None):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
@@ -64,7 +65,12 @@ class Microcircuit(Actor):
         p2 = preloc[1::2, :]
         r1 = np.ones( len(preloc/2), dtype = np.float32 ) * 0.2
         r2 = np.zeros( len(preloc/2), dtype = np.float32 )
-        self.pre_actor = ScatterCylinder( "PreConnector", p1, p2, r1, r2, resolution = 8, wireframe = False )
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_pre ):
+            preval = np.ones( len(preloc/2), dtype = np.dtype(type(con_pre)) ) * con_pre
+        else:
+            preval = None
+
+        self.pre_actor = ScatterCylinder( "PreConnector", p1, p2, r1, r2, preval, resolution = 8, colormap = connectivity_colormap )
 
         # extract the post connectivity and create cones
         postloc = vertices[ connectivity[np.where(connectivity_labels == con_post)[0]].ravel() ]
@@ -72,10 +78,14 @@ class Microcircuit(Actor):
         p2 = postloc[1::2, :]
         r1 = np.zeros( len(postloc/2), dtype = np.float32 )
         r2 = np.ones( len(postloc/2), dtype = np.float32 ) * 0.2
-        self.post_actor = ScatterCylinder( "PostConnector", p1, p2, r1, r2, resolution = 8 )
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_pre ):
+            postval = np.ones( len(postloc/2), dtype = np.dtype(type(con_post)) ) * con_post
+        else:
+            postval = None
+            
+        self.post_actor = ScatterCylinder( "PostConnector", p1, p2, r1, r2, postval, resolution = 8, colormap = connectivity_colormap )
 
-        self.polylines = PolygonLinesSimple( name = "Polygon Lines", vertices = self.vertices,
-                                             connectivity = self.connectivity)
+        self.polylines = PolygonLinesSimple( name = "Polygon Lines", vertices = self.vertices, connectivity = self.connectivity)
 
     def draw(self):
 

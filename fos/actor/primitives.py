@@ -222,20 +222,31 @@ def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
 
     return np.array( p, dtype = np.float32 ), np.array( f, dtype = np.uint32 )
 
-def make_cylinder_scatter( p1, p2, r1, r2, resolution = 4):
+def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colormap = None):
     n = len(p1)
     vertices = []
     faces = []
+    colors = []
     face_offset = 0
     for i in range(n):
         vert, fac = makeCylinder( p1[i,:], p2[i,:], r1[i], r2[i], resolution )
+
+        if isinstance(colormap, dict):
+            colors.append( np.repeat( colormap[values[i]], len(vert), axis = 0).astype( np.float32 ) )
+
         vertices.append( vert )
         fac += face_offset
         faces.append( fac )
         face_offset += len(vert)
+
     vertices = np.concatenate( vertices ).astype( np.float32 )
     faces = np.concatenate( faces ).astype( np.uint32 )
-    return vertices, faces
+    if len(colors)>0:
+        colors = np.concatenate( colors ).astype( np.float32 )
+    else:
+        colors = None
+
+    return vertices, faces, colors
 
 def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale_by_value = False):
     n = len(x)
@@ -267,8 +278,9 @@ def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale
 
     vertices = np.concatenate( vertices ).astype( np.float32 )
     faces = np.concatenate( faces ).astype( np.uint32 )
-    if not colormap is None:
+    if len(colors)>0:
         colors = np.concatenate( colors ).astype( np.float32 )
     else:
         colors = None
+        
     return vertices, faces, colors
