@@ -48,21 +48,24 @@ class Scatter(Actor):
 
 class ScatterCylinder(Actor):
 
-    def __init__(self, name, p1, p2, r1, r2, values = None, colormap = None, resolution = 4):
+    def __init__(self, name, p1, p2, r1, r2, values = None, colormap = None, resolution = 4, wireframe = False):
         """ A ScatterCylinder actor to display scatter plots
         """
         super(ScatterCylinder, self).__init__( name )
 
         self.vertices, self.faces = make_cylinder_scatter( p1, p2, r1, r2, resolution )
-
+        self.wireframe = wireframe
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
         self.faces_nr = self.faces.size
 
     def draw(self):
         glDisable(GL_CULL_FACE)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        glLineWidth(1.0)
+        if self.wireframe:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glLineWidth(1.0)
+        else:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glColor3f(1.0, 1.0, 0.0)
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)

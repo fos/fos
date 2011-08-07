@@ -6,6 +6,7 @@ Dependencies
 * PySide: http://developer.qt.nokia.com/wiki/PySideDownloads
 * Pyglet: http://www.pyglet.org/
 * NumPy (Debian: python-numpy)
+* Matplotlib (Debian: python-matplotlib)
 
 Test
 ----
