@@ -29,17 +29,11 @@ class Window(QtGui.QWidget):
         """
         # TODO: add PySide.QtOpenGL.QGLFormat to configure the OpenGL context
         QtGui.QWidget.__init__(self, parent)
-
-        self.world = World()
-
         self.glWidget = GLWidget( parent = self, width = width, height = height, bgcolor = bgcolor )
-
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
-
         self.setWindowTitle(self.tr(caption))
-
         self.show()
 
     def test_actor(self):
@@ -51,19 +45,20 @@ class Window(QtGui.QWidget):
         region.add_actor( sphere )
         self.add_region (region )
         self.refocus_camera()
+        self.glWidget.updateGL()
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
 
     def add_region(self, region):
-        self.world.add_region( region )
+        self.glWidget.world.add_region( region )
 
     def set_camera(self, camera):
-        self.world.camera = camera
+        self.glWidget.world.camera = camera
 
     def refocus_camera(self):
-        self.world.refocus_camera()
+        self.glWidget.world.refocus_camera()
 
     def screenshot(self, filename):
         """ Store current OpenGL context as image
@@ -80,11 +75,11 @@ class Window(QtGui.QWidget):
         elif key == QtCore.Qt.Key_Left:
             print("Left")
         elif key == QtCore.Qt.Key_Right:
-            self.world.camera.reset()
+            self.glWidget.world.camera.reset()
         elif key == QtCore.Qt.Key_R:
-            self.world.refocus_camera()
-            self.world.camera.update()
-            self.glWidget.repaint()
+            self.glWidget.world.refocus_camera()
+            self.glWidget.world.camera.update()
+            self.glWidget.updateGL()
         elif key == QtCore.Qt.Key_Escape:
             self.close()
         else:
@@ -99,9 +94,9 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         self.lastPos = QtCore.QPoint()
         self.bgcolor = QtGui.QColor.fromRgbF(bgcolor[0], bgcolor[1], bgcolor[2], 1.0)
-        self.parent = parent
         self.width = width
         self.height = height
+        self.world = World()
 
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
@@ -118,7 +113,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        self.parent.world.draw_all()
+        self.world.draw_all()
 
     def resizeGL(self, width, height):
         #side = min(width, height)
@@ -133,7 +128,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glLoadMatrixf(vsml.get_projection())
         glMatrixMode(GL_MODELVIEW)
-
+        
     # EVENTHANDLING
 
     def mousePressEvent(self, event):
@@ -160,7 +155,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                 if shift:
                     angle *= 2
 
-                self.parent.world.camera.rotate_around_focal( angle, "yup" )
+                self.world.camera.rotate_around_focal( angle, "yup" )
 
             if dy != 0:
                 # rotate around right
@@ -172,7 +167,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                 if shift:
                     angle *= 2
                     
-                self.parent.world.camera.rotate_around_focal( angle, "right" )
+                self.world.camera.rotate_around_focal( angle, "right" )
 
         elif event.buttons() & QtCore.Qt.RightButton:
             # should pan
@@ -192,11 +187,11 @@ class GLWidget(QtOpenGL.QGLWidget):
             else:
                 pandy = 0.0
 
-            self.parent.world.camera.pan( pandx, pandy )
+            self.world.camera.pan( pandx, pandy )
             
         self.lastPos = QtCore.QPoint(event.pos())
 
-        self.repaint()
+        self.updateGL()
 
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
@@ -213,13 +208,13 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         if ctrl:
             if shift:
-                self.parent.world.camera.move_forward_all( numSteps * 10 )
+                self.world.camera.move_forward_all( numSteps * 10 )
             else:
-                self.parent.world.camera.move_forward_all( numSteps )
+                self.world.camera.move_forward_all( numSteps )
         else:
             if shift:
-                self.parent.world.camera.move_forward( numSteps * 10 )
+                self.world.camera.move_forward( numSteps * 10 )
             else:
-                self.parent.world.camera.move_forward( numSteps )
+                self.world.camera.move_forward( numSteps )
 
-        self.repaint()
+        self.updateGL()
