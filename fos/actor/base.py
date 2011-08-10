@@ -32,10 +32,11 @@ class Actor(object):
 
 class DynamicActor(Actor):
 
-    def __init__(self):
+    def __init__(self, name):
         """ Dynamic actor either implemented as a list
         of static actors, or with data arrays having a temporal dimension
         """
+        super(DynamicActor, self).__init__( name )
 
         # is the actor currently playing
         self.playing = False
@@ -43,15 +44,26 @@ class DynamicActor(Actor):
         # the reference to the first time frame
         self.current_time_frame = 0
 
+    def updatePtr(self):
+        """ Updates the pointers to the data arrays
+        """
+        pass
+
     def next(self):
         """ Next time step
         """
-        pass
+        if self.current_time_frame == self.max_time_frame:
+            return
+        self.current_time_frame += 1
+        self.updatePtr()
 
     def previous(self):
         """ Previous time step
         """
-        pass
+        if self.current_time_frame == 0:
+            return
+        self.current_time_frame -= 1
+        self.updatePtr()
 
     def play(self):
         """ Start playing
@@ -66,4 +78,5 @@ class DynamicActor(Actor):
     def stop(self):
         """ Stop playing and reset to start
         """
-        pass
+        self.current_time_frame = 0
+        self.updatePtr()
