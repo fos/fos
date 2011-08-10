@@ -34,7 +34,29 @@ class Window(QtGui.QWidget):
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
         self.setWindowTitle(self.tr(caption))
+
+        self.spinCameraTimer = self.timerInit( interval = 30 )
+
         self.show()
+
+    def spinCameraToggle(self, angle = 0.007 ):
+
+        if not self.spinCameraTimer.isActive():
+            self.spinCameraTimer.start()
+        else:
+            self.spinCameraTimer.stop()
+            return
+
+        def rotate_camera():
+            self.glWidget.world.camera.rotate_around_focal( angle, "yup" )
+            self.glWidget.updateGL()
+
+        self.spinCameraTimer.timeout.connect(rotate_camera)
+
+    def timerInit(self, interval = 30):
+        timer = QtCore.QTimer(self)
+        timer.setInterval( interval )
+        return timer
 
     def test_actor(self):
         """ Dummy test function
@@ -80,6 +102,8 @@ class Window(QtGui.QWidget):
             self.glWidget.world.refocus_camera()
             self.glWidget.world.camera.update()
             self.glWidget.updateGL()
+        elif key == QtCore.Qt.Key_S:
+            self.spinCameraToggle()
         elif key == QtCore.Qt.Key_Escape:
             self.close()
         else:
