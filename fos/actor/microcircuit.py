@@ -41,8 +41,6 @@ class Microcircuit(Actor):
         """
         super(Microcircuit, self).__init__( name )
 
-        # TODO: simplify by reusing the PolygonLines actor in here!
-
         if affine is None:
             self.affine = np.eye(4, dtype = np.float32)
         else:
@@ -70,7 +68,7 @@ class Microcircuit(Actor):
         else:
             preval = None
 
-        self.pre_actor = ScatterCylinder( "PreConnector", p1, p2, r1, r2, preval, resolution = 8, colormap = connectivity_colormap )
+        self.pre_actor = DirectedScatter( "PreConnector", p1, p2, r1, r2, values = preval, resolution = 8, colormap = connectivity_colormap )
 
         # extract the post connectivity and create cones
         postloc = vertices[ connectivity[np.where(connectivity_labels == con_post)[0]].ravel() ]
@@ -83,7 +81,7 @@ class Microcircuit(Actor):
         else:
             postval = None
             
-        self.post_actor = ScatterCylinder( "PostConnector", p1, p2, r1, r2, postval, resolution = 8, colormap = connectivity_colormap )
+        self.post_actor = DirectedScatter( "PostConnector", p1, p2, r1, r2, values = postval, resolution = 8, colormap = connectivity_colormap )
 
         self.polylines = PolygonLinesSimple( name = "Polygon Lines", vertices = self.vertices, connectivity = self.connectivity)
 

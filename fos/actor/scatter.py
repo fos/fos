@@ -46,14 +46,19 @@ class Scatter(Actor):
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
 
-class ScatterCylinder(Actor):
+class DirectedScatter(Actor):
 
-    def __init__(self, name, p1, p2, r1, r2, values = None, colormap = None, resolution = 4, wireframe = False):
+    def __init__(self, name, p1, p2, r1, r2, type = 'cylinder', values = None, colormap = None, resolution = 4, wireframe = False):
         """ A ScatterCylinder actor to display scatter plots
         """
-        super(ScatterCylinder, self).__init__( name )
+        super(DirectedScatter, self).__init__( name )
 
-        self.vertices, self.faces, self.colors = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
+        # TODO: arrow scatter
+        if type == 'cylinder':
+            self.vertices, self.faces, self.colors = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
+        else:
+            raise Exception("Only valid type for DirectedScatter is 'cylinder'")
+        
         self.wireframe = wireframe
 
         if not self.colors is None:

@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 from fos import *
-from pylab import cm
 
 from PySide.QtGui import QApplication
 
