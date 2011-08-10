@@ -9,9 +9,8 @@ try:
 except ImportError:
     print("Need pyglet for OpenGL rendering")
 
-
 class Window(QtGui.QWidget):
-    def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480, bgcolor = (0,0,0) ):
+    def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480, bgcolor = (0,0,0), fullscreen = False ):
         """ Create a window
         Parameters
         ----------
@@ -37,7 +36,10 @@ class Window(QtGui.QWidget):
 
         self.spinCameraTimer = self.timerInit( interval = 30 )
 
-        self.show()
+        if fullscreen:
+            self.showFullScreen()
+        else:
+            self.show()
 
     def spinCameraToggle(self, angle = 0.007 ):
 
