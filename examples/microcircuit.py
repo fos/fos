@@ -21,9 +21,19 @@ if __name__ == '__main__':
     vert_labels = np.array( [1, 1, 2, 1, 1], dtype = np.uint32 )
     vert_nodeides = np.array( [10, 11, 200, 20, 21], dtype = np.uint32 )
 
-    vert_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
-                                 [500, 3, 4], # skeleton with id 500 from 3 to 4
+    vert_skeleton_index = np.array( [
+        [400, 0, 1], # skeleton with id 400 from 0 to 1
+        [500, 3, 4], # skeleton with id 500 from 3 to 4
     ])
+
+    vertices_properties = {
+        "label" : { "data" : vert_labels, "metadata" : {} },
+        "id" : { "data" : vert_nodeides }
+    }
+
+    vertices_grouping = {
+        "index" : { "data" : vert_skeleton_index }
+    }
 
     conn = np.array( [ [0, 1], # parent
                        [1, 2], # presyn
@@ -34,8 +44,8 @@ if __name__ == '__main__':
     # labels parent relations of skeletons, and pre and postsynaptic connections
     conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
 
-    conn_skeleton_index = np.array( [ [400, 0, 0], # skeleton with id 400 from 0 to 1
-                                      [500, 3, 3], # skeleton with id 500 from 3 to 4
+    conn_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
+                                      [500, 2, 3], # skeleton with id 500 from 3 to 4
     ])
 
     # colormap as dictionary with labels
@@ -44,21 +54,47 @@ if __name__ == '__main__':
         2 : np.array([[1.0, 0.0, 0, 1.0]]),
         3 : np.array([[0, 0, 1.0, 1.0]])
     }
+    
     # TODO: best solution?
     conn_color_map_skeleton= {
         400 : np.array([[0.8, 0.5, 0.2, 1.0]]),
         500 : np.array([[0.4, 0.3, 0, 1.0]])
     }
+
+    connectivity_index = {
+        "index" : { "data" : conn_skeleton_index }
+    }
+
+    connectivity_properties = {
+        "label" : { "data" : conn_labels,
+                    "metadata" : {
+                        "semantics" : [
+                            { "name" : "skeleton", "value" : "1" },
+                            { "name" : "presynaptic", "value" : "2" },
+                            { "name" : "postsynaptic", "value" : "3" }
+                        ]
+                    }
+                  },
+    }
     
-    act = Microcircuit( "Polygon Lines", vertices = vert,
-                        connectivity = conn,
-                        vertices_labels = vert_labels,
-                        connectivity_labels = conn_labels,
-                        connectivity_colormap = conn_color_map )
+    act = Microcircuit(
+        name = "Simple microcircuitry",
+        vertices = vert,
+        connectivity = conn,
+        vertices_properties = vertices_properties,
+        connectivity_properties = connectivity_properties,
+        connectivity_index = conn_skeleton_index,
+        connectivity_colormap = conn_color_map
+    )
     region.add_actor( act )
     region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
     
     w.add_region ( region )
+
+    act.deselect_all()
+    act.select_skeleton( [400], 1.0 )
+
+    w.refocus_camera()
 
     sys.exit(app.exec_())
 

@@ -46,18 +46,18 @@ class Scatter(Actor):
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
 
-class DirectedScatter(Actor):
+class VectorScatter(Actor):
 
     def __init__(self, name, p1, p2, r1, r2, type = 'cylinder', values = None, colormap = None, resolution = 4, wireframe = False):
         """ A ScatterCylinder actor to display scatter plots
         """
-        super(DirectedScatter, self).__init__( name )
+        super(VectorScatter, self).__init__( name )
 
         # TODO: arrow scatter
         if type == 'cylinder':
-            self.vertices, self.faces, self.colors = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
+            self.vertices, self.faces, self.colors, self.index_range = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
         else:
-            raise Exception("Only valid type for DirectedScatter is 'cylinder'")
+            raise Exception("Only valid type for VectorScatter is 'cylinder'")
         
         self.wireframe = wireframe
 
@@ -66,6 +66,16 @@ class DirectedScatter(Actor):
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
         self.faces_nr = self.faces.size
+        print "index range vect scatter", self.index_range
+
+    def set_coloralpha_index(self, index_list, alphavalue = 0.2):
+        """ Sets the color alpha value for a list of indices to alphavalue """
+        for i in index_list:
+            print self.index_range[i,1], self.index_range[i,2]
+            self.colors[self.index_range[i,1]:self.index_range[i,2],3] = alphavalue
+
+    def set_coloralpha_all(self, alphavalue = 0.2):
+        self.colors[:,3] = alphavalue
 
     def draw(self):
         glDisable(GL_CULL_FACE)

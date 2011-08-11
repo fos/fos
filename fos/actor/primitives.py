@@ -228,8 +228,11 @@ def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colorm
     faces = []
     colors = []
     face_offset = 0
+    # columns: index, range from, range to
+    index_range = np.zeros( (n,3), dtype = np.uint32 )
     for i in range(n):
         vert, fac = makeCylinder( p1[i,:], p2[i,:], r1[i], r2[i], resolution )
+        index_range[i,0] = i
 
         if isinstance(colormap, dict):
             colors.append( np.repeat( colormap[values[i]], len(vert), axis = 0).astype( np.float32 ) )
@@ -237,8 +240,11 @@ def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colorm
         vertices.append( vert )
         fac += face_offset
         faces.append( fac )
-        face_offset += len(vert)
 
+        index_range[i,1] = face_offset
+        face_offset += len(vert)
+        index_range[i,2] = face_offset
+        
     vertices = np.concatenate( vertices ).astype( np.float32 )
     faces = np.concatenate( faces ).astype( np.uint32 )
     if len(colors)>0:
@@ -246,7 +252,7 @@ def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colorm
     else:
         colors = None
 
-    return vertices, faces, colors
+    return vertices, faces, colors, index_range
 
 def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale_by_value = False):
     n = len(x)

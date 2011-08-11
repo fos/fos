@@ -298,7 +298,7 @@ class PolygonLines(Actor):
         self.program.disableAttributeArray( self.aColor )
 
         self.program.release()
-
+        
 
 class PolygonLinesSimple(Actor):
 
@@ -347,13 +347,24 @@ class PolygonLinesSimple(Actor):
         # we want per line color
         # duplicating the color array, we have the colors per vertex
         self.colors =  np.repeat(self.colors, 2, axis=0)
-
+        
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.connectivity.ctypes.data
         self.faces_nr = self.connectivity.size
         self.colors_ptr = self.colors.ctypes.data
 
+    def set_coloralpha_all(self, alphavalue = 0.2 ):
+        self.colors[:,3] = alphavalue
+
+    def select_vertices(self, value = 1.0):
+        # select a subset of vertices (e.g. for a skeleton)
+        pass
+
     def draw(self):
+        glEnable(GL_BLEND)
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+        glLineWidth(6.0)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)

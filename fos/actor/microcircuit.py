@@ -16,9 +16,10 @@ class Microcircuit(Actor):
              name,
              vertices,
              connectivity,
-             vertices_labels,
-             connectivity_labels,
-             connectivity_colormap,
+             vertices_properties = None,
+             connectivity_properties = None,
+             connectivity_index = None,
+             connectivity_colormap = None,
              affine = None):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
@@ -46,10 +47,33 @@ class Microcircuit(Actor):
         else:
             self.affine = affine
 
-        # TODO: hard-coded values
-        con_skeleton = 1
-        con_pre = 2
-        con_post = 3
+        # TODO: properly structure
+        self.vertices_properties = vertices_properties
+        self.connectivity_index = connectivity_index
+
+        if connectivity_properties is None:
+            print("Need to provide connectivity_properties dictionary with label and data")
+            return
+        else:
+
+            if isinstance(connectivity_properties, dict):
+                
+                self.connectivity_properties = connectivity_properties
+
+                # extract connectivity labels
+                if self.connectivity_properties.has_key("label"):
+                    connectivity_labels = self.connectivity_properties["label"]["data"]
+
+                for semanticdict in self.connectivity_properties["label"]["metadata"]["semantics"]:
+                    # name needs to be based on convention, TODO: best from ontology id rather than string!
+                    if semanticdict.has_key("name"):
+                        name = semanticdict["name"]
+                    if "skeleton" in name:
+                        con_skeleton = int(semanticdict["value"])
+                    elif "presynaptic" in name:
+                        con_pre = int(semanticdict["value"])
+                    elif "postsynaptic" in name:
+                        con_post = int(semanticdict["value"])
 
         # use the connectivity labels to extract the connectivity for the skeletons
         self.vertices = vertices[ connectivity[np.where(connectivity_labels == con_skeleton)[0]].ravel() ]
@@ -68,7 +92,7 @@ class Microcircuit(Actor):
         else:
             preval = None
 
-        self.pre_actor = DirectedScatter( "PreConnector", p1, p2, r1, r2, values = preval, resolution = 8, colormap = connectivity_colormap )
+        self.pre_actor = VectorScatter( "PreConnector", p1, p2, r1, r2, values = preval, resolution = 8, colormap = connectivity_colormap )
 
         # extract the post connectivity and create cones
         postloc = vertices[ connectivity[np.where(connectivity_labels == con_post)[0]].ravel() ]
@@ -81,9 +105,30 @@ class Microcircuit(Actor):
         else:
             postval = None
             
-        self.post_actor = DirectedScatter( "PostConnector", p1, p2, r1, r2, values = postval, resolution = 8, colormap = connectivity_colormap )
+        self.post_actor = VectorScatter( "PostConnector", p1, p2, r1, r2, values = postval, resolution = 8, colormap = connectivity_colormap )
 
         self.polylines = PolygonLinesSimple( name = "Polygon Lines", vertices = self.vertices, connectivity = self.connectivity)
+
+    def deselect_all(self):
+        """
+        Sets the alpha value of all polygon lines to 0.2
+        """
+        self.pre_actor.set_coloralpha_all( alphavalue = 0.2 )
+        self.post_actor.set_coloralpha_all( alphavalue = 0.2 )
+        self.polylines.set_coloralpha_all( alphavalue = 0.2 )
+
+    def select_skeleton(self, skeleton_id_list, value = 1.0 ):
+
+        # TODO: retrieve indices with con_pre type and skeleton_id
+
+        for skeleton_id in skeleton_id_list:
+
+            # retrieve skeleton indices for the skeleton ids from vertices_index
+
+            # retrieve skeleton indices for the skeleton ids from connectivity_index
+            preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
+            self.pre_actor.set_coloralpha_index( preidxlist , 1.0 )
+
 
     def draw(self):
 
