@@ -329,11 +329,18 @@ class PolygonLinesSimple(Actor):
         else:
             self.affine = affine
 
+        self.vertices_orig = vertices
+        self.connectivity_orig = connectivity
+
         # unfortunately, we need to duplicate vertices if we want per line color
-        self.vertices = vertices[connectivity,:]
+        # not necessary if we assume this was done before!
+        # self.vertices = vertices[connectivity.ravel(),:]
+        # print "vertices new", self.vertices
+        self.vertices = vertices
 
         # we have a simplified connectivity now
-        self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
+        # self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
+        self.connectivity = connectivity.ravel()
 
         # this coloring section is for per/vertex color
         if colors is None:
@@ -356,9 +363,10 @@ class PolygonLinesSimple(Actor):
     def set_coloralpha_all(self, alphavalue = 0.2 ):
         self.colors[:,3] = alphavalue
 
-    def select_vertices(self, value = 1.0):
+    def select_vertices(self, vertices_indices, value = 0.6):
         # select a subset of vertices (e.g. for a skeleton)
-        pass
+        self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
+
 
     def draw(self):
         glEnable(GL_BLEND)

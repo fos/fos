@@ -62,52 +62,88 @@ class Microcircuit(Actor):
 
                 # extract connectivity labels
                 if self.connectivity_properties.has_key("label"):
-                    connectivity_labels = self.connectivity_properties["label"]["data"]
+                    self.connectivity_labels = self.connectivity_properties["label"]["data"]
+
+                if self.connectivity_properties.has_key("id"):
+                    self.connectivity_ids = self.connectivity_properties["id"]["data"]
 
                 for semanticdict in self.connectivity_properties["label"]["metadata"]["semantics"]:
                     # name needs to be based on convention, TODO: best from ontology id rather than string!
                     if semanticdict.has_key("name"):
                         name = semanticdict["name"]
                     if "skeleton" in name:
-                        con_skeleton = int(semanticdict["value"])
+                        self.con_skeleton = int(semanticdict["value"])
                     elif "presynaptic" in name:
-                        con_pre = int(semanticdict["value"])
+                        self.con_pre = int(semanticdict["value"])
                     elif "postsynaptic" in name:
                         con_post = int(semanticdict["value"])
 
         # use the connectivity labels to extract the connectivity for the skeletons
-        self.vertices = vertices[ connectivity[np.where(connectivity_labels == con_skeleton)[0]].ravel() ]
-        
+        self.index_skeleton = np.where(self.connectivity_labels == self.con_skeleton)[0]
+        self.index_allpre = np.where(self.connectivity_labels == self.con_pre)[0]
+        # print "conn ids reindexed", 
+        self.connectivity_ids_index = self.connectivity_ids[self.index_skeleton]
+        self.connectivity_labels_index = self.connectivity_labels[self.index_skeleton]
+
+        self.vertices = vertices
+        self.connectivity = connectivity
+        self.connectivity_index_old = connectivity[self.index_skeleton]
+        self.vertices_skeleton = vertices[ self.connectivity_index_old.ravel() ]
+
         # we have a simplified connectivity now
-        self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
+        self.connectivity_skeleton = np.array( range(len(self.vertices_skeleton)), dtype = np.uint32 )
+        self.connectivity_skeleton = self.connectivity_skeleton.reshape( (len(self.connectivity_skeleton)/2, 2) )
+
+        # look up the start and end vertex id
+        # map these to _skeleton arrays, and further to actor???
+
+        ##########
+        # Incoming connectors
+        ##########
 
         # extract the pre connectivity and create cones
-        preloc = vertices[ connectivity[np.where(connectivity_labels == con_pre)[0]].ravel() ]
-        p1 = preloc[::2, :]
-        p2 = preloc[1::2, :]
-        r1 = np.ones( len(preloc/2), dtype = np.float32 ) * 0.2
-        r2 = np.zeros( len(preloc/2), dtype = np.float32 )
-        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_pre ):
-            preval = np.ones( len(preloc/2), dtype = np.dtype(type(con_pre)) ) * con_pre
+        # store the indices for to be used to create the vector scatter
+        # by itself, it represent implicitly the index used to select/deselect the vectors
+        self.index_pre = np.where(self.connectivity_labels == self.con_pre)[0]
+        self.vertices_pre = vertices[ connectivity[self.index_pre].ravel() ]
+        self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
+        self.pre_p2 = self.vertices_pre[1::2, :]
+        pren = len(self.index_pre)
+        r1 = np.ones( pren, dtype = np.float32 ) * 0.2
+        r2 = np.zeros( pren, dtype = np.float32 )
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_pre ):
+            preval = np.ones( pren, dtype = np.dtype(type(self.con_pre)) ) * self.con_pre
         else:
             preval = None
+        self.pre_actor = VectorScatter( "PreConnector", self.pre_p1, self.pre_p2, r1, r2, values = preval,
+                                        resolution = 8, colormap = connectivity_colormap )
+        # len(self.index_pre) = len(self.pre_p1) = len(preval)
 
-        self.pre_actor = VectorScatter( "PreConnector", p1, p2, r1, r2, values = preval, resolution = 8, colormap = connectivity_colormap )
+        ##########
+        # Outgoing connectors
+        ##########
 
         # extract the post connectivity and create cones
-        postloc = vertices[ connectivity[np.where(connectivity_labels == con_post)[0]].ravel() ]
-        p1 = postloc[::2, :]
-        p2 = postloc[1::2, :]
-        r1 = np.zeros( len(postloc/2), dtype = np.float32 )
-        r2 = np.ones( len(postloc/2), dtype = np.float32 ) * 0.2
-        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_pre ):
-            postval = np.ones( len(postloc/2), dtype = np.dtype(type(con_post)) ) * con_post
+        self.index_post = np.where(self.connectivity_labels == con_post)[0]
+        self.vertices_post = vertices[ connectivity[self.index_post].ravel() ]
+        self.post_p1 = self.vertices_post[::2, :]
+        self.post_p2 = self.vertices_post[1::2, :]
+        postn = len(self.index_post)
+        r1 = np.zeros( postn, dtype = np.float32 )
+        r2 = np.ones( postn, dtype = np.float32 ) * 0.2
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_post ):
+            postval = np.ones( postn, dtype = np.dtype(type(con_post)) ) * con_post
         else:
             postval = None
-            
-        self.post_actor = VectorScatter( "PostConnector", p1, p2, r1, r2, values = postval, resolution = 8, colormap = connectivity_colormap )
+        self.post_actor = VectorScatter( "PostConnector", self.post_p1, self.post_p2, r1, r2, values = postval,
+                                         resolution = 8, colormap = connectivity_colormap )
 
-        self.polylines = PolygonLinesSimple( name = "Polygon Lines", vertices = self.vertices, connectivity = self.connectivity)
+        ##########
+        # Skeletons
+        ##########
+        self.polylines = PolygonLinesSimple( name = "Polygon Lines",
+                                             vertices = self.vertices_skeleton,
+                                             connectivity = self.connectivity_skeleton )
 
     def deselect_all(self):
         """
@@ -120,14 +156,32 @@ class Microcircuit(Actor):
     def select_skeleton(self, skeleton_id_list, value = 1.0 ):
 
         # TODO: retrieve indices with con_pre type and skeleton_id
-
+        print "select..."
         for skeleton_id in skeleton_id_list:
-
+            print "... skeleton id", skeleton_id
             # retrieve skeleton indices for the skeleton ids from vertices_index
+            skeleton_id_index = np.where( self.connectivity_ids_index == skeleton_id )[0]
+
+            print "skeleton id index", skeleton_id_index
+            print "another", np.where( (self.connectivity_labels_index == self.con_skeleton) & (self.connectivity_ids_index == skeleton_id) )[0]
+
+            self.polylines.select_vertices( vertices_indices = skeleton_id_index, value = value )
 
             # retrieve skeleton indices for the skeleton ids from connectivity_index
-            preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
+            # preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
+            # self.pre_actor.set_coloralpha_index( preidxlist , 1.0 )
+            
+            
+            print self.connectivity_ids_index
+            print skeleton_id
+
+            preidxlist =  np.where( (self.connectivity_labels[self.index_allpre] == self.con_pre) & (self.connectivity_ids_index == skeleton_id) )[0]
+            # preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
             self.pre_actor.set_coloralpha_index( preidxlist , 1.0 )
+
+            #postidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
+
+            #self.post_actor.set_coloralpha_index( postidxlist , 1.0 )
 
 
     def draw(self):

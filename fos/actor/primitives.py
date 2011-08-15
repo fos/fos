@@ -228,7 +228,7 @@ def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colorm
     faces = []
     colors = []
     face_offset = 0
-    # columns: index, range from, range to
+    # columns: index, range from vertices array, range to vertices array
     index_range = np.zeros( (n,3), dtype = np.uint32 )
     for i in range(n):
         vert, fac = makeCylinder( p1[i,:], p2[i,:], r1[i], r2[i], resolution )

@@ -43,6 +43,11 @@ if __name__ == '__main__':
 
     # labels parent relations of skeletons, and pre and postsynaptic connections
     conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
+    # to store the skeleton ID for each skeleton node is very redundant,
+    # it would be faster with an index into the array (but more complicated to implement)
+    # we hope for future numpy (group_by) magic to implement this efficiently
+    # count the pre/post to the skeleton id!
+    conn_ids = np.array( [400, 400, 500, 500], dtype = np.uint32 )
 
     conn_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
                                       [500, 2, 3], # skeleton with id 500 from 3 to 4
@@ -75,6 +80,7 @@ if __name__ == '__main__':
                         ]
                     }
                   },
+        "id" : { "data" : conn_ids, "metadata" : { } }
     }
     
     act = Microcircuit(
@@ -92,7 +98,8 @@ if __name__ == '__main__':
     w.add_region ( region )
 
     act.deselect_all()
-    act.select_skeleton( [400], 1.0 )
+    
+    act.select_skeleton( [500], 0.90 )
 
     w.refocus_camera()
 

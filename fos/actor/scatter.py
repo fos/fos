@@ -58,7 +58,12 @@ class VectorScatter(Actor):
             self.vertices, self.faces, self.colors, self.index_range = make_cylinder_scatter( p1, p2, r1, r2, values, resolution, colormap )
         else:
             raise Exception("Only valid type for VectorScatter is 'cylinder'")
-        
+
+        # self.index_range
+        # columns: index, range from vertices array, range to vertices array
+        # TODO: might be required for faces as well. in order to retrieve the index (first column)
+        # of a selected face (would require looping through the datastructure, which is unnecessary)
+
         self.wireframe = wireframe
 
         if not self.colors is None:
