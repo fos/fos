@@ -14,7 +14,7 @@ radius = a[:,5].astype( np.float32 ) * 4
 # extract parent connectivity and create full connectivity
 parents = a[1:,6] - 1
 parents = parents.astype(np.uint32).T
-connectivity = np.vstack( (parents, np.arange(1, len(parents)+1) ) ).T.ravel().astype(np.uint32)
+connectivity = np.vstack( (parents, np.arange(1, len(parents)+1) ) ).T.astype(np.uint32)
 
 colors = np.random.random( ( (len(connectivity)/2, 4)) )
 colors[:,3] = 1.0
@@ -22,12 +22,15 @@ colors[:,3] = 1.0
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window()
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+w = Window()
+region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
-    act = PolygonLinesSimple( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors) #, radius = radius)
-    region.add_actor( act )
+act = PolygonLinesSimple( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors) #, radius = radius)
+region.add_actor( act )
 
-    w.add_region( region )
+w.add_region( region )
 
+w.refocus_camera()
+
+if __name__ == '__main__':
     sys.exit(app.exec_())

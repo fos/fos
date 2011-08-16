@@ -71,12 +71,10 @@ class VectorScatter(Actor):
         self.vertices_ptr = self.vertices.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
         self.faces_nr = self.faces.size
-        print "index range vect scatter", self.index_range
 
     def set_coloralpha_index(self, index_list, alphavalue = 0.2):
         """ Sets the color alpha value for a list of indices to alphavalue """
         for i in index_list:
-            print self.index_range[i,1], self.index_range[i,2]
             self.colors[self.index_range[i,1]:self.index_range[i,2],3] = alphavalue
 
     def set_coloralpha_all(self, alphavalue = 0.2):

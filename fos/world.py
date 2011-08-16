@@ -117,11 +117,14 @@ class Region(object):
         self.update_extent()
 
     def add_actor(self, actor, trigger_update = True):
-        if actor in self.actors:
-            print("Actor {0} already exist in Region {1}".format(actor.name, self.regionname) )
+        if isinstance( actor, Actor ):
+            if actor.name in self.actors:
+                print("Actor {0} already exist in Region {1}".format(actor.name, self.regionname) )
+            else:
+                self.actors[actor.name] = actor
+                self.update()
         else:
-            self.actors[actor.name] = actor
-            self.update()
+            print("Not a valid Actor instance.")
 
     def remove_actor(self, actor, trigger_update = True):
         if isinstance( actor, Actor ):

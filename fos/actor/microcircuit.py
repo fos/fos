@@ -76,20 +76,19 @@ class Microcircuit(Actor):
                     elif "presynaptic" in name:
                         self.con_pre = int(semanticdict["value"])
                     elif "postsynaptic" in name:
-                        con_post = int(semanticdict["value"])
+                        self.con_post = int(semanticdict["value"])
 
         # use the connectivity labels to extract the connectivity for the skeletons
         self.index_skeleton = np.where(self.connectivity_labels == self.con_skeleton)[0]
         self.index_allpre = np.where(self.connectivity_labels == self.con_pre)[0]
-        # print "conn ids reindexed", 
-        self.connectivity_ids_index = self.connectivity_ids[self.index_skeleton]
-        self.connectivity_labels_index = self.connectivity_labels[self.index_skeleton]
-
+        self.index_allpost = np.where(self.connectivity_labels == self.con_post)[0]
+        
         self.vertices = vertices
         self.connectivity = connectivity
-        self.connectivity_index_old = connectivity[self.index_skeleton]
-        self.vertices_skeleton = vertices[ self.connectivity_index_old.ravel() ]
 
+        connectivity_skeleton = self.connectivity[self.index_skeleton]
+        self.vertices_skeleton = self.vertices[ connectivity_skeleton.ravel() ]
+        
         # we have a simplified connectivity now
         self.connectivity_skeleton = np.array( range(len(self.vertices_skeleton)), dtype = np.uint32 )
         self.connectivity_skeleton = self.connectivity_skeleton.reshape( (len(self.connectivity_skeleton)/2, 2) )
@@ -97,6 +96,7 @@ class Microcircuit(Actor):
         # look up the start and end vertex id
         # map these to _skeleton arrays, and further to actor???
 
+        size = 0.6
         ##########
         # Incoming connectors
         ##########
@@ -104,12 +104,12 @@ class Microcircuit(Actor):
         # extract the pre connectivity and create cones
         # store the indices for to be used to create the vector scatter
         # by itself, it represent implicitly the index used to select/deselect the vectors
-        self.index_pre = np.where(self.connectivity_labels == self.con_pre)[0]
-        self.vertices_pre = vertices[ connectivity[self.index_pre].ravel() ]
+
+        self.vertices_pre = vertices[ connectivity[self.index_allpre].ravel() ]
         self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
         self.pre_p2 = self.vertices_pre[1::2, :]
-        pren = len(self.index_pre)
-        r1 = np.ones( pren, dtype = np.float32 ) * 0.2
+        pren = len(self.index_allpre)
+        r1 = np.ones( pren, dtype = np.float32 ) * size
         r2 = np.zeros( pren, dtype = np.float32 )
         if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_pre ):
             preval = np.ones( pren, dtype = np.dtype(type(self.con_pre)) ) * self.con_pre
@@ -124,15 +124,14 @@ class Microcircuit(Actor):
         ##########
 
         # extract the post connectivity and create cones
-        self.index_post = np.where(self.connectivity_labels == con_post)[0]
-        self.vertices_post = vertices[ connectivity[self.index_post].ravel() ]
+        self.vertices_post = vertices[ connectivity[self.index_allpost].ravel() ]
         self.post_p1 = self.vertices_post[::2, :]
         self.post_p2 = self.vertices_post[1::2, :]
-        postn = len(self.index_post)
+        postn = len(self.index_allpost)
         r1 = np.zeros( postn, dtype = np.float32 )
-        r2 = np.ones( postn, dtype = np.float32 ) * 0.2
-        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( con_post ):
-            postval = np.ones( postn, dtype = np.dtype(type(con_post)) ) * con_post
+        r2 = np.ones( postn, dtype = np.float32 ) * size
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_post ):
+            postval = np.ones( postn, dtype = np.dtype(type(self.con_post)) ) * self.con_post
         else:
             postval = None
         self.post_actor = VectorScatter( "PostConnector", self.post_p1, self.post_p2, r1, r2, values = postval,
@@ -145,43 +144,33 @@ class Microcircuit(Actor):
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton )
 
-    def deselect_all(self):
+    def deselect_all(self, value = 0.1):
         """
         Sets the alpha value of all polygon lines to 0.2
         """
-        self.pre_actor.set_coloralpha_all( alphavalue = 0.2 )
-        self.post_actor.set_coloralpha_all( alphavalue = 0.2 )
-        self.polylines.set_coloralpha_all( alphavalue = 0.2 )
+        self.pre_actor.set_coloralpha_all( alphavalue = value )
+        self.post_actor.set_coloralpha_all( alphavalue = value )
+        self.polylines.set_coloralpha_all( alphavalue = value )
 
     def select_skeleton(self, skeleton_id_list, value = 1.0 ):
 
-        # TODO: retrieve indices with con_pre type and skeleton_id
         print "select..."
+        connectivity_skeletononly_ids = self.connectivity_ids[self.index_skeleton]
+        connectivity_preonly_ids = self.connectivity_ids[self.index_allpre]
+        connectivity_postonly_ids = self.connectivity_ids[self.index_allpost]
+
         for skeleton_id in skeleton_id_list:
+            
             print "... skeleton id", skeleton_id
             # retrieve skeleton indices for the skeleton ids from vertices_index
-            skeleton_id_index = np.where( self.connectivity_ids_index == skeleton_id )[0]
-
-            print "skeleton id index", skeleton_id_index
-            print "another", np.where( (self.connectivity_labels_index == self.con_skeleton) & (self.connectivity_ids_index == skeleton_id) )[0]
-
+            skeleton_id_index = np.where( connectivity_skeletononly_ids == skeleton_id )[0]
             self.polylines.select_vertices( vertices_indices = skeleton_id_index, value = value )
 
-            # retrieve skeleton indices for the skeleton ids from connectivity_index
-            # preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
-            # self.pre_actor.set_coloralpha_index( preidxlist , 1.0 )
-            
-            
-            print self.connectivity_ids_index
-            print skeleton_id
+            pre_id_index = np.where( connectivity_preonly_ids == skeleton_id )[0]
+            self.pre_actor.set_coloralpha_index( pre_id_index , 1.0 )
 
-            preidxlist =  np.where( (self.connectivity_labels[self.index_allpre] == self.con_pre) & (self.connectivity_ids_index == skeleton_id) )[0]
-            # preidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
-            self.pre_actor.set_coloralpha_index( preidxlist , 1.0 )
-
-            #postidxlist = np.where(self.connectivity_index[:,0] == skeleton_id)[0]
-
-            #self.post_actor.set_coloralpha_index( postidxlist , 1.0 )
+            post_id_index = np.where( connectivity_postonly_ids == skeleton_id )[0]
+            self.post_actor.set_coloralpha_index( post_id_index , 1.0 )
 
 
     def draw(self):

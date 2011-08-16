@@ -82,15 +82,14 @@ if __name__ == '__main__':
                   },
         "id" : { "data" : conn_ids, "metadata" : { } }
     }
-    
+
     act = Microcircuit(
         name = "Simple microcircuitry",
         vertices = vert,
         connectivity = conn,
         vertices_properties = vertices_properties,
         connectivity_properties = connectivity_properties,
-        connectivity_index = conn_skeleton_index,
-        connectivity_colormap = conn_color_map
+        connectivity_index = conn_skeleton_index
     )
     region.add_actor( act )
     region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
@@ -99,7 +98,7 @@ if __name__ == '__main__':
 
     act.deselect_all()
     
-    act.select_skeleton( [500], 0.90 )
+    act.select_skeleton( [400,500], 0.90 )
 
     w.refocus_camera()
 

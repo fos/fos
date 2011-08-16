@@ -307,14 +307,15 @@ class PolygonLinesSimple(Actor):
              vertices,
              connectivity,
              colors = None,
-             affine = None):
+             affine = None,
+             linewidth = 3.0):
         """ A PolygonLines, composed of many (branching) polygons
 
         name : str
             The name of the actor
         vertices : Nx3
             3D Coordinates x,y,z
-        connectivity : Mx1
+        connectivity : Mx2
             Tree topology
         colors : Nx4 or 1x4
             Per connection color
@@ -329,6 +330,7 @@ class PolygonLinesSimple(Actor):
         else:
             self.affine = affine
 
+        self.linewidth = linewidth
         self.vertices_orig = vertices
         self.connectivity_orig = connectivity
 
@@ -340,6 +342,7 @@ class PolygonLinesSimple(Actor):
 
         # we have a simplified connectivity now
         # self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
+        assert( connectivity.shape[1] == 2 )
         self.connectivity = connectivity.ravel()
 
         # this coloring section is for per/vertex color
@@ -348,7 +351,7 @@ class PolygonLinesSimple(Actor):
             self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/2, axis=0)
         else:
             # colors array is half the size of the connectivity array
-            assert( len(self.connectivity)/2 == len(colors) )
+            assert( len(self.connectivity)/4 == len(colors) )
             self.colors = colors
 
         # we want per line color
@@ -367,12 +370,11 @@ class PolygonLinesSimple(Actor):
         # select a subset of vertices (e.g. for a skeleton)
         self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
 
-
     def draw(self):
         glEnable(GL_BLEND)
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
-        glLineWidth(6.0)
+        glLineWidth(self.linewidth)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)

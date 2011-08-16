@@ -4,7 +4,7 @@ Dependencies
 ------------
 * Qt (Debian: libqt4-*)
 * PySide: http://developer.qt.nokia.com/wiki/PySideDownloads
-* Pyglet: http://www.pyglet.org/
+* Pyglet: http://www.pyglet.org/ (Debian: python-pyglet)
 * NumPy (Debian: python-numpy)
 * Matplotlib (Debian: python-matplotlib)
 
