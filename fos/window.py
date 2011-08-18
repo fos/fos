@@ -11,7 +11,7 @@ except ImportError:
 
 class Window(QtGui.QWidget):
     def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480,
-                 bgcolor = (0,0,0), fullscreen = False, dynamic = True ):
+                 bgcolor = (0,0,0), fullscreen = False, dynamic = False ):
         """ Create a window
         Parameters
         ----------
@@ -130,6 +130,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.height = height
         self.world = World()
 
+        self.draw_picking = False
+
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
 
@@ -145,14 +147,16 @@ class GLWidget(QtOpenGL.QGLWidget):
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        self.world.draw_all()
+        self.world.draw_all_picking()
 
     def resizeGL(self, width, height):
         #side = min(width, height)
         #glViewport((width - side) / 2, (height - side) / 2, side, side)
         if height == 0:
             height = 1
-        vsml.setSize( width, height )
+        # vsml.setSize( width, height )
+        self.width = width
+        self.height = height
         ratio =  width * 1.0 / height
         glViewport(0, 0, width, height)
         vsml.loadIdentity(vsml.MatrixTypes.PROJECTION)
@@ -165,6 +169,23 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def mousePressEvent(self, event):
         self.lastPos = QtCore.QPoint(event.pos())
+
+        if (event.modifiers() & QtCore.Qt.ShiftModifier):
+            shift = True
+        else:
+            shift = False
+
+        if shift:
+            print "x,y", event.x(), event.y()
+            x, y = event.x(), event.y()
+            a = (GLfloat * 3)(0)
+            glReadPixels(x, self.height - y, 1, 1, GL_RGB, GL_FLOAT, a)
+            print a[0], a[1], a[2]
+
+            ID = (int(a[0]*255) << 16) | (int(a[1]*255) << 8) | int(a[2]*255)
+            print ID
+            self.draw_picking = not self.draw_picking
+
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()

@@ -89,7 +89,8 @@ if __name__ == '__main__':
         connectivity = conn,
         vertices_properties = vertices_properties,
         connectivity_properties = connectivity_properties,
-        connectivity_index = conn_skeleton_index
+        connectivity_index = conn_skeleton_index,
+        connectivity_colormap = conn_color_map
     )
     region.add_actor( act )
     region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )

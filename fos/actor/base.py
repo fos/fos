@@ -30,6 +30,11 @@ class Actor(object):
         if not self.vertices is None:
             return self.vertices.max( axis = 0 )
 
+    def draw_pick(self):
+        """ Drawing method for picking.
+        """
+        self.draw()
+
 class DynamicActor(Actor):
 
     def __init__(self, name):

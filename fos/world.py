@@ -151,6 +151,14 @@ class Region(object):
                 #print("Draw actor", actor.name)
                 actor.draw()
 
+    def draw_actors_picking(self):
+        """ Draw all visible actors in the region
+        """
+        for k, actor in self.actors.items():
+            if actor.visible:
+                #print("Draw actor pick", actor.name)
+                actor.draw_pick()
+
 
 class World(object):
 
@@ -222,5 +230,20 @@ class World(object):
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(vsml.get_modelview())
             region.draw_actors()
+            # take back the old camera modelview
+            vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
+
+    def draw_all_picking(self):
+        """ Draw all actors, picking mode
+        """
+        # disable alpha blending, multisampling, etc
+        self.camera.draw()
+        for k, region in self.regions.items():
+            # use transformation matrix of the region to setup the modelview
+            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
+            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
+            glMatrixMode(GL_MODELVIEW)
+            glLoadMatrixf(vsml.get_modelview())
+            region.draw_actors_picking()
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )

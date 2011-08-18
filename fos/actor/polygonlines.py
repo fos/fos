@@ -173,15 +173,25 @@ class PolygonLinesExtruded(Actor):
         self.program.release()
 
 
+class Selector(object):
 
-class PolygonLines(Actor):
+    def set_coloralpha_all(self, alphavalue = 0.2 ):
+        self.colors[:,3] = alphavalue
+
+    def select_vertices(self, vertices_indices, value = 0.6):
+        # select a subset of vertices (e.g. for a skeleton)
+        self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
+
+class PolygonLines(Actor, Selector):
 
     def __init__(self,
              name,
              vertices,
              connectivity,
+             connectivity_selectionID = None,
              colors = None,
-             affine = None):
+             affine = None,
+             linewidth = 6.0):
         """ A PolygonLines, composed of many (branching) polygons
 
         name : str
@@ -215,11 +225,19 @@ class PolygonLines(Actor):
         else:
             self.affine = affine
 
+        self.vertices_orig = vertices
+        self.connectivity_orig = connectivity
+        self.linewidth = linewidth
+        self.connectivity_selectionID_orig = connectivity_selectionID
+        
+        # TODO: fix API
         # unfortunately, we need to duplicate vertices if we want per line color
-        self.vertices = vertices[connectivity,:]
+        #self.vertices = vertices[connectivity,:]
+        #self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
 
-        # we have a simplified connectivity now
-        self.connectivity = np.array( range(len(self.vertices)), dtype = np.uint32 )
+        self.vertices = vertices
+        assert( connectivity.shape[1] == 2 )
+        self.connectivity = connectivity.ravel()
 
         # this coloring section is for per/vertex color
         if colors is None:
@@ -233,6 +251,20 @@ class PolygonLines(Actor):
         # we want per line color
         # duplicating the color array, we have the colors per vertex
         self.colors =  np.repeat(self.colors, 2, axis=0)
+        self.connectivity_selectionID = np.repeat(self.connectivity_selectionID_orig, 2, axis=0)
+        print self.connectivity_selectionID
+
+        # selectionId to color
+        def con( ID ):
+            r = (ID & 0x00FF0000) >> 16
+            g = (ID & 0x0000FF00) >> 9
+            b = (ID & 0x000000FF)
+            return r,g,b
+
+        for i in range(len(self.colors)):
+            self.colors[i,:3] = np.array(con(self.connectivity_selectionID[i]))/255.0
+            
+        #Vector3D selectionID((float)r * 255.0f, (float)g * 255.0f, (float)b * 255.0f))
 
         self.vertices_ptr = self.vertices.ctypes.data
         self.connectivity_ptr = self.connectivity.ctypes.data
@@ -265,9 +297,20 @@ class PolygonLines(Actor):
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
+        # FBO
+        self.fbo = GLuint(0)
+        glGenFramebuffersEXT(1, self.fbo)
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+
+
+    def draw_pick(self):
+        print "draw pick"
+        self.draw()
 
     def draw(self):
 
+        glLineWidth(self.linewidth)
         self.program.bind()
 
         # we just retrieve the matrices from vsml. they are
@@ -297,10 +340,13 @@ class PolygonLines(Actor):
         self.program.disableAttributeArray( self.aPosition )
         self.program.disableAttributeArray( self.aColor )
 
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
         self.program.release()
         
 
-class PolygonLinesSimple(Actor):
+class PolygonLinesSimple(Actor, Selector):
 
     def __init__(self,
              name,
@@ -348,7 +394,7 @@ class PolygonLinesSimple(Actor):
         # this coloring section is for per/vertex color
         if colors is None:
             # default colors for each line
-            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/2, axis=0)
+            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/4, axis=0)
         else:
             # colors array is half the size of the connectivity array
             assert( len(self.connectivity)/4 == len(colors) )
@@ -363,15 +409,10 @@ class PolygonLinesSimple(Actor):
         self.faces_nr = self.connectivity.size
         self.colors_ptr = self.colors.ctypes.data
 
-    def set_coloralpha_all(self, alphavalue = 0.2 ):
-        self.colors[:,3] = alphavalue
-
-    def select_vertices(self, vertices_indices, value = 0.6):
-        # select a subset of vertices (e.g. for a skeleton)
-        self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
-
     def draw(self):
+
         glEnable(GL_BLEND)
+        
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glLineWidth(self.linewidth)

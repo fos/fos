@@ -140,7 +140,7 @@ class Microcircuit(Actor):
         ##########
         # Skeletons
         ##########
-        self.polylines = PolygonLinesSimple( name = "Polygon Lines",
+        self.polylines = PolygonLines( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton )
 
