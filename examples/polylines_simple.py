@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from fos import *
-
+import fos.util
 
 from PySide.QtGui import QApplication
 
@@ -19,9 +19,11 @@ if __name__ == '__main__':
 
     conn = np.array( [ 0, 1, 1, 2, 1, 3 ], dtype = np.uint32 )
 
-    cols = np.array( [ [0, 0, 1, 1],
-                       [1, 0, 1, 1],
+    cols = np.array( [ [0, 0, 1, 0.7],
+                       [1, 0, 1, 0.1],
                        [0, 0, 1, 0.5]] , dtype = np.float32 )
+
+    vert, conn = fos.util.reindex_connectivity( vert, conn )
 
     act = PolygonLinesSimple( name = "Polygon Lines", vertices = vert, connectivity = conn, colors = cols)
 

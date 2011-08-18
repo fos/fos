@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 from fos import *
-
+import fos.util
 
 from PySide.QtGui import QApplication
 
@@ -21,16 +21,13 @@ if __name__ == '__main__':
                        [1, 2],
                        [1, 3] ], dtype = np.uint32 )
 
-    cols = np.array( [ [0, 0, 1, 1],
-                       [1, 0, 1, 1],
-                       [0, 0, 1, 0.5]] , dtype = np.float32 )
+    cols = np.array( [ [0, 0, 1, 0.0],
+                       [1, 0, 1, 1.0],
+                       [0, 0, 1, 0.1]] , dtype = np.float32 )
 
-    sel = np.array( [ 100, 200, 200] , dtype = np.uint32 )
+    sel = np.array( [ 100, 123, 400] , dtype = np.uint32 )
 
-    # wanna color the edges
-    vert = vert[conn.ravel(),:]
-    conn = np.array( range(len(vert)), dtype = np.uint32 )
-    conn = conn.reshape( (len(conn)/2, 2) )
+    vert, conn = fos.util.reindex_connectivity( vert, conn )
 
     act = PolygonLines( name = "Polygon Lines", vertices = vert, connectivity = conn, colors = cols, connectivity_selectionID = sel)
 
@@ -38,5 +35,7 @@ if __name__ == '__main__':
 
     w.add_region( region )
     w.refocus_camera()
+    act.set_coloralpha_all( 0.1 )
+
     
     sys.exit(app.exec_())

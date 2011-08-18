@@ -102,7 +102,7 @@ region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 w.add_region( region )
 
 act.deselect_all( 0.2 )
-act.select_skeleton( [101], 1.0 )
+#act.select_skeleton( [101], 1.0 )
 
 w.refocus_camera()
 

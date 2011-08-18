@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # it would be faster with an index into the array (but more complicated to implement)
     # we hope for future numpy (group_by) magic to implement this efficiently
     # count the pre/post to the skeleton id!
-    conn_ids = np.array( [400, 400, 500, 500], dtype = np.uint32 )
+    conn_ids = np.array( [100, 100, 500, 500], dtype = np.uint32 )
 
     conn_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
                                       [500, 2, 3], # skeleton with id 500 from 3 to 4
@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
     act.deselect_all()
     
-    act.select_skeleton( [400,500], 0.90 )
+    #act.select_skeleton( [400,500], 0.90 )
 
     w.refocus_camera()
 

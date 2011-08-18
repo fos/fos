@@ -174,13 +174,10 @@ class PolygonLinesExtruded(Actor):
 
 
 class Selector(object):
+    pass
 
-    def set_coloralpha_all(self, alphavalue = 0.2 ):
-        self.colors[:,3] = alphavalue
 
-    def select_vertices(self, vertices_indices, value = 0.6):
-        # select a subset of vertices (e.g. for a skeleton)
-        self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
+
 
 class PolygonLines(Actor, Selector):
 
@@ -191,7 +188,7 @@ class PolygonLines(Actor, Selector):
              connectivity_selectionID = None,
              colors = None,
              affine = None,
-             linewidth = 6.0):
+             linewidth = 3.0):
         """ A PolygonLines, composed of many (branching) polygons
 
         name : str
@@ -251,25 +248,30 @@ class PolygonLines(Actor, Selector):
         # we want per line color
         # duplicating the color array, we have the colors per vertex
         self.colors =  np.repeat(self.colors, 2, axis=0)
-        self.connectivity_selectionID = np.repeat(self.connectivity_selectionID_orig, 2, axis=0)
-        print self.connectivity_selectionID
+        print "colors array", self.colors
+        
+        if not self.connectivity_selectionID_orig is None:
+            self.connectivity_selectionID = np.repeat(self.connectivity_selectionID_orig, 2, axis=0)
+            self.connectivity_selection_array = np.ones( self.colors.shape, dtype = np.float32 )
 
-        # selectionId to color
-        def con( ID ):
-            r = (ID & 0x00FF0000) >> 16
-            g = (ID & 0x0000FF00) >> 9
-            b = (ID & 0x000000FF)
-            return r,g,b
+            # selectionId to color
+            def con( ID ):
+                r = (ID & 0x00FF0000) >> 16
+                g = (ID & 0x0000FF00) >> 8
+                b = (ID & 0x000000FF)
+                return r,g,b
 
-        for i in range(len(self.colors)):
-            self.colors[i,:3] = np.array(con(self.connectivity_selectionID[i]))/255.0
-            
-        #Vector3D selectionID((float)r * 255.0f, (float)g * 255.0f, (float)b * 255.0f))
+            for i in range(len(self.colors)):
+                self.connectivity_selection_array[i,:3] = np.array(con(self.connectivity_selectionID[i]))/255.0
+
+            print "selection array", self.connectivity_selection_array
+            self.connectivity_selection_array_ptr = self.connectivity_selection_array.ctypes.data
 
         self.vertices_ptr = self.vertices.ctypes.data
         self.connectivity_ptr = self.connectivity.ctypes.data
         self.connectivity_nr = self.connectivity.size
         self.colors_ptr = self.colors.ctypes.data
+
 
         # for vertices location
         glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
@@ -282,11 +284,18 @@ class PolygonLines(Actor, Selector):
 
         # for colors
         glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
-        self.colors_vbo = GLuint(0)
-        glGenBuffers(1, self.colors_vbo)
-        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
-        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_STATIC_DRAW)
+        self.colors_vbo = (GLuint * 2)(0)
+        glGenBuffers(2, self.colors_vbo)
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        if not self.connectivity_selectionID_orig is None:
+            print "bind selection"
+            glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[1])
+            glBufferData(GL_ARRAY_BUFFER, 4 * self.connectivity_selection_array.size, self.connectivity_selection_array_ptr, GL_STATIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+
         glDisableVertexAttribArray(self.aColor)
 
         # for indices
@@ -297,20 +306,112 @@ class PolygonLines(Actor, Selector):
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
+        # help from
+        # http://groups.google.com/group/pyglet-users/browse_thread/thread/71cb064ee1f11714
+        # http://www.gamedev.net/page/resources/_//feature/fprogramming/opengl-frame-buffer-object-101-r2331
+        # http://www.flashbang.se/archives/48
+        
         # FBO
-        self.fbo = GLuint(0)
+        self.fbo = GLuint()
+        # create our frame buffer
         glGenFramebuffersEXT(1, self.fbo)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
+
+        # //create the colorbuffer texture and attach it to the frame buffer
+        self.color_tex = GLuint()
+        self.depth_rb = GLuint()
+        self.color_tex_ptr = GLuint(0)
+        # http://www.songho.ca/opengl/gl_fbo.html
+        # if renderbuffer objects, no texture required ?
+        
+        glGenTextures(1, self.color_tex);
+        glBindTexture(GL_TEXTURE_2D, self.color_tex)
+        #glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+
+        # TODO check
+        # or glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        # Thanks to pyglet for the blank
+
+        #blank = (GLubyte * ( vsml.width * vsml.height * 4))()
+        #glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vsml.width, vsml.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, blank )
+
+        blank = (GLfloat * ( vsml.width * vsml.height * 4))()
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vsml.width, vsml.height, 0, GL_RGBA, GL_FLOAT, blank )
+
+
+        # tex = image.Texture.create_for_size(gl.GL_TEXTURE_2D, w, h, gl.GL_RGBA) -> check
+        
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0_EXT,GL_TEXTURE_2D, self.color_tex, 0)
+
+        # // create a render buffer as our depthbuffer and attach it
+        #glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, self.depth_rb)
+        #glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT,GL_DEPTH_COMPONENT24, vsml.width, vsml.height)
+        #glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT,GL_RGB, vsml.width, vsml.height)
+        #glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_RENDERBUFFER_EXT, self.depth_rb)
+
+        status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)
+        assert status == GL_FRAMEBUFFER_COMPLETE_EXT
+
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
 
+    def cleanup(self):
+        # clean up
+        glDeleteFramebuffersEXT(1, self.fbo)
 
-    def draw_pick(self):
-        print "draw pick"
-        self.draw()
+    def set_coloralpha_all(self, alphavalue = 0.2 ):
+        print self.colors
+        self.colors[:,3] = alphavalue
 
-    def draw(self):
+        # TODO: FIX also need to update FBO colors VBO ?
+        
+        # update VBO
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_DYNAMIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
+        print self.colors
+
+    def select_vertices(self, vertices_indices, value = 0.6):
+        # select a subset of vertices (e.g. for a skeleton)
+        self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
+
+        # TODO: FIX also need to update FBO colors VBO ?
+
+        # update VBO
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_DYNAMIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    def pick(self, x, y):
+        if self.connectivity_selectionID_orig is None:
+            print "no connectivity ids for polylines given"
+            return
+        
+        print "pick polylines", x, y
+
+        print "vsml", vsml.width, vsml.height
+
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
+
+
+
+        glPushAttrib(GL_VIEWPORT_BIT)
+        glViewport(0, 0, vsml.width, vsml.height)
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        
+        #glDisable(GL_BLEND)
+        #glDisable(GL_MULTISAMPLE)
         glLineWidth(self.linewidth)
+        
+        # FBO render pass, need to use the selection id color array
+        ################
+
         self.program.bind()
 
         # we just retrieve the matrices from vsml. they are
@@ -329,7 +430,61 @@ class PolygonLines(Actor, Selector):
         glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
 
         glEnableVertexAttribArray(self.aColor)
-        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo)
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[1])
+        glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
+
+        # bind the indices buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.connectivity_vbo)
+
+        glDrawElements( GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, 0 )
+
+        self.program.disableAttributeArray( self.aPosition )
+        self.program.disableAttributeArray( self.aColor )
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+
+        self.program.release()
+        ############
+
+        a = (GLfloat * 4)(0)
+        glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, a)
+        print a[0], a[1], a[2], a[3]
+        ID = (int(a[0]*255) << 16) | (int(a[1]*255) << 8) | int(a[2]*255)
+        print "id found", ID
+
+        glPopAttrib()
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+
+        return ID
+
+    def draw(self):
+
+        glEnable(GL_BLEND)
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+        
+        glLineWidth(self.linewidth)
+
+        self.program.bind()
+
+        # we just retrieve the matrices from vsml. they are
+        # updated from the Region's transformation
+        self.program.setUniformValueArray( self.projMatrix,
+            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
+            16 )
+
+        self.program.setUniformValueArray( self.modelviewMatrix,
+            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
+            16 )
+
+        # http://www.pyside.org/docs/pyside/PySide/QtOpenGL/QGLShaderProgram.html
+        glEnableVertexAttribArray( self.aPosition )
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbo)
+        glVertexAttribPointer(self.aPosition, 3, GL_FLOAT, GL_FALSE, 0, 0)
+
+        glEnableVertexAttribArray(self.aColor)
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
         glVertexAttribPointer(self.aColor, 4, GL_FLOAT, GL_FALSE, 0, 0)
 
         # bind the indices buffer
@@ -394,10 +549,10 @@ class PolygonLinesSimple(Actor, Selector):
         # this coloring section is for per/vertex color
         if colors is None:
             # default colors for each line
-            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/4, axis=0)
+            self.colors = np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity)/2, axis=0)
         else:
             # colors array is half the size of the connectivity array
-            assert( len(self.connectivity)/4 == len(colors) )
+            assert( len(self.connectivity)/2 == len(colors) )
             self.colors = colors
 
         # we want per line color

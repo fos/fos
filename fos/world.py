@@ -151,14 +151,13 @@ class Region(object):
                 #print("Draw actor", actor.name)
                 actor.draw()
 
-    def draw_actors_picking(self):
-        """ Draw all visible actors in the region
+    def pick_actors(self, x, y):
+        """ Pick all visible actors in the region
         """
         for k, actor in self.actors.items():
             if actor.visible:
-                #print("Draw actor pick", actor.name)
-                actor.draw_pick()
-
+                #print("Draw actor", actor.name)
+                actor.pick( x, y )
 
 class World(object):
 
@@ -219,6 +218,20 @@ class World(object):
         self.camera.set_location( newloc, np.array([0.0,1.0,0.0]) )
         self.camera.update()
 
+    def pick_all(self, x, y):
+        """ Calls the pick function on all Regions
+        """
+        self.camera.draw()
+        for k, region in self.regions.items():
+            # use transformation matrix of the region to setup the modelview
+            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
+            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
+            glMatrixMode(GL_MODELVIEW)
+            glLoadMatrixf(vsml.get_modelview())
+            region.pick_actors( x, y )
+            # take back the old camera modelview
+            vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
+            
     def draw_all(self):
         """ Draw all actors
         """
@@ -233,17 +246,3 @@ class World(object):
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
 
-    def draw_all_picking(self):
-        """ Draw all actors, picking mode
-        """
-        # disable alpha blending, multisampling, etc
-        self.camera.draw()
-        for k, region in self.regions.items():
-            # use transformation matrix of the region to setup the modelview
-            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
-            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
-            glMatrixMode(GL_MODELVIEW)
-            glLoadMatrixf(vsml.get_modelview())
-            region.draw_actors_picking()
-            # take back the old camera modelview
-            vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )

@@ -92,7 +92,8 @@ class Microcircuit(Actor):
         # we have a simplified connectivity now
         self.connectivity_skeleton = np.array( range(len(self.vertices_skeleton)), dtype = np.uint32 )
         self.connectivity_skeleton = self.connectivity_skeleton.reshape( (len(self.connectivity_skeleton)/2, 2) )
-
+        self.connectivity_ids_skeleton = self.connectivity_ids[ self.index_skeleton ]
+        print "connectivity ids skel", self.connectivity_ids_skeleton.dtype
         # look up the start and end vertex id
         # map these to _skeleton arrays, and further to actor???
 
@@ -142,7 +143,16 @@ class Microcircuit(Actor):
         ##########
         self.polylines = PolygonLines( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
-                                             connectivity = self.connectivity_skeleton )
+                                             connectivity = self.connectivity_skeleton,
+                                             connectivity_selectionID = self.connectivity_ids_skeleton )
+
+    def pick(self, x, y):
+        ID = self.polylines.pick( x, y )
+
+        if ID is None or ID == 0:
+            return
+        print "select skeleton..."
+        self.select_skeleton( [ ID ] )
 
     def deselect_all(self, value = 0.1):
         """
