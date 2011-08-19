@@ -36,7 +36,7 @@ if __name__ == '__main__':
     w.add_region( region )
     w.refocus_camera()
 
-    act.set_coloralpha_all( 0.1 )
+    act.set_coloralpha_all( 0.9 )
 
     
     sys.exit(app.exec_())
