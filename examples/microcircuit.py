@@ -35,14 +35,15 @@ if __name__ == '__main__':
         "index" : { "data" : vert_skeleton_index }
     }
 
-    conn = np.array( [ [0, 1], # parent
+    conn = np.array( [ [0, 1], # axon -> blue
                        [1, 2], # presyn
                        [3, 2], # postsyn
-                       [3, 4] ], # parent
+                       [3, 4] ], # dendrite -> red
                        dtype = np.uint32 )
 
     # labels parent relations of skeletons, and pre and postsynaptic connections
     conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
+
     # to store the skeleton ID for each skeleton node is very redundant,
     # it would be faster with an index into the array (but more complicated to implement)
     # we hope for future numpy (group_by) magic to implement this efficiently
@@ -55,9 +56,10 @@ if __name__ == '__main__':
 
     # colormap as dictionary with labels
     conn_color_map = {
-        1 : np.array([[1.0, 1.0, 0, 1.0]]),
-        2 : np.array([[1.0, 0.0, 0, 1.0]]),
-        3 : np.array([[0, 0, 1.0, 1.0]])
+        1 : np.array([[  0,   0, 1.0, 1.0]]),
+        2 : np.array([[1.0, 0.0, 0  , 1.0]]),
+        3 : np.array([[0  , 0  , 1.0, 1.0]]),
+        4 : np.array([[0  , 1.0, 1.0, 1.0]])
     }
     
     # TODO: best solution?
@@ -97,7 +99,7 @@ if __name__ == '__main__':
     
     w.add_region ( region )
 
-    act.deselect_all()
+    #act.deselect_all()
     
     #act.select_skeleton( [400,500], 0.90 )
 

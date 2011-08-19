@@ -91,15 +91,26 @@ class Microcircuit(Actor):
         self.connectivity = connectivity
 
         connectivity_skeleton = self.connectivity[self.index_skeleton]
+
+        # TODO: fos.reindex
         self.vertices_skeleton = self.vertices[ connectivity_skeleton.ravel() ]
         
         # we have a simplified connectivity now
         self.connectivity_skeleton = np.array( range(len(self.vertices_skeleton)), dtype = np.uint32 )
         self.connectivity_skeleton = self.connectivity_skeleton.reshape( (len(self.connectivity_skeleton)/2, 2) )
+
+
+
         self.connectivity_ids_skeleton = self.connectivity_ids[ self.index_skeleton ]
         print "connectivity ids skel", self.connectivity_ids_skeleton.dtype
         # look up the start and end vertex id
         # map these to _skeleton arrays, and further to actor???
+
+        # skeleton colors
+        if isinstance(connectivity_colormap, dict):
+            #skeleton_colors = np.ones( (len(self.connectivity_skeleton),4), dtype = np.float32 )
+            # TODO: distinguish labels/types/etc.
+            
 
         size = 0.6
         ##########
@@ -148,7 +159,8 @@ class Microcircuit(Actor):
         self.polylines = PolygonLines( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton,
-                                             connectivity_selectionID = self.connectivity_ids_skeleton )
+                                             connectivity_selectionID = self.connectivity_ids_skeleton,
+                                             )
 
         self.connectivity_skeletononly_ids = None
         self.connectivity_preonly_ids = None
