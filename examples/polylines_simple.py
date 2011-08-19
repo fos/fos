@@ -19,9 +19,9 @@ if __name__ == '__main__':
 
     conn = np.array( [ 0, 1, 1, 2, 1, 3 ], dtype = np.uint32 )
 
-    cols = np.array( [ [0, 0, 1, 0.7],
-                       [1, 0, 1, 0.1],
-                       [0, 0, 1, 0.5]] , dtype = np.float32 )
+    cols = np.array( [ [0, 0, 1, 1.0],
+                       [1, 0, 1, 1.0],
+                       [0, 0, 1, 0.8]] , dtype = np.float32 )
 
     vert, conn = fos.util.reindex_connectivity( vert, conn )
 
@@ -30,5 +30,6 @@ if __name__ == '__main__':
     region.add_actor( act )
 
     w.add_region( region )
-
+    w.refocus_camera()
+    
     sys.exit(app.exec_())

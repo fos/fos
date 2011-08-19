@@ -78,6 +78,10 @@ class Microcircuit(Actor):
                     elif "postsynaptic" in name:
                         self.con_post = int(semanticdict["value"])
 
+        # selection stores integer ids from connectivity_selectionID
+        # when selected
+        self.skeleton_selection = []
+
         # use the connectivity labels to extract the connectivity for the skeletons
         self.index_skeleton = np.where(self.connectivity_labels == self.con_skeleton)[0]
         self.index_allpre = np.where(self.connectivity_labels == self.con_pre)[0]
@@ -146,18 +150,27 @@ class Microcircuit(Actor):
                                              connectivity = self.connectivity_skeleton,
                                              connectivity_selectionID = self.connectivity_ids_skeleton )
 
+        self.connectivity_skeletononly_ids = None
+        self.connectivity_preonly_ids = None
+        self.connectivity_postonly_ids = None
+
+        self.global_deselect_alpha = 0.2
+        self.global_select_alpha = 1.0
+
     def pick(self, x, y):
         ID = self.polylines.pick( x, y )
 
         if ID is None or ID == 0:
             return
+
         print "select skeleton..."
         self.select_skeleton( [ ID ] )
 
-    def deselect_all(self, value = 0.1):
+    def deselect_all(self, value = 0.2):
         """
         Sets the alpha value of all polygon lines to 0.2
         """
+        self.selection = []
         self.pre_actor.set_coloralpha_all( alphavalue = value )
         self.post_actor.set_coloralpha_all( alphavalue = value )
         self.polylines.set_coloralpha_all( alphavalue = value )
@@ -165,22 +178,38 @@ class Microcircuit(Actor):
     def select_skeleton(self, skeleton_id_list, value = 1.0 ):
 
         print "select..."
-        connectivity_skeletononly_ids = self.connectivity_ids[self.index_skeleton]
-        connectivity_preonly_ids = self.connectivity_ids[self.index_allpre]
-        connectivity_postonly_ids = self.connectivity_ids[self.index_allpost]
+        if self.connectivity_skeletononly_ids is None:
+            self.connectivity_skeletononly_ids = self.connectivity_ids[self.index_skeleton]
+
+        if self.connectivity_preonly_ids is None:
+            self.connectivity_preonly_ids = self.connectivity_ids[self.index_allpre]
+
+        if self.connectivity_postonly_ids is None:
+            self.connectivity_postonly_ids = self.connectivity_ids[self.index_allpost]
 
         for skeleton_id in skeleton_id_list:
-            
+
+            if skeleton_id in self.skeleton_selection:
+                print("Skeleton with id {0} already selected. Deselect".format(skeleton_id))
+                selvalue = self.global_deselect_alpha
+                self.skeleton_selection.remove( skeleton_id )
+            else:
+                print("Newly selected skeleton")
+                selvalue = self.global_select_alpha
+                self.skeleton_selection.append( skeleton_id )
+
+
+
             print "... skeleton id", skeleton_id
             # retrieve skeleton indices for the skeleton ids from vertices_index
-            skeleton_id_index = np.where( connectivity_skeletononly_ids == skeleton_id )[0]
-            self.polylines.select_vertices( vertices_indices = skeleton_id_index, value = value )
+            skeleton_id_index = np.where( self.connectivity_skeletononly_ids == skeleton_id )[0]
+            self.polylines.select_vertices( vertices_indices = skeleton_id_index, value = selvalue )
 
-            pre_id_index = np.where( connectivity_preonly_ids == skeleton_id )[0]
-            self.pre_actor.set_coloralpha_index( pre_id_index , 1.0 )
+            pre_id_index = np.where( self.connectivity_preonly_ids == skeleton_id )[0]
+            self.pre_actor.set_coloralpha_index( pre_id_index , selvalue )
 
-            post_id_index = np.where( connectivity_postonly_ids == skeleton_id )[0]
-            self.post_actor.set_coloralpha_index( post_id_index , 1.0 )
+            post_id_index = np.where( self.connectivity_postonly_ids == skeleton_id )[0]
+            self.post_actor.set_coloralpha_index( post_id_index , selvalue )
 
 
     def draw(self):

@@ -173,13 +173,7 @@ class PolygonLinesExtruded(Actor):
         self.program.release()
 
 
-class Selector(object):
-    pass
-
-
-
-
-class PolygonLines(Actor, Selector):
+class PolygonLines(Actor):
 
     def __init__(self,
              name,
@@ -189,23 +183,30 @@ class PolygonLines(Actor, Selector):
              colors = None,
              affine = None,
              linewidth = 3.0):
-        """ A PolygonLines, composed of many (branching) polygons
+        """ A PolygonLines, composed of many (branching) polygon lines
 
         name : str
             The name of the actor
         vertices : Nx3
             3D Coordinates x,y,z
-        connectivity : Mx1
-            Tree topology
-        colors : Nx4 or 1x4
-            Per connection color
+        connectivity : Mx2
+            Topology. Assume ordered sequence like
+            np.array( [ [0,1], [1,2] ], dtype = np.uint32 )
+        connectivity_selectionID : Mx1
+            NumPy array with selection ID (np.uint32) for each
+            connection, returned for picking
+        colors : Mx4 or 1x4
+            Color array for each connection
         affine : 4x4
             Affine transformation of the actor
 
         Notes
         -----
         Only create this actor when a valid OpenGL context exists.
-        Uses Vertex-Buffer objects and dummy shaders.
+        Uses Vertex Buffer objects and dummy shaders.
+
+        For the connectivity, you can use fos.util.reindex_connectivity
+        to prepare the connectivity information for this actor
         """
         super(PolygonLines, self).__init__( name )
 
@@ -248,7 +249,6 @@ class PolygonLines(Actor, Selector):
         # we want per line color
         # duplicating the color array, we have the colors per vertex
         self.colors =  np.repeat(self.colors, 2, axis=0)
-        print "colors array", self.colors
         
         if not self.connectivity_selectionID_orig is None:
             self.connectivity_selectionID = np.repeat(self.connectivity_selectionID_orig, 2, axis=0)
@@ -264,7 +264,6 @@ class PolygonLines(Actor, Selector):
             for i in range(len(self.colors)):
                 self.connectivity_selection_array[i,:3] = np.array(con(self.connectivity_selectionID[i]))/255.0
 
-            print "selection array", self.connectivity_selection_array
             self.connectivity_selection_array_ptr = self.connectivity_selection_array.ctypes.data
 
         self.vertices_ptr = self.vertices.ctypes.data
@@ -291,7 +290,6 @@ class PolygonLines(Actor, Selector):
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if not self.connectivity_selectionID_orig is None:
-            print "bind selection"
             glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[1])
             glBufferData(GL_ARRAY_BUFFER, 4 * self.connectivity_selection_array.size, self.connectivity_selection_array_ptr, GL_STATIC_DRAW)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -306,7 +304,7 @@ class PolygonLines(Actor, Selector):
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * self.connectivity_nr, self.connectivity_ptr, GL_STATIC_DRAW)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
 
-        # help from
+        # with help from
         # http://groups.google.com/group/pyglet-users/browse_thread/thread/71cb064ee1f11714
         # http://www.gamedev.net/page/resources/_//feature/fprogramming/opengl-frame-buffer-object-101-r2331
         # http://www.flashbang.se/archives/48
@@ -324,34 +322,17 @@ class PolygonLines(Actor, Selector):
         # http://www.songho.ca/opengl/gl_fbo.html
         # if renderbuffer objects, no texture required ?
         
-        glGenTextures(1, self.color_tex);
+        glGenTextures(1, self.color_tex)
         glBindTexture(GL_TEXTURE_2D, self.color_tex)
-        #glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
-        # TODO check
-        # or glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         # Thanks to pyglet for the blank
-
-        #blank = (GLubyte * ( vsml.width * vsml.height * 4))()
-        #glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vsml.width, vsml.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, blank )
-
         blank = (GLfloat * ( vsml.width * vsml.height * 4))()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vsml.width, vsml.height, 0, GL_RGBA, GL_FLOAT, blank )
-
-
-        # tex = image.Texture.create_for_size(gl.GL_TEXTURE_2D, w, h, gl.GL_RGBA) -> check
-        
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,GL_COLOR_ATTACHMENT0_EXT,GL_TEXTURE_2D, self.color_tex, 0)
-
-        # // create a render buffer as our depthbuffer and attach it
-        #glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, self.depth_rb)
-        #glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT,GL_DEPTH_COMPONENT24, vsml.width, vsml.height)
-        #glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT,GL_RGB, vsml.width, vsml.height)
-        #glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_RENDERBUFFER_EXT, self.depth_rb)
 
         status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT)
         assert status == GL_FRAMEBUFFER_COMPLETE_EXT
@@ -363,42 +344,34 @@ class PolygonLines(Actor, Selector):
         glDeleteFramebuffersEXT(1, self.fbo)
 
     def set_coloralpha_all(self, alphavalue = 0.2 ):
-        print self.colors
         self.colors[:,3] = alphavalue
-
-        # TODO: FIX also need to update FBO colors VBO ?
-        
         # update VBO
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        print self.colors
-
-    def select_vertices(self, vertices_indices, value = 0.6):
+    def set_coloralpha_vertices(self, vertices_indices, value ):
         # select a subset of vertices (e.g. for a skeleton)
         self.colors[self.connectivity_orig[vertices_indices.ravel()].ravel(), 3] = value
-
-        # TODO: FIX also need to update FBO colors VBO ?
-
         # update VBO
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors.size, self.colors_ptr, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-
+        
+    def select_vertices(self, vertices_indices, value = 0.6):
+        self.set_coloralpha_vertices( vertices_indices, value  )
+        
     def pick(self, x, y):
         if self.connectivity_selectionID_orig is None:
-            print "no connectivity ids for polylines given"
+            print("No connectivity_slectionID parameter set for the actor {0}".format(self.name) )
             return
         
-        print "pick polylines", x, y
-
-        print "vsml", vsml.width, vsml.height
-
+        # resize texture as well
+        glBindTexture(GL_TEXTURE_2D, self.color_tex)
+        blank = (GLfloat * ( vsml.width * vsml.height * 4))()
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, vsml.width, vsml.height, 0, GL_RGBA, GL_FLOAT, blank )
 
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
-
-
 
         glPushAttrib(GL_VIEWPORT_BIT)
         glViewport(0, 0, vsml.width, vsml.height)
@@ -449,9 +422,7 @@ class PolygonLines(Actor, Selector):
 
         a = (GLfloat * 4)(0)
         glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, a)
-        print a[0], a[1], a[2], a[3]
         ID = (int(a[0]*255) << 16) | (int(a[1]*255) << 8) | int(a[2]*255)
-        print "id found", ID
 
         glPopAttrib()
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
@@ -501,7 +472,7 @@ class PolygonLines(Actor, Selector):
         self.program.release()
         
 
-class PolygonLinesSimple(Actor, Selector):
+class PolygonLinesSimple(Actor):
 
     def __init__(self,
              name,

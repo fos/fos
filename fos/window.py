@@ -169,11 +169,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.lastPos = QtCore.QPoint(event.pos())
 
         if (event.modifiers() & QtCore.Qt.ShiftModifier):
-            print "x,y", event.x(), event.y()
             x, y = event.x(), event.y()
             self.world.pick_all( x, self.height - y)
-
-
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self.lastPos.x()
