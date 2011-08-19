@@ -227,7 +227,8 @@ class PolygonLines(Actor):
         self.connectivity_orig = connectivity
         self.linewidth = linewidth
         self.connectivity_selectionID_orig = connectivity_selectionID
-        
+        self.conn_selection = []
+
         # TODO: fix API
         # unfortunately, we need to duplicate vertices if we want per line color
         #self.vertices = vertices[connectivity,:]
@@ -361,9 +362,10 @@ class PolygonLines(Actor):
     def select_vertices(self, vertices_indices, value = 0.6):
         self.set_coloralpha_vertices( vertices_indices, value  )
         
-    def pick(self, x, y):
+    def pick(self, x, y, self_select = True):
+        
         if self.connectivity_selectionID_orig is None:
-            print("No connectivity_slectionID parameter set for the actor {0}".format(self.name) )
+            print("No connectivity_selectionID parameter set for the actor {0}".format(self.name) )
             return
         
         # resize texture as well
@@ -426,6 +428,23 @@ class PolygonLines(Actor):
 
         glPopAttrib()
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
+
+        if self_select:
+
+            print "self select!"
+            if ID is None or ID == 0:
+                return
+
+            if ID in self.conn_selection:
+                # already selected
+                print "already selected", ID
+            else:
+                print "new sele"
+                selarr = np.where( self.connectivity_selectionID_orig == ID )[0]
+                self.conn_selection.append(ID)
+                self.select_vertices( selarr, value = 0.1 )
+
+        print "ID"
 
         return ID
 

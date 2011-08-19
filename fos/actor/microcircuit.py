@@ -158,7 +158,7 @@ class Microcircuit(Actor):
         self.global_select_alpha = 1.0
 
     def pick(self, x, y):
-        ID = self.polylines.pick( x, y )
+        ID = self.polylines.pick( x, y, self_select = False )
 
         if ID is None or ID == 0:
             return
@@ -197,7 +197,6 @@ class Microcircuit(Actor):
                 print("Newly selected skeleton")
                 selvalue = self.global_select_alpha
                 self.skeleton_selection.append( skeleton_id )
-
 
 
             print "... skeleton id", skeleton_id

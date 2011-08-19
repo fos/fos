@@ -168,7 +168,7 @@ class GLWidget(QtOpenGL.QGLWidget):
     def mousePressEvent(self, event):
         self.lastPos = QtCore.QPoint(event.pos())
 
-        if (event.modifiers() & QtCore.Qt.ShiftModifier):
+        if (event.modifiers() & QtCore.Qt.ControlModifier):
             x, y = event.x(), event.y()
             self.world.pick_all( x, self.height - y)
 
@@ -180,32 +180,46 @@ class GLWidget(QtOpenGL.QGLWidget):
             shift = True
         else:
             shift = False
+
+        if (event.modifiers() & QtCore.Qt.ControlModifier):
+            ctrl = True
+        else:
+            ctrl = False
             
         if event.buttons() & QtCore.Qt.LeftButton:
-            # should rotate
-            if dx != 0:
-                # rotate around yup
-                if dx > 0:
-                    angle = -0.01
-                else:
-                    angle = 0.01
 
-                if shift:
-                    angle *= 2
+            if not ctrl:
+                # should rotate
+                if dx != 0:
+                    # rotate around yup
+                    if dx > 0:
+                        angle = -0.01
+                    else:
+                        angle = 0.01
 
-                self.world.camera.rotate_around_focal( angle, "yup" )
+                    if shift:
+                        angle *= 2
 
-            if dy != 0:
-                # rotate around right
-                if dy > 0:
-                    angle = -0.01
-                else:
-                    angle = 0.01
+                    self.world.camera.rotate_around_focal( angle, "yup" )
 
-                if shift:
-                    angle *= 2
-                    
-                self.world.camera.rotate_around_focal( angle, "right" )
+                if dy != 0:
+                    # rotate around right
+                    if dy > 0:
+                        angle = -0.01
+                    else:
+                        angle = 0.01
+
+                    if shift:
+                        angle *= 2
+
+                    self.world.camera.rotate_around_focal( angle, "right" )
+
+                self.updateGL()
+
+            else:
+                # with control, do many selects!
+                x, y = event.x(), event.y()
+                self.world.pick_all( x, self.height - y)
 
         elif event.buttons() & QtCore.Qt.RightButton:
             # should pan
@@ -226,10 +240,11 @@ class GLWidget(QtOpenGL.QGLWidget):
                 pandy = 0.0
 
             self.world.camera.pan( pandx, pandy )
+            self.updateGL()
             
         self.lastPos = QtCore.QPoint(event.pos())
 
-        self.updateGL()
+
 
     def wheelEvent(self, e):
         numSteps = e.delta() / 15 / 8
