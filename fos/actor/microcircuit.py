@@ -4,11 +4,112 @@ from .base import *
 from fos.actor.primitives import *
 from fos.actor.scatter import *
 from fos.actor.polygonlines import *
+import fos.util
 
 from PySide.QtGui import QMatrix4x4
 
 from fos.shader.lib import *
 from fos.vsml import vsml
+
+class MicrocircuitNew(Actor):
+
+    def __init__(self,
+                 name,
+                 vertices,
+                 connectivity,
+                 **kwargs ):
+        """ Microcircuit actor
+        """
+        super(MicrocircuitNew, self).__init__( name )
+
+        # references to parameters
+        self.vertices = vertices
+        self.connectivity = connectivity
+
+        for k,v in kwargs.items():
+            setattr( self, k, v )
+
+        # skeleton actor
+        self.vertices_skeleton, self.connectivity_skeleton = \
+            fos.util.reindex_connectivity( self.vertices, self.connectivity )
+
+        if hasattr( self, "connectivity_skeletonid" ):
+            self.connectivity_skeleton_skeletonid = self.connectivity_skeletonid["data"]
+        else:
+            self.connectivity_skeleton_skeletonid = None
+
+        if hasattr( self, "connectivity_color" ):
+            self.connectivity_skeleton_color = self.connectivity_color["data"]
+        else:
+            # default color red
+            self.connectivity_skeleton_color = \
+                np.array( [[1.0, 0.0, 0.0, 1.0]], dtype = np.float32).repeat(len(self.connectivity), axis=0)
+
+        self.skeletonization = PolygonLines( name = "Skeletonization",
+                                       vertices = self.vertices_skeleton,
+                                       connectivity = self.connectivity_skeleton,
+                                       colors = self.connectivity_skeleton_color,
+                                       connectivity_selectionID = self.connectivity_skeleton_skeletonid )
+
+        # skeleton selection attributes
+        self.selection = {}
+        self.global_deselect_alpha = 0.2
+        self.global_select_alpha = 1.0
+
+    def deselect(self):
+        """ Deselect the skeletonization
+        """
+        for k,v in self.selection.items():
+            v = []
+        self.skeletonization.set_coloralpha_all( alphavalue = self.global_deselect_alpha )
+
+    def select(self, attributename, values ):
+
+        if hasattr( self, attributename ):
+            attr = getattr( self, attributename )
+
+            if attr.has_key("metadata") and attr["metadata"].has_key( "type" ):
+                if attr["metadata"]["type"] == "categorial":
+                    datarray = getattr( self, attributename )["data"]
+                else:
+                    print("Attribute 'type' needs to be 'categorial'")
+                    return
+            else:
+                print("Need 'metadata' dictionary for attribute {0} with 'type'".format(attributename))
+                return
+        else:
+            print("Attributename {0} not existing.".format(attributename))
+            return
+
+        # create selection list for attributename if not yet existing
+        if not self.selection.has_key( attributename ):
+            self.selection[attributename] = []
+
+        for value in values:
+
+            if value in self.selection[attributename]:
+                print("Identifier {0} for attribute {1} already selected. Deselect".format(value, attributename))
+                selvalue = self.global_deselect_alpha
+                self.selection[attributename].remove( value )
+            else:
+                print("Newly selected identifier {0} for attribute {1}".format(value, attributename))
+                selvalue = self.global_select_alpha
+                self.selection[attributename].append( value )
+
+            print "... select value", value
+            idx = np.where( datarray == value )[0]
+            self.skeletonization.select_vertices( vertices_indices = idx, value = selvalue )
+
+    def pick(self, x, y):
+        ID = self.skeletonization.pick( x, y, self_select = False )
+        if ID is None or ID == 0:
+            return
+        if hasattr( self, 'connectivity_skeletonid' ):
+            self.select( 'connectivity_skeletonid', [ ID ] )
+                
+    def draw(self):
+        self.skeletonization.draw()
+        
 
 class Microcircuit(Actor):
 
@@ -110,6 +211,7 @@ class Microcircuit(Actor):
         if isinstance(connectivity_colormap, dict):
             #skeleton_colors = np.ones( (len(self.connectivity_skeleton),4), dtype = np.float32 )
             # TODO: distinguish labels/types/etc.
+            pass
             
 
         size = 0.6
