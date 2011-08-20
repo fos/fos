@@ -8,5 +8,6 @@ from mesh import *
 
 from scatter import *
 from microcircuit import *
+from text import *
 
 from dynamic import *
