@@ -4,8 +4,9 @@ from fos import *
 
 from PySide.QtGui import QApplication
 
-def create_window():
-    
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+
     w = Window()
 
     region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
@@ -33,9 +34,4 @@ def create_window():
 
     w.add_region( region )
 
-    return w, act
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    create_window()
     sys.exit(app.exec_())

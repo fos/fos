@@ -64,6 +64,95 @@ class Cylinder(Actor):
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
 
+class Box(Actor):
+
+    def __init__(self, name, blf = None, trb = None, margin = 0, color = (1.0, 1.0, 1.0, 1.0)):
+        """ Box from bottom-left-front and top-right-back point coordinates
+        (Axis Aligned Bounding)
+        """
+        super(Box, self).__init__( name )
+
+        self.vertices = np.zeros( (8,3), dtype = np.float32 )
+        self.c1 = np.zeros( (3,1), dtype = np.float32 )
+        self.c2 = np.zeros( (3,1), dtype = np.float32 )
+        self.indices = np.array([ [0,1,5,4],
+                           [2,3,7,6],
+                           [2,0,1,3],
+                           [3,7,5,1],
+                           [7,6,4,5],
+                           [6,2,0,4] ], dtype = np.uint32)
+        self.color = color
+
+        self.update(blf, trb, margin)
+
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.indices_ptr = self.indices.ctypes.data
+        self.indices_nr = self.indices.size
+
+    def update(self, c1, c2, margin):
+        """ c1 is botton-left-front, and c2 is top-right-back point
+        """
+        # add the margin on all sides
+        self.c1[0] = c1[0] - margin
+        self.c1[1] = c1[1] - margin
+        self.c1[2] = c1[2] - margin
+
+        self.c2[0] = c2[0] + margin
+        self.c2[1] = c2[1] + margin
+        self.c2[2] = c2[2] + margin
+
+        self.vertices[:4, 0] = self.c1[0]
+        self.vertices[4:, 0] = self.c2[0]
+        self.vertices[:2, 1] = self.vertices[4:6, 1] = self.c1[1]
+        self.vertices[2:4, 1] = self.vertices[6:8, 1] = self.c2[1]
+        self.vertices[::2, 2] = self.c2[2]
+        self.vertices[1::2, 2] = self.c1[2]
+
+    def draw(self):
+        glDisable(GL_CULL_FACE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glLineWidth(1.0)
+        glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glDrawElements( GL_QUADS, self.indices_nr, GL_UNSIGNED_INT, self.indices_ptr )
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glEnable(GL_CULL_FACE)
+
+
+def makeCube():
+    """ Create a Cube
+
+    Credits: https://github.com/danginsburg/webgl-brain-viewer/blob/master/common/esShapes.js
+    """
+    vertices = np.array( [
+      [-0.5, -0.5, -0.5],[-0.5, -0.5,  0.5],[0.5, -0.5,  0.5],[0.5, -0.5, -0.5],
+      [-0.5,  0.5, -0.5],[-0.5,  0.5,  0.5],[0.5,  0.5,  0.5],[0.5,  0.5, -0.5],
+      [-0.5, -0.5, -0.5],[-0.5,  0.5, -0.5],[0.5,  0.5, -0.5],[0.5, -0.5, -0.5],
+      [-0.5, -0.5, 0.5],[-0.5,  0.5, 0.5],[0.5,  0.5, 0.5],[0.5, -0.5, 0.5],
+      [-0.5, -0.5, -0.5],[-0.5, -0.5,  0.5],[-0.5,  0.5,  0.5],[-0.5,  0.5, -0.5],
+      [0.5, -0.5, -0.5],[0.5, -0.5,  0.5],[0.5,  0.5,  0.5],[0.5,  0.5, -0.5]], dtype = np.float32 )
+
+    normals = np.array( [
+      [0.0, -1.0, 0.0],[0.0, -1.0, 0.0],[0.0, -1.0, 0.0],[0.0, -1.0, 0.0],
+      [0.0, 1.0, 0.0],[0.0, 1.0, 0.0],[0.0, 1.0, 0.0],[0.0, 1.0, 0.0],
+      [0.0, 0.0, -1.0],[0.0, 0.0, -1.0],[0.0, 0.0, -1.0],[0.0, 0.0, -1.0],
+      [0.0, 0.0, 1.0],[0.0, 0.0, 1.0],[0.0, 0.0, 1.0],[0.0, 0.0, 1.0],
+      [-1.0, 0.0, 0.0],[-1.0, 0.0, 0.0],[-1.0, 0.0, 0.0],[-1.0, 0.0, 0.0],
+      [1.0, 0.0, 0.0],[1.0, 0.0, 0.0],[1.0, 0.0, 0.0],[1.0, 0.0, 0.0] ], dtype = np.float32 )
+
+    texcoords = np.array( [
+      [0.0, 0.0],[0.0, 1.0],[1.0, 1.0],[1.0, 0.0],[1.0, 0.0],[1.0, 1.0],[0.0, 1.0],[0.0, 0.0],
+      [0.0, 0.0],[0.0, 1.0],[1.0, 1.0],[1.0, 0.0],[0.0, 0.0],[0.0, 1.0],[1.0, 1.0],[1.0, 0.0],
+      [0.0, 0.0],[0.0, 1.0],[1.0, 1.0],[1.0, 0.0],[0.0, 0.0],[0.0, 1.0],[1.0, 1.0],[1.0, 0.0]], dtype = np.float32 )
+   
+    indices = np.array( [
+        [0, 2, 1],[0, 3, 2],[4, 5, 6],[4, 6, 7],[8, 9, 10],[8, 10, 11],
+        [12, 15, 14],[12, 14, 13],[16, 17, 18],[16, 18, 19],[20, 23, 22],[20, 22, 21]], dtype = np.uint32 )
+
+    return vertices, indices
+
 def makeNSphere( iterations = 3 ):
     """ Sphere generation subdivision starting from octahedron
 
@@ -221,6 +310,43 @@ def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
             print("Wrong number of vertices in face.")
 
     return np.array( p, dtype = np.float32 ), np.array( f, dtype = np.uint32 )
+
+def make_cube_scatter( x, y, z, values, colormap = None, scale_by_value = False):
+    n = len(x)
+    vertices = []
+    faces = []
+    colors = []
+    # use values to create colormap array
+    colormap_array = colormap( values )
+    face_offset = 0
+    for i in range(n):
+
+        vert, fac = makeCube( )
+
+        if scale_by_value:
+            vert *= values[i]
+
+        # translate
+        vert[:,0] += x[i]
+        vert[:,1] += y[i]
+        vert[:,2] += z[i]
+
+        if not colormap is None:
+            colors.append( np.repeat( colormap_array[i,:].reshape( (1,4) ), len(vert), axis = 0) )
+
+        vertices.append( vert )
+        fac += face_offset
+        faces.append( fac )
+        face_offset += len(vert)
+
+    vertices = np.concatenate( vertices ).astype( np.float32 )
+    faces = np.concatenate( faces ).astype( np.uint32 )
+    if len(colors)>0:
+        colors = np.concatenate( colors ).astype( np.float32 )
+    else:
+        colors = None
+
+    return vertices, faces, colors
 
 def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colormap = None):
     n = len(p1)

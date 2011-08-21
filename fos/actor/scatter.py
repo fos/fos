@@ -13,6 +13,8 @@ class Scatter(Actor):
 
         if type == 'sphere':
             self.vertices, self.faces, self.colors = make_sphere_scatter( x, y, z, values, iterations, colormap )
+        elif type == 'cube':
+            self.vertices, self.faces, self.colors = make_cube_scatter( x, y, z, values, colormap )
         else:
             raise Exception("Only valid type for Scatter is 'sphere'")
 

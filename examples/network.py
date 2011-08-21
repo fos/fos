@@ -7,20 +7,17 @@ from PySide.QtGui import QApplication
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window( bgcolor = (0,0,0) )
+    w = Window()
 
     region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
                      extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
-    vert = np.array( [[2.0,3.0,0.0]], dtype = np.float32 )
-    ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
+    data = np.random.random( (100, 3) ) * 100 - 50
+    values = np.random.random( (100, 1) ) * 10 - 5
+    conn = np.array( [ [0, 1],[1, 2],[3, 2],[3, 4] ], dtype = np.uint32 )
 
-    tex = Text3D( "Text3D", vert, "Region axes", 10, 2, ptr)
-    
-    region.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
-    region.add_actor( tex )
+    region.add_actor( Network( "MyNetwork", positions = data, edges = conn  ) )
 
     w.add_region ( region )
-    w.refocus_camera()
 
     sys.exit(app.exec_())
