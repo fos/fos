@@ -11,7 +11,7 @@ except ImportError:
 
 class Window(QtGui.QWidget):
     def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480,
-                 bgcolor = (0,0,0), fullscreen = False, dynamic = True ):
+                 bgcolor = (0,0,0), fullscreen = False, dynamic = False ):
         """ Create a window
         Parameters
         ----------

@@ -8,25 +8,28 @@ from fos.data import get_font
 
 class Text3D(Actor):
 
-    def __init__(self, name, location, normal, text):
+    def __init__(self, name, location, text, width, height, targetpoint = None, linewidth = 3.0, \
+                 fontcolor = (1,1,1),  pointercolor = (1,1,1)):
         """ A Text3D actor
         """
         super(Text3D, self).__init__( name )
 
         self.vertices = location
-        self.normal = normal
+        self.width = width
+        self.height = height
         self.text = text
+        self.targetpoint = targetpoint
+        self.linewidth = linewidth
+        self.fontcolor = fontcolor
+        self.pointercolor = pointercolor
 
         # create freetype bitmap
-
-
-        # create dummy data array for texture
-        self.data = np.array( [ [10, 250],
-                                [110,  10] ], dtype = np.ubyte )
-
-        self.data = np.random.random_integers( 0, 255, (400, 400)).astype( np.ubyte )
-
-        self.data = self.make_bitmap( self.text )
+        dataAlpha = self.make_bitmap( self.text )
+        self.data = np.ones( (dataAlpha.shape[0], dataAlpha.shape[1], 4), dtype = np.ubyte)
+        self.data[:,:,0] *= int(255*self.fontcolor[0])
+        self.data[:,:,1] *= int(255*self.fontcolor[1])
+        self.data[:,:,2] *= int(255*self.fontcolor[2])
+        self.data[:,:,3] = dataAlpha
 
         # create 2d texture
         self.data_ptr = self.data.ctypes.data
@@ -40,18 +43,15 @@ class Text3D(Actor):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-        # target, level, internalformat, width, border, format, type, pixels
-        #glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE32F_ARB, self.data.shape[1], self.data.shape[0], 0, \
-        #             GL_LUMINANCE, GL_FLOAT, self.data_ptr)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, self.data.shape[1], self.data.shape[0], 0, \
-                     GL_ALPHA, GL_UNSIGNED_BYTE, self.data_ptr)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data.shape[1], self.data.shape[0], 0, \
+                     GL_RGBA, GL_UNSIGNED_BYTE, self.data_ptr)
 
         glBindTexture(GL_TEXTURE_2D, 0)
 
     def make_bitmap(self, text):
-        print get_font( 'Vera' )
+
         face = Face(get_font( 'Vera' ))
-        face.set_char_size( 48*64 )
+        face.set_char_size( 96*64 ) #48*64 )
         slot = face.glyph
 
         # First pass to compute bbox
@@ -96,20 +96,29 @@ class Text3D(Actor):
         glEnable(GL_TEXTURE_2D)
 
         glBindTexture (GL_TEXTURE_2D, self.tex_ptr)
-        
-        glBegin (GL_QUADS)
-        glTexCoord2f (0.0, 0.0)
-        glVertex3f (0.0, 0.0, 0.0)
 
-        glTexCoord2f (1.0, 0.0)
-        glVertex3f (10.0, 0.0, 0.0)
+        glBegin (GL_QUADS)
+        glTexCoord2f (0.0, 1.0)
+        glVertex3f (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
 
         glTexCoord2f (1.0, 1.0)
-        glVertex3f (10.0, 10.0, 0.0)
+        glVertex3f (self.vertices[0,0]+self.width, self.vertices[0,1], self.vertices[0,2])
 
-        glTexCoord2f (0.0, 1.0)
-        glVertex3f (0.0, 10.0, 0.0)
+        glTexCoord2f (1.0, 0.0)
+        glVertex3f (self.vertices[0,0]+self.width, self.vertices[0,1]+self.height, self.vertices[0,2])
+
+        glTexCoord2f (0.0, 0.0)
+        glVertex3f (self.vertices[0,0], self.vertices[0,1]+self.height, self.vertices[0,2])
 
         glEnd ()
         
         glDisable(GL_TEXTURE_2D)
+
+        # draw line
+        if not self.targetpoint is None:
+            glLineWidth(self.linewidth)
+            glBegin(GL_LINES)
+            glColor3f(*self.pointercolor)
+            glVertex3f (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
+            glVertex3f (self.targetpoint[0,0], self.targetpoint[0,1], self.targetpoint[0,2])
+            glEnd()
