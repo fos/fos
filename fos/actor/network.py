@@ -20,6 +20,7 @@ class Network(Actor):
                                      values, type = 'cube' )
 
         # a VectorScatter for edges
+        # TODO: should be polygonlines, or VectorScatters?
         self.edge_scatter = None
 
     def draw(self):
