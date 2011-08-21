@@ -2,6 +2,7 @@ from pyglet.gl import *
 from camera import *
 from fos.actor import Box, Actor
 from fos.transform import *
+from vsml import vsml
 
 class Region(object):
 
@@ -163,7 +164,7 @@ class World(object):
 
     def __init__(self):
         self.regions = {}
-        self.camera = SimpleCamera()
+        self.set_camera( SimpleCamera() )
 
     def add_region(self, region):
         if region.regionname in self.regions:
@@ -191,6 +192,9 @@ class World(object):
 
     def set_camera(self, camera):
         self.camera = camera
+        # hackish, store a reference to the camera in the global static
+        # vsml object to enable actor's positioning depending on camera parameters
+        vsml.camera = self.camera
 
     def get_camera(self):
         return self.camera

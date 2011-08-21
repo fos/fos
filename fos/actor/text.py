@@ -1,7 +1,7 @@
 import numpy as np
 from pyglet.gl import *
 from .base import Actor
-
+from ..vsml import vsml
 from fos.external.freetype import *
 
 from fos.data import get_font
@@ -97,20 +97,40 @@ class Text3D(Actor):
 
         glBindTexture (GL_TEXTURE_2D, self.tex_ptr)
 
-        glBegin (GL_QUADS)
-        glTexCoord2f (0.0, 1.0)
-        glVertex3f (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
+        if hasattr( vsml, 'camera'):
+            # follow with the camera
+            ri = vsml.camera.get_right()
+            up = vsml.camera.get_yup()
+            lb = (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
+            rb = (self.vertices[0,0]+self.width*ri[0],
+                  self.vertices[0,1]+self.width*ri[1],
+                  self.vertices[0,2]+self.width*ri[2])
+            rt = (self.vertices[0,0]+self.width*ri[0]+self.height*up[0],
+                  self.vertices[0,1]+self.width*ri[1]+self.height*up[1],
+                  self.vertices[0,2]+self.width*ri[2]+self.height*up[2])
+            lt = (self.vertices[0,0]+self.height*up[0],
+                  self.vertices[0,1]+self.height*up[1],
+                  self.vertices[0,2]+self.height*up[2])
+        else:
+            lb = (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
+            rb = (self.vertices[0,0]+self.width, self.vertices[0,1], self.vertices[0,2])
+            rt = (self.vertices[0,0]+self.width, self.vertices[0,1]+self.height, self.vertices[0,2])
+            lt = (self.vertices[0,0], self.vertices[0,1]+self.height, self.vertices[0,2])
 
-        glTexCoord2f (1.0, 1.0)
-        glVertex3f (self.vertices[0,0]+self.width, self.vertices[0,1], self.vertices[0,2])
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 1.0)
+        glVertex3f(*lb)
 
-        glTexCoord2f (1.0, 0.0)
-        glVertex3f (self.vertices[0,0]+self.width, self.vertices[0,1]+self.height, self.vertices[0,2])
+        glTexCoord2f(1.0, 1.0)
+        glVertex3f(*rb)
 
-        glTexCoord2f (0.0, 0.0)
-        glVertex3f (self.vertices[0,0], self.vertices[0,1]+self.height, self.vertices[0,2])
+        glTexCoord2f(1.0, 0.0)
+        glVertex3f(*rt)
 
-        glEnd ()
+        glTexCoord2f(0.0, 0.0)
+        glVertex3f(*lt)
+
+        glEnd()
         
         glDisable(GL_TEXTURE_2D)
 
