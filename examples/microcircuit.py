@@ -7,7 +7,7 @@ from PySide.QtGui import QApplication
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window()
+    w = Window( dynamic = True )
 
     region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 

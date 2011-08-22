@@ -145,7 +145,7 @@ class Microcircuit(Actor):
         ##########
         # Skeletons
         ##########
-        self.polylines = Skeleton( name = "Polygon Lines",
+        self.skeleton = Skeleton( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton,
                                              ID = self.connectivity_ids_skeleton )
@@ -158,22 +158,20 @@ class Microcircuit(Actor):
         self.global_select_alpha = 1.0
 
     def pick(self, x, y):
-        ID = self.polylines.pick( x, y, self_select = False )
-
+        ID = self.skeleton.pick( x, y )
+        print "got id from skeleton", ID
         if ID is None or ID == 0:
             return
-
-        print "select skeleton..."
         self.select_skeleton( [ ID ] )
 
     def deselect_all(self, value = 0.2):
         """
         Sets the alpha value of all polygon lines to 0.2
         """
-        self.selection = []
+        self.skeleton_selection = []
         self.pre_actor.set_coloralpha_all( alphavalue = value )
         self.post_actor.set_coloralpha_all( alphavalue = value )
-        self.polylines.set_coloralpha_all( alphavalue = value )
+        self.skeleton.deselect( )
 
     def select_skeleton(self, skeleton_id_list, value = 1.0 ):
 
@@ -189,6 +187,15 @@ class Microcircuit(Actor):
 
         for skeleton_id in skeleton_id_list:
 
+            print "... skeleton id", skeleton_id
+            # retrieve skeleton indices for the skeleton ids from vertices_index
+            if skeleton_id in self.skeleton_selection:
+                print "micro: call deselect"
+                self.skeleton.deselect( skeleton_id )
+            else:
+                print "micro: call select"
+                self.skeleton.select( skeleton_id )
+
             if skeleton_id in self.skeleton_selection:
                 print("Skeleton with id {0} already selected. Deselect".format(skeleton_id))
                 selvalue = self.global_deselect_alpha
@@ -199,11 +206,6 @@ class Microcircuit(Actor):
                 self.skeleton_selection.append( skeleton_id )
 
 
-            print "... skeleton id", skeleton_id
-            # retrieve skeleton indices for the skeleton ids from vertices_index
-            skeleton_id_index = np.where( self.connectivity_skeletononly_ids == skeleton_id )[0]
-            self.polylines.select_vertices( vertices_indices = skeleton_id_index, value = selvalue )
-
             pre_id_index = np.where( self.connectivity_preonly_ids == skeleton_id )[0]
             self.pre_actor.set_coloralpha_index( pre_id_index , selvalue )
 
@@ -212,7 +214,6 @@ class Microcircuit(Actor):
 
 
     def draw(self):
-
         self.pre_actor.draw()
         self.post_actor.draw()
-        self.polylines.draw()
+        self.skeleton.draw()

@@ -5,8 +5,8 @@ from PySide.QtGui import QMatrix4x4
 
 from fos.shader.lib import *
 from fos.vsml import vsml
-import fos.util
 from .base import *
+import fos.util
 
 class Skeleton(Actor):
 
@@ -339,11 +339,14 @@ class Skeleton(Actor):
         else:
             self.select( ID )
 
+        return ID
+
     def deselect(self, ID = None):
         print "deselect(ID)", ID
 
         if ID is None:
             # deselect all
+            self.current_selection = []
             self._reset_color_alpha( self.global_deselect_alpha )
         else:
             if ID in self.current_selection:
@@ -352,6 +355,8 @@ class Skeleton(Actor):
                 self.current_selection.remove( ID )
             else:
                 print("Not selected identifier {0}".format(ID))
+
+        self.current_selection
 
     def select(self, ID):
         print "select(ID)", ID
@@ -366,6 +371,8 @@ class Skeleton(Actor):
             self._update_color_alpha( selarr, self.global_select_alpha )
             self.current_selection.append(ID)
 
+        self.current_selection
+
     def _update_color_alpha(self, index, value ):
 
         # select a subset of vertices (e.g. for a skeleton)
@@ -375,7 +382,6 @@ class Skeleton(Actor):
         glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
         glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_nr, self.colors_ptr, GL_DYNAMIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-
 
     def _reset_color_alpha(self, value):
         self.colors_draw[:,3] = value
@@ -443,7 +449,6 @@ class Skeleton(Actor):
 
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
-
 
     def pick(self, x, y):
         pass
