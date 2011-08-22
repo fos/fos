@@ -2,8 +2,8 @@ import numpy as np
 from pyglet.gl import *
 from .base import *
 from fos.actor.primitives import *
+from fos.actor.skeleton import *
 from fos.actor.scatter import *
-from fos.actor.polygonlines import *
 
 from PySide.QtGui import QMatrix4x4
 
@@ -145,10 +145,10 @@ class Microcircuit(Actor):
         ##########
         # Skeletons
         ##########
-        self.polylines = PolygonLines( name = "Polygon Lines",
+        self.polylines = Skeleton( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton,
-                                             connectivity_selectionID = self.connectivity_ids_skeleton )
+                                             ID = self.connectivity_ids_skeleton )
 
         self.connectivity_skeletononly_ids = None
         self.connectivity_preonly_ids = None

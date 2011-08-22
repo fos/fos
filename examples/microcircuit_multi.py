@@ -62,7 +62,7 @@ con[(2*lenc)+nc:, 1] = np.arange(0,nc) + 2*lpos # to
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-w = Window()
+w = Window( dynamic = True )
 
 region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 

@@ -1,14 +1,13 @@
 import sys
 import numpy as np
 from fos import *
-import fos.util
 
 from PySide.QtGui import QApplication
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window()
+    w = Window( dynamic = True )
 
     region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
 
@@ -21,22 +20,27 @@ if __name__ == '__main__':
                        [1, 2],
                        [1, 3] ], dtype = np.uint32 )
 
-    cols = np.array( [ [0, 0, 1, 0.0],
-                       [1, 0, 1, 1.0],
-                       [0, 0, 1, 0.1]] , dtype = np.float32 )
+    cols = np.array( [ [0, 0, 1, 1.0],
+                       [1, 0, 0, 1.0],
+                       [0, 1, 0, 1.0]] , dtype = np.float32 )
 
     sel = np.array( [ 100, 123, 400] , dtype = np.uint32 )
 
-    vert, conn = fos.util.reindex_connectivity( vert, conn )
+    rad = np.array( [ 1.0, 5.0, 10.0] , dtype = np.float32 )
 
-    act = PolygonLines( name = "Polygon Lines", vertices = vert, connectivity = conn, colors = cols, connectivity_selectionID = sel)
+    act = Skeleton( name = "Skeleton", \
+                    vertices = vert, \
+                    connectivity = conn, \
+                    colors = cols,\
+                    ID = sel,
+                    radius = rad,
+                    extruded = True)
 
     region.add_actor( act )
 
     w.add_region( region )
     w.refocus_camera()
 
-    act.set_coloralpha_all( 0.9 )
+    act.deselect()
 
-    
     sys.exit(app.exec_())
