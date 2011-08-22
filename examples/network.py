@@ -12,11 +12,18 @@ if __name__ == '__main__':
     region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
                      extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
 
-    data = np.random.random( (100, 3) ) * 100 - 50
-    values = np.random.random( (100, 1) ) * 10 - 5
-    conn = np.array( [ [0, 1],[1, 2],[3, 2],[3, 4] ], dtype = np.uint32 )
+    vert = np.array( [ [0,0,0],
+                       [5,5,0],
+                       [5,10,0],
+                       [10,5,0]], dtype = np.float32 )
 
-    region.add_actor( Network( "MyNetwork", positions = data, edges = conn  ) )
+    conn = np.array( [ [0, 1],
+                       [1, 2],
+                       [1, 3] ], dtype = np.uint32 )
+
+    val = np.array( [ 1.0, 5.0, 10.0, 5.0], dtype = np.float32 )
+
+    region.add_actor( Network( "MyNetwork", vertices = vert, edges = conn, values = val  ) )
 
     w.add_region ( region )
 

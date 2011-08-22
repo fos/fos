@@ -18,7 +18,7 @@ class Skeleton(Actor):
              colors = None,
              radius = None,
              extruded = False,
-             linewidth = 4.0):
+             linewidth = 3.0):
         """ A skeleton focused on connectivity
 
         Parameters
