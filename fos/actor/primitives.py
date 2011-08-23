@@ -388,9 +388,15 @@ def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale
     # use values to create colormap array
     colormap_array = colormap( values )
     face_offset = 0
+    cache_sphere = {}
     for i in range(n):
-        
-        vert, fac = makeNSphere( iterations )
+
+        if cache_sphere.has_key( iterations ):
+            vert = cache_sphere[iterations][0].copy()
+            fac = cache_sphere[iterations][1].copy()
+        else:
+            cache_sphere[iterations] = makeNSphere( iterations )
+            vert, fac = cache_sphere[iterations]
 
         if scale_by_value:
             vert *= values[i]
