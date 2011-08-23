@@ -16,11 +16,22 @@ if __name__ == '__main__':
     vert = np.array( [ [0,0,0],[5,5,0],[5,10,0]], dtype = np.float32 )
     conn = np.array( [[ 0, 1, 2 ]], dtype = np.uint32 )
     scal = np.array( [ 0.2, 2.5, 10.2 ], dtype = np.float32 )
-    mesh1 = Mesh( "Triangle", vertices = vert, connectivity = conn, values = scal, colormap = cm.Accent )
+
+    # use colormap to define colors array
+    colormap = cm.Accent
+    if isinstance( colormap, dict):
+        # TODO: do the dict mapping to colors
+        pass
+    else:
+        # TODO: fix colormapping
+        colors = colormap( scal ).astype( np.float32 )
+    print colors
+    
+    mesh1 = Mesh( "Triangle", vertices = vert, connectivity = conn )
 
     vert = np.array( [ [8,0,0],[12,5,0],[12,10,0], [0,4, 2]], dtype = np.float32 )
     conn = np.array( [[ 0, 1, 2, 3 ]], dtype = np.uint32 )
-    mesh2 = Mesh( "Quad", vertices = vert, connectivity = conn, color = (1.0, 0.0, 0.0, 1.0) )
+    mesh2 = Mesh( "Quad", vertices = vert, connectivity = conn, vertices_colors = colors )
 
     region.add_actor( mesh1 )
     region.add_actor( mesh2 )
