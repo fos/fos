@@ -31,16 +31,16 @@ if __name__ == '__main__':
     act = Skeleton( name = "Skeleton", \
                     vertices = vert, \
                     connectivity = conn, \
-                    colors = cols,\
-                    ID = sel,
-                    radius = rad,
-                    extruded = True)
+                    connectivity_colors = cols,\
+                    connectivity_ID = sel,
+                    connectivity_radius = rad,
+                    extruded = False)
 
     region.add_actor( act )
 
     w.add_region( region )
     w.refocus_camera()
 
-    act.deselect()
+    # act.deselect()
 
     sys.exit(app.exec_())

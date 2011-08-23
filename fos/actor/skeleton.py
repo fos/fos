@@ -14,9 +14,9 @@ class Skeleton(Actor):
              name,
              vertices,
              connectivity,
-             ID = None,
-             colors = None,
-             radius = None,
+             connectivity_ID = None,
+             connectivity_colors = None,
+             connectivity_radius = None,
              extruded = False,
              linewidth = 3.0):
         """ A skeleton focused on connectivity
@@ -25,20 +25,20 @@ class Skeleton(Actor):
         ----------
         vertices : array, shape (N,3)
         connectivity : array, shape (M,2)
-        ID : array, shape (M,)
-        colors : array, shape (M,4)
-        radius : array, shape (M,)
+        connectivity_ID : array, shape (M,)
+        connectivity_colors : array, shape (M,4)
+        connectivity_radius : array, shape (M,)
 
         """
         super(Skeleton, self).__init__( name )
 
         self.vertices = vertices
         self.connectivity = connectivity
-        self.radius = radius
-        self.colors = colors
+        self.radius = connectivity_radius
+        self.colors = connectivity_colors
         self.extruded = extruded
         self.linewidth = linewidth
-        self.ID = ID
+        self.ID = connectivity_ID
         if self.ID is None:
             self.enable_picking = False
         else:
@@ -62,7 +62,10 @@ class Skeleton(Actor):
 
         # setup the shader
         if self.extruded:
-            self._setup_shader_extruded()
+            if gl_info.have_version(3,0):
+                self._setup_shader_extruded()
+            else:
+                raise Exception("Need at least OpenGL 3.0 for extrusion shaders")
         else:
             self._setup_shader_lines()
 
@@ -75,7 +78,7 @@ class Skeleton(Actor):
         # if picking enabled, setup colors_pick array and FBO
         if self.enable_picking:
             self.colors_pick, self.colors_pick_ptr = \
-                self._setup_colors_pick( self.colors_draw, self.ID_draw )
+                self._setup_colors_pick( self.colors_draw.shape, self.ID_draw )
 
         # bind buffers
         self._bind_buffer()
@@ -89,6 +92,33 @@ class Skeleton(Actor):
             self.draw = self._draw_lines
             if self.enable_picking:
                 self.pick = self._pick_lines
+
+    def update_colors(self, connectivity_colors):
+        """ Update connectivity color array
+
+        If shape (M,4), replace array, if shape (M,3) only
+        update color values but keep alpha value
+        """
+        assert( len(self.colors) == len(connectivity_colors) )
+
+        if connectivity_colors.shape[1] == 4:
+            # replace color values, keep alpha
+            self.colors = connectivity_colors
+            # duplicate array
+            self.colors_draw = np.repeat(self.colors, 2, axis=0)
+            # setup pointers
+            self.colors_ptr = self.colors_draw.ctypes.data
+            self.colors_nr = self.colors_draw.size
+        else:
+            # only refresh the array
+            self.colors[:,:3] = connectivity_colors
+            self.colors_draw[::2,:3] = connectivity_colors
+            self.colors_draw[1::2,:3] = connectivity_colors
+
+        # bind buffer
+        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_draw.size, self.colors_ptr, GL_DYNAMIC_DRAW)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     def _setup_shader_lines(self):
         self.program = get_shader_program( "propagate", "120" )
@@ -132,10 +162,10 @@ class Skeleton(Actor):
         if self.enable_picking:
             self.ID_draw = np.repeat(self.ID, 2, axis=0)
             
-    def _setup_colors_pick(self, colors, ID):
+    def _setup_colors_pick(self, colorsshape, ID):
         """ Setups the colors_pick array using the ID for picking
         """
-        colors_pick = np.ones( colors.shape, dtype = np.float32 )
+        colors_pick = np.ones( colorsshape, dtype = np.float32 )
 
         # selectionId to color
         def con( ID ):
@@ -144,7 +174,7 @@ class Skeleton(Actor):
             b = (ID & 0x000000FF)
             return r,g,b
 
-        for i in range(len(colors)):
+        for i in range(colorsshape[0]):
             colors_pick[i,:3] = np.array(con(ID[i]))/255.0
 
         return colors_pick, colors_pick.ctypes.data

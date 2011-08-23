@@ -6,6 +6,12 @@ class Mesh(Actor):
 
     def __init__(self, name, vertices, connectivity, values = None, colormap = None, color = (0.0, 1.0, 0.0, 1.0), wireframe = False):
         """ A Mesh actor with triangular or quad connectivity
+
+        Parameters
+        ----------
+        vertices : array, shape (N,3)
+        connectivity : array, shape (M,3) or (M,4)
+        
         """
         super(Mesh, self).__init__( name )
         # TODO: implement values, colormap functionality
