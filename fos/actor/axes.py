@@ -2,6 +2,7 @@ import numpy as np
 from pyglet.gl import *
 from .base import *
 from primitives import Cylinder
+from text import Text3D
 
 class Axes(Actor):
 
@@ -23,7 +24,13 @@ class Axes(Actor):
         self.y_cone = Cylinder( "YCone", np.array([0,0.8,0]), np.array([0,1.1,0]), 0.15, 0, 10, color = (0, 1.0, 0, 1.0) )
         self.z_cone = Cylinder( "ZCone", np.array([0,0,0.8]), np.array([0,0,1.1]), 0.15, 0, 10, color = (0, 0, 1.0, 1.0) )
 
+        # store lightning state to set back to default
+        self.light_state = GLboolean(0)
+        glGetBooleanv(GL_LIGHTING, self.light_state)
+
     def draw(self):
+
+        glDisable(GL_LIGHTING)
 
         self.x_cone.draw()
         self.y_cone.draw()
@@ -47,6 +54,9 @@ class Axes(Actor):
         glEnd()
         glLineWidth(1.0)
         #glPopMatrix()
+
+        if self.light_state:
+            glEnable(GL_LIGHTING)
 
 class CartesianAxes(object):
 

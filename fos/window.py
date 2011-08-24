@@ -125,7 +125,7 @@ class Window(QtGui.QWidget):
 # if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): # & == bit wise "and"!
 
 class GLWidget(QtOpenGL.QGLWidget):
-    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = True):
+    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = False):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.lastPos = QtCore.QPoint()
