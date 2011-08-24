@@ -4,7 +4,7 @@ from .base import Actor
 
 class Mesh(Actor):
 
-    def __init__(self, name, vertices, connectivity, vertices_colors = None, wireframe = False):
+    def __init__(self, name, vertices, connectivity, vertices_colors = None, vertices_normals = None, wireframe = False):
         """ A Mesh actor with triangular or quad connectivity
 
         Parameters
@@ -21,11 +21,15 @@ class Mesh(Actor):
         
         self.wireframe = wireframe
         self.colors = vertices_colors
-
+        self.normals = vertices_normals
+        
         if self.colors is None:
             self.colors = np.ones( (len(self.vertices),4), dtype = np.float32 )
             # make it yellow
             self.colors[:,2] = 0.0
+
+        if not self.normals is None:
+            self.normals_ptr = self.normals.ctypes.data
 
         if connectivity.shape[1] == 3:
             self.mode = GL_TRIANGLES
@@ -58,8 +62,15 @@ class Mesh(Actor):
         glEnableClientState(GL_COLOR_ARRAY)
         glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
 
+        if not self.normals is None:
+            glEnableClientState(GL_NORMAL_ARRAY)
+            glNormalPointer(GL_FLOAT, 0, self.normals_ptr)
+
         glDrawElements( self.mode, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr )
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
+        if not self.normals is None:
+            glDisableClientState(GL_NORMAL_ARRAY)
+            
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)

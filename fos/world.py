@@ -1,5 +1,6 @@
 from pyglet.gl import *
 from camera import *
+from light import *
 from fos.actor import Box, Actor
 from fos.transform import *
 from vsml import vsml
@@ -165,6 +166,13 @@ class World(object):
     def __init__(self):
         self.regions = {}
         self.set_camera( SimpleCamera() )
+        self.light = None
+
+    def setup_light(self):
+        self.light = Light()
+
+    def update_lightposition(self, x, y, z):
+        self.light.update_lightposition(x, y, z)
 
     def add_region(self, region):
         if region.regionname in self.regions:

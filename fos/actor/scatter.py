@@ -6,20 +6,22 @@ from pylab import cm
 
 class Scatter(Actor):
 
-    def __init__(self, name, x, y, z, values = None, colormap = cm.Accent, type = 'sphere', iterations = 2, wireframe = False):
+    def __init__(self, name, x, y, z, values = None, colormap = cm.Accent, type = 'cube', iterations = 2, wireframe = False):
         """ A Scatter actor to display scatter plots
         """
         super(Scatter, self).__init__( name )
 
         if type == 'sphere':
-            self.vertices, self.faces, self.colors = make_sphere_scatter( x, y, z, values, iterations, colormap )
+            self.vertices, self.faces, self.colors, self.normals = make_sphere_scatter( x, y, z, values, iterations, colormap )
         elif type == 'cube':
-            self.vertices, self.faces, self.colors = make_cube_scatter( x, y, z, values, colormap )
+            self.vertices, self.faces, self.colors, self.normals = make_cube_scatter( x, y, z, values, colormap )
         else:
             raise Exception("Only valid type for Scatter is 'sphere'")
 
         self.wireframe = wireframe
         self.vertices_ptr = self.vertices.ctypes.data
+        self.normals_ptr = self.normals.ctypes.data
+        print self.vertices.shape, self.normals.shape
         if not self.colors is None:
             self.colors_ptr = self.colors.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
@@ -27,6 +29,7 @@ class Scatter(Actor):
         
     def draw(self):
         glDisable(GL_CULL_FACE)
+
         if self.wireframe:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glLineWidth(1.0)
@@ -36,6 +39,9 @@ class Scatter(Actor):
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
 
+        glEnableClientState(GL_NORMAL_ARRAY)
+        glNormalPointer(GL_FLOAT, 0, self.normals_ptr)
+
         if not self.colors is None:
             glEnableClientState(GL_COLOR_ARRAY)
             glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
@@ -43,6 +49,7 @@ class Scatter(Actor):
         glDrawElements( GL_TRIANGLES, self.faces_nr, GL_UNSIGNED_INT, self.faces_ptr )
 
         glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_NORMAL_ARRAY)
         glDisableClientState(GL_COLOR_ARRAY)
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)

@@ -25,6 +25,7 @@ if __name__ == '__main__':
     else:
         # TODO: fix colormapping
         colors = colormap( scal ).astype( np.float32 )
+        
     print colors
     
     mesh1 = Mesh( "Triangle", vertices = vert, connectivity = conn )

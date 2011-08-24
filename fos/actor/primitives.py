@@ -9,12 +9,13 @@ class Sphere(Actor):
         """
         super(Sphere, self).__init__( name )
 
-        self.vertices, self.faces = makeNSphere( iterations )
+        self.vertices, self.faces, self.normals = makeNSphere( iterations )
         self.vertices *= radius
         self.wireframe = wireframe
         self.color = color
 
         self.vertices_ptr = self.vertices.ctypes.data
+        self.normals_ptr = self.normals.ctypes.data
         self.faces_ptr = self.faces.ctypes.data
         self.faces_nr = self.faces.size
 
@@ -28,7 +29,10 @@ class Sphere(Actor):
         glColor4f( self.color[0], self.color[1], self.color[2], self.color[3] )
         glEnableClientState(GL_VERTEX_ARRAY)
         glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glEnableClientState(GL_NORMAL_ARRAY)
+        glNormalPointer(GL_FLOAT, 0, self.normals_ptr)
         glDrawElements( GL_TRIANGLES, self.faces_nr, GL_UNSIGNED_INT, self.faces_ptr )
+        glDisableClientState(GL_NORMAL_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
@@ -85,6 +89,10 @@ class Box(Actor):
 
         self.update(blf, trb, margin)
 
+        # store lightning state to set back to default
+        self.light_state = GLboolean(0)
+        glGetBooleanv(GL_LIGHTING, self.light_state)
+        
         self.vertices_ptr = self.vertices.ctypes.data
         self.indices_ptr = self.indices.ctypes.data
         self.indices_nr = self.indices.size
@@ -110,6 +118,7 @@ class Box(Actor):
 
     def draw(self):
         glDisable(GL_CULL_FACE)
+        glDisable(GL_LIGHTING)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glLineWidth(1.0)
         glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
@@ -119,6 +128,8 @@ class Box(Actor):
         glDisableClientState(GL_VERTEX_ARRAY)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         glEnable(GL_CULL_FACE)
+        if self.light_state:
+            glEnable(GL_LIGHTING)
 
 
 def makeCube():
@@ -151,7 +162,7 @@ def makeCube():
         [0, 2, 1],[0, 3, 2],[4, 5, 6],[4, 6, 7],[8, 9, 10],[8, 10, 11],
         [12, 15, 14],[12, 14, 13],[16, 17, 18],[16, 18, 19],[20, 23, 22],[20, 22, 21]], dtype = np.uint32 )
 
-    return vertices, indices
+    return vertices, indices, normals
 
 def makeNSphere( iterations = 3 ):
     """ Sphere generation subdivision starting from octahedron
@@ -218,7 +229,13 @@ def makeNSphere( iterations = 3 ):
             f[i][1] = pbi
             f[i][2] = pci
 
-    return np.array(p, dtype = np.float32 ), np.array(f, dtype = np.uint32 )
+    # create normalized normals for each vertex
+    vertices = np.array(p, dtype = np.float32 )
+    normals = np.zeros( vertices.shape, dtype = np.float32 )
+    for i in range(len(vertices)):
+        normals[i,:] = vertices[i,:] / np.linalg.norm( vertices[i,:]  )
+
+    return vertices, np.array(f, dtype = np.uint32 ), normals
 
 def makeCylinder( p1, p2, r1, r2, resolution = 4 ):
     """ Cylinder or Cone generation
@@ -316,12 +333,13 @@ def make_cube_scatter( x, y, z, values, colormap = None, scale_by_value = False)
     vertices = []
     faces = []
     colors = []
+    normals = []
     # use values to create colormap array
     colormap_array = colormap( values )
     face_offset = 0
     for i in range(n):
 
-        vert, fac = makeCube( )
+        vert, fac, norm = makeCube( )
 
         if scale_by_value:
             vert *= values[i]
@@ -335,18 +353,20 @@ def make_cube_scatter( x, y, z, values, colormap = None, scale_by_value = False)
             colors.append( np.repeat( colormap_array[i,:].reshape( (1,4) ), len(vert), axis = 0) )
 
         vertices.append( vert )
+        normals.append( norm )
         fac += face_offset
         faces.append( fac )
         face_offset += len(vert)
 
     vertices = np.concatenate( vertices ).astype( np.float32 )
+    normals = np.concatenate( normals ).astype( np.float32 )
     faces = np.concatenate( faces ).astype( np.uint32 )
     if len(colors)>0:
         colors = np.concatenate( colors ).astype( np.float32 )
     else:
         colors = None
 
-    return vertices, faces, colors
+    return vertices, faces, colors, normals
 
 def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colormap = None):
     n = len(p1)
@@ -383,6 +403,7 @@ def make_cylinder_scatter( p1, p2, r1, r2, values = None, resolution = 4, colorm
 def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale_by_value = False):
     n = len(x)
     vertices = []
+    normals = []
     faces = []
     colors = []
     # use values to create colormap array
@@ -394,9 +415,10 @@ def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale
         if cache_sphere.has_key( iterations ):
             vert = cache_sphere[iterations][0].copy()
             fac = cache_sphere[iterations][1].copy()
+            norm = cache_sphere[iterations][2].copy()
         else:
             cache_sphere[iterations] = makeNSphere( iterations )
-            vert, fac = cache_sphere[iterations]
+            vert, fac, norm = cache_sphere[iterations]
 
         if scale_by_value:
             vert *= values[i]
@@ -410,15 +432,17 @@ def make_sphere_scatter( x, y, z, values, iterations = 3, colormap = None, scale
             colors.append( np.repeat( colormap_array[i,:].reshape( (1,4) ), len(vert), axis = 0) )
 
         vertices.append( vert )
+        normals.append( norm )
         fac += face_offset
         faces.append( fac )
         face_offset += len(vert)
 
     vertices = np.concatenate( vertices ).astype( np.float32 )
+    normals = np.concatenate( normals ).astype( np.float32 )
     faces = np.concatenate( faces ).astype( np.uint32 )
     if len(colors)>0:
         colors = np.concatenate( colors ).astype( np.float32 )
     else:
         colors = None
         
-    return vertices, faces, colors
+    return vertices, faces, colors, normals

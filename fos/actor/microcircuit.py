@@ -148,7 +148,7 @@ class Microcircuit(Actor):
         self.skeleton = Skeleton( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton,
-                                             ID = self.connectivity_ids_skeleton )
+                                             connectivity_ID = self.connectivity_ids_skeleton )
 
         self.connectivity_skeletononly_ids = None
         self.connectivity_preonly_ids = None

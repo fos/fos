@@ -90,6 +90,10 @@ class Window(QtGui.QWidget):
     def refocus_camera(self):
         self.glWidget.world.refocus_camera()
 
+    def update_light_position(self, x, y, z):
+        if not self.glWidget.world.light is None:
+            self.glWidget.world.update_lightposition(x, y, z)
+
     def screenshot(self, filename):
         """ Store current OpenGL context as image
         """
@@ -121,13 +125,14 @@ class Window(QtGui.QWidget):
 # if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): # & == bit wise "and"!
 
 class GLWidget(QtOpenGL.QGLWidget):
-    def __init__(self, parent=None, width = None, height = None, bgcolor = None):
+    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = True):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.lastPos = QtCore.QPoint()
         self.bgcolor = QtGui.QColor.fromRgbF(bgcolor[0], bgcolor[1], bgcolor[2], 1.0)
         self.width = width
         self.height = height
+        self.enable_light = enable_light
         self.world = World()
 
     def minimumSizeHint(self):
@@ -141,6 +146,12 @@ class GLWidget(QtOpenGL.QGLWidget):
         glShadeModel(GL_FLAT)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
+
+        glEnable(GL_BLEND)
+        glBlendFunc (GL_SRC_ALPHA, GL_ZERO) #_MINUS_SRC_ALPHA)
+
+        if self.enable_light:
+            self.world.setup_light()
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
