@@ -82,7 +82,7 @@ class Text3D(Actor):
             kerning = face.get_kerning(previous, c)
             x += (kerning.x >> 6)
             Z[y:y+h,x:x+w] |= np.array(bitmap.buffer).reshape(h,w)
-            x += (slot.advance.x >> 6)
+            x += (slot.advance.x >> 6) # for the last one, use bitmap.width
             previous = c
 
         return Z

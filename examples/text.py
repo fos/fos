@@ -15,7 +15,7 @@ if __name__ == '__main__':
     vert = np.array( [[2.0,3.0,0.0]], dtype = np.float32 )
     ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
 
-    tex = Text3D( "Text3D", vert, "Region axes", 10, 2, ptr)
+    tex = Text3D( "Text3D", vert, "Reg", 10, 2, ptr)
     
     region.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
     region.add_actor( tex )

@@ -18,7 +18,8 @@ class Skeleton(Actor):
              connectivity_colors = None,
              connectivity_radius = None,
              extruded = False,
-             linewidth = 3.0):
+             linewidth = 3.0,
+             useva = True):
         """ A skeleton focused on connectivity
 
         Parameters
@@ -32,6 +33,8 @@ class Skeleton(Actor):
         """
         super(Skeleton, self).__init__( name )
 
+        self.useva = useva
+
         self.vertices = vertices
         self.connectivity = connectivity
         self.radius = connectivity_radius
@@ -42,7 +45,11 @@ class Skeleton(Actor):
         if self.ID is None:
             self.enable_picking = False
         else:
-            self.enable_picking = True
+            if self.useva:
+                # force disable picking when using vertex arrays
+                self.enable_picking = False
+            else:
+                self.enable_picking = True
         self.global_deselect_alpha = 0.2
         self.global_select_alpha = 1.0
         self.current_selection = []
@@ -61,13 +68,14 @@ class Skeleton(Actor):
             self.radius = np.ones( (M,1), dtype = np.float32 )
 
         # setup the shader
-        if self.extruded:
+        if self.extruded and not self.useva:
             if gl_info.have_version(3,0):
                 self._setup_shader_extruded()
             else:
                 raise Exception("Need at least OpenGL 3.0 for extrusion shaders")
         else:
-            self._setup_shader_lines()
+            if not self.useva:
+                self._setup_shader_lines()
 
         # duplicate arrays
         self._duplicate_arrays()
@@ -81,17 +89,21 @@ class Skeleton(Actor):
                 self._setup_colors_pick( self.colors_draw.shape, self.ID_draw )
 
         # bind buffers
-        self._bind_buffer()
+        if not self.useva:
+            self._bind_buffer()
 
         # overwrite draw and pick functions
-        if self.extruded:
+        if self.extruded and not self.useva:
             self.draw = self._draw_extruded
             if self.enable_picking:
                 self.pick = self._pick_extruded
         else:
-            self.draw = self._draw_lines
-            if self.enable_picking:
-                self.pick = self._pick_lines
+            if self.useva:
+                self.draw = self._draw_va
+            else:
+                self.draw = self._draw_lines
+                if self.enable_picking:
+                    self.pick = self._pick_lines
 
     def update_colors(self, connectivity_colors):
         """ Update connectivity color array
@@ -415,10 +427,11 @@ class Skeleton(Actor):
 
     def _reset_color_alpha(self, value):
         self.colors_draw[:,3] = value
-        # update VBO
-        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
-        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_nr, self.colors_ptr, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        # update VBO if existing
+        if hasattr(self, "colors_vbo"):
+            glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+            glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_nr, self.colors_ptr, GL_DYNAMIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     def _draw_lines(self):
         glEnable(GL_BLEND)
@@ -477,7 +490,7 @@ class Skeleton(Actor):
 
         glDrawElements( GL_LINES, self.connectivity_nr, GL_UNSIGNED_INT, self.connectivity_ptr )
 
-        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)   
         glDisableClientState(GL_COLOR_ARRAY)
 
     def pick(self, x, y):

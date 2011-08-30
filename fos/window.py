@@ -11,7 +11,7 @@ except ImportError:
 
 class Window(QtGui.QWidget):
     def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480,
-                 bgcolor = (0,0,0), fullscreen = False, dynamic = False ):
+                 bgcolor = (0,0,0), fullscreen = False, dynamic = False, enable_light = False ):
         """ Create a window
         Parameters
         ----------
@@ -29,7 +29,8 @@ class Window(QtGui.QWidget):
         """
         # TODO: add PySide.QtOpenGL.QGLFormat to configure the OpenGL context
         QtGui.QWidget.__init__(self, parent)
-        self.glWidget = GLWidget( parent = self, width = width, height = height, bgcolor = bgcolor )
+        self.glWidget = GLWidget( parent = self, width = width, height = height,
+                                  bgcolor = bgcolor, enable_light = enable_light )
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
@@ -59,6 +60,7 @@ class Window(QtGui.QWidget):
             self.glWidget.world.camera.rotate_around_focal( angle, "yup" )
             self.glWidget.updateGL()
 
+        # TODO: do not add if already present
         self.spinCameraTimer.timeout.connect(rotate_camera)
 
     def timerInit(self, interval = 30):

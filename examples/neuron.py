@@ -21,16 +21,18 @@ colors[:,3] = 1.0
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    
+    w = Window()
 
-w = Window()
-region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    act = Skeleton( name = "Neuron",
+                    vertices = pos,
+                    connectivity = connectivity,
+                    connectivity_colors=colors) #, radius = radius)
 
-act = PolygonLinesSimple( name = "Neuron", vertices = pos, connectivity = connectivity, colors=colors) #, radius = radius)
-region.add_actor( act )
 
-w.add_region( region )
+    region.add_actor( act )
+    w.add_region( region )
+    w.refocus_camera()
 
-w.refocus_camera()
-
-if __name__ == '__main__':
     sys.exit(app.exec_())

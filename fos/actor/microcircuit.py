@@ -18,9 +18,7 @@ class Microcircuit(Actor):
              connectivity,
              vertices_properties = None,
              connectivity_properties = None,
-             connectivity_index = None,
-             connectivity_colormap = None,
-             affine = None):
+             connectivity_colormap = None):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
 
@@ -30,10 +28,6 @@ class Microcircuit(Actor):
             3D Coordinates x,y,z
         connectivity : Mx1
             Tree topology
-        colors : Nx4 or 1x4
-            Per connection color
-        affine : 4x4
-            Affine transformation of the actor
 
         Notes
         -----
@@ -42,14 +36,8 @@ class Microcircuit(Actor):
         """
         super(Microcircuit, self).__init__( name )
 
-        if affine is None:
-            self.affine = np.eye(4, dtype = np.float32)
-        else:
-            self.affine = affine
-
         # TODO: properly structure
         self.vertices_properties = vertices_properties
-        self.connectivity_index = connectivity_index
 
         if connectivity_properties is None:
             print("Need to provide connectivity_properties dictionary with label and data")

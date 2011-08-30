@@ -66,10 +66,6 @@ if __name__ == '__main__':
         500 : np.array([[0.4, 0.3, 0, 1.0]])
     }
 
-    connectivity_index = {
-        "index" : { "data" : conn_skeleton_index }
-    }
-
     connectivity_properties = {
         "label" : { "data" : conn_labels,
                     "metadata" : {
@@ -89,7 +85,6 @@ if __name__ == '__main__':
         connectivity = conn,
         vertices_properties = vertices_properties,
         connectivity_properties = connectivity_properties,
-        connectivity_index = conn_skeleton_index,
         connectivity_colormap = conn_color_map
     )
     region.add_actor( act )
