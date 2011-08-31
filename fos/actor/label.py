@@ -13,67 +13,32 @@ Subpixel rendering AND positioning using OpenGL and shaders.
 import numpy as np
 import OpenGL.GL as gl
 import OpenGL.GLUT as glut
+
 from fos.external.freetype.texture_font import TextureFont, TextureAtlas
+
 from shader import Shader
 
+import numpy as np
+from pyglet.gl import *
+from .base import Actor
+from ..vsml import vsml
+from fos.external.freetype import *
+from fos.data import get_font
+from fos.shader.lib import *
 
-vert='''
-uniform sampler2D texture;
-uniform vec2 pixel;
-attribute float modulo;
-varying float m;
-void main() {
-    gl_FrontColor = gl_Color;
-    gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    m = modulo;
-}
-'''
+from PySide.QtGui import QMatrix4x4
 
-frag='''
-uniform sampler2D texture;
-uniform vec2 pixel;
-varying float m;
-void main() {
-    vec2 uv    = gl_TexCoord[0].xy;
-    vec4 current = texture2D(texture, uv);
-    vec4 previous= texture2D(texture, uv+vec2(-1,0)*pixel);
-    float r = current.r;
-    float g = current.g;
-    float b = current.b;
-    float a = current.a;
-    if( m <= 0.333 )
-    {
-        float z = m/0.333;
-        r = mix(current.r, previous.b, z);
-        g = mix(current.g, current.r,  z);
-        b = mix(current.b, current.g,  z);
-    }
-    else if( m <= 0.666 )
-    {
-        float z = (m-0.33)/0.333;
-        r = mix(previous.b, previous.g, z);
-        g = mix(current.r,  previous.b, z);
-        b = mix(current.g,  current.r,  z);
-    }
-   else if( m < 1.0 )
-    {
-        float z = (m-0.66)/0.334;
-        r = mix(previous.g, previous.r, z);
-        g = mix(previous.b, previous.g, z);
-        b = mix(current.r,  previous.b, z);
-    }
-    gl_FragColor = vec4(r,g,b,a);
-}
-'''
+class Label(Actor):
 
-
-
-
-
-class Label:
-    def __init__(self, text, font, color=(1.0, 1.0, 1.0, 0.0),  x=0, y=0,
+    def __init__(self, name, text, color=(1.0, 1.0, 1.0, 0.0),  x=0, y=0,
                  width=None, height=None, anchor_x='left', anchor_y='baseline'):
+
+        super(Label, self).__init__( name )
+
+        self.atlas = TextureAtlas(512,512,3)
+        font = TextureFont(self.atlas, get_font('Vera'), 9)
+        self.atlas.upload()
+        
         self.text = text
         self.vertices = np.zeros((len(text)*4,3), dtype=np.float32)
         self.indices  = np.zeros((len(text)*6, ), dtype=np.uint)
@@ -131,41 +96,96 @@ class Label:
             dx = 0
         self.vertices += (round(dx), round(dy), 0)
 
+        self.vertices_ptr = self.vertices.ctypes.data
+        self.colors_ptr = self.colors.ctypes.data
+        self.texcoords_ptr = self.texcoords.ctypes.data
+        self.indices_ptr = self.indices.ctypes.data
+
+        print self.vertices, self.colors, self.texcoords, self.indices
+        self._setup_shader()
+
+    def _setup_shader(self):
+        self.program = get_shader_program( "font", "120" )
+
+        self.aPosition = self.program.attributeLocation("aPosition")
+        print "pos", self.aPosition
+        self.aColor = self.program.attributeLocation("bColor")
+
+        self.projMatrix = self.program.uniformLocation("projMatrix")
+        print "proj", self.projMatrix
+        self.modelviewMatrix = self.program.uniformLocation("modelviewMatrix")
+        print "modelview", self.modelviewMatrix
+
+        self.texture = self.program.uniformLocation("texture")
+        print "texture", self.texture
+
+        self.pixel = self.program.uniformLocation("pixel")
+        print "pixel", self.pixel
+
 
     def draw(self):
-        gl.glEnable( gl.GL_TEXTURE_2D )
-        gl.glDisable( gl.GL_DEPTH_TEST )
+        print("draw labels")
 
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glEnableClientState(gl.GL_COLOR_ARRAY)
-        gl.glEnableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glEnableClientState(gl.GL_VERTEX_ARRAY)
+        #glClearColor(1,1,1,1)
+        #glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+        glBindTexture( GL_TEXTURE_2D, self.atlas.texid )
 
-        gl.glVertexPointer(3, gl.GL_FLOAT, 0, self.vertices)
-        gl.glColorPointer(4, gl.GL_FLOAT, 0, self.colors)
-        gl.glTexCoordPointer(2, gl.GL_FLOAT, 0, self.texcoords)
+        glEnable( GL_TEXTURE_2D )
+        glDisable( GL_DEPTH_TEST )
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
+        glEnableClientState(GL_VERTEX_ARRAY)
+
+        glVertexPointer(3, GL_FLOAT, 0, self.vertices_ptr)
+        glColorPointer(4, GL_FLOAT, 0, self.colors_ptr)
+        glTexCoordPointer(2, GL_FLOAT, 0, self.texcoords_ptr)
 
         alpha = 1
-        gl.glEnable( gl.GL_COLOR_MATERIAL )
-        gl.glBlendFunc( gl.GL_CONSTANT_COLOR_EXT,
-                        gl.GL_ONE_MINUS_SRC_COLOR )
-        gl.glEnable( gl.GL_BLEND )
-        gl.glColor3f( alpha, alpha, alpha )
-        gl.glBlendColor( 1-alpha, 1-alpha, 1-alpha, 1 )
-        gl.glEnableVertexAttribArray( 1 );
-        gl.glVertexAttribPointer( 1, 1, gl.GL_FLOAT, gl.GL_FALSE, 0, self.attrib)
-        shader.bind()
-        shader.uniformi('texture', 0)
-        shader.uniformf('pixel', 1.0/512, 1.0/512)
-        gl.glDrawElements(gl.GL_TRIANGLES, len(self.indices),
-                          gl.GL_UNSIGNED_INT, self.indices)
-        shader.unbind()
-        gl.glDisableVertexAttribArray( 1 );
-        gl.glDisableClientState(gl.GL_VERTEX_ARRAY)
-        gl.glDisableClientState(gl.GL_COLOR_ARRAY)
-        gl.glDisableClientState(gl.GL_TEXTURE_COORD_ARRAY)
-        gl.glDisable( gl.GL_TEXTURE_2D )
-        gl.glDisable( gl.GL_BLEND )
+        glEnable( GL_COLOR_MATERIAL )
+        glBlendFunc( GL_CONSTANT_COLOR_EXT, GL_ONE_MINUS_SRC_COLOR )
+        glEnable( GL_BLEND )
+        glColor3f( alpha, alpha, alpha )
+        glBlendColor( 1-alpha, 1-alpha, 1-alpha, 1 )
+
+        self.program.bind()
+
+        self.program.setUniformValueArray( self.projMatrix,
+            QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
+            16 )
+
+        self.program.setUniformValueArray( self.modelviewMatrix,
+            QMatrix4x4( tuple(vsml.modelview.ravel().tolist()) ),
+            16 )
+
+        #glEnableVertexAttribArray( 1 )
+        #glVertexAttribPointer( 1, 1, GL_FLOAT, GL_FALSE, 0, self.attrib)
+
+        #self.program.enableAttributeArray( self.aPosition )
+        #glVertexAttribPointer(self.aPosition, 1, GL_FLOAT, GL_FALSE, 0, 0)
+
+        # shader.bind()
+        #shader.uniformi('texture', 0)
+        self.program.setUniformValue( self.texture, 0 )
+        #shader.uniformf('pixel', 1.0/512, 1.0/512)
+        self.program.setUniformValue( self.pixel, 1.0/512, 1.0/512 )
+        
+        glDrawElements(GL_TRIANGLES, len(self.indices), GL_UNSIGNED_INT, self.indices_ptr)
+        
+        #shader.unbind()
+
+        self.program.disableAttributeArray( self.aPosition )
+        # self.program.disableAttributeArray( self.aColor )
+
+        self.program.release()
+        # glDisableVertexAttribArray( 1 )
+
+        glDisableClientState(GL_VERTEX_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
+        glDisable( GL_TEXTURE_2D )
+        glDisable( GL_BLEND )
 
 
 
@@ -209,7 +229,7 @@ if __name__ == '__main__':
     glut.glutReshapeFunc( on_reshape )
     glut.glutKeyboardFunc( on_keyboard )
 
-    font = TextureFont(atlas, './Vera.ttf', 9)
+
     text = "|... A Quick Brown Fox Jumps Over The Lazy Dog"
     labels = []
     x,y = 20,310

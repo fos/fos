@@ -19,7 +19,7 @@ class Skeleton(Actor):
              connectivity_radius = None,
              extruded = False,
              linewidth = 3.0,
-             useva = True):
+             useva = False):
         """ A skeleton focused on connectivity
 
         Parameters
