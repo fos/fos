@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     w = Window( dynamic = True )
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main" )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],
@@ -28,13 +28,13 @@ if __name__ == '__main__':
 
     rad = np.array( [ 1.0, 5.0, 10.0] , dtype = np.float32 )
 
-    act = Skeleton( name = "Skeleton", \
-                    vertices = vert, \
-                    connectivity = conn, \
-                    connectivity_colors = cols,\
+    act = Skeleton( name = "Skeleton",
+                    vertices = vert,
+                    connectivity = conn,
+                    connectivity_colors = cols,
                     connectivity_ID = sel,
                     connectivity_radius = rad,
-                    extruded = False)
+                    extruded = False )
 
     region.add_actor( act )
 

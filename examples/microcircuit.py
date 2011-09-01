@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     w = Window( dynamic = True )
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main" )
 
     vert = np.array( [ [0,0,0], # skeleton node
                        [5,5,0], # skeleton node

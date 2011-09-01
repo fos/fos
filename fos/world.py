@@ -7,7 +7,7 @@ from vsml import vsml
 
 class Region(object):
 
-    def __init__(self, regionname, resolution, transform = None, extent_min = None, extent_max = None ):
+    def __init__(self, regionname, transform = None, extent_min = None, extent_max = None ):
         """Create a Region which is a spatial reference system and acts as a container
         for Actors presenting datasets.
 
@@ -19,9 +19,6 @@ class Region(object):
             The affine transformation of the Region, defining
             origo and the axes orientation, i.e. the local coordinate
             system of the Region
-        resolution : 3-tuple of strings
-            Identifiers of the "Unit of Measurement" ontology
-            denoting the spatial metric for one unit for each spatial axes
         extent_min, extent_max : two 3x1 numpy.array
             Defines the minimum and maximum extent of the Region along
             all three axes. This implicitly defines an
@@ -41,7 +38,6 @@ class Region(object):
             self.transform = IdentityTransform()
         else:
             self.transform = transform
-        self.resolution = resolution
         self.actors = {}
         
         if not extent_min is None and not extent_max is None:
@@ -179,24 +175,6 @@ class World(object):
             print("Region {0} already exist.".format(region.regionname))
         else:
             self.regions[region.regionname] = region
-
-    def new_region(self, regionname, transform, resolution, extent = None ):
-        if regionname in self.regions:
-            print("Region {0} already exist.".format(regionname))
-        else:
-            self.regions[regionname] = Region( regionname = regionname, transform = transform, resolution = resolution, extent = extent )
-
-    def add_actor_to_region(self, regionname, actor):
-        if regionname in self.regions:
-            self.regions[regionname].add_actor( actor )
-        else:
-            print("Create Region first before adding actors.")
-
-    def remove_actor_from_region(self, regionname, actor):
-        if regionname in self.regions:
-            self.regions[regionname].remove_actor()
-        else:
-            print("Region {0} does not exist.".format(regionname))
 
     def set_camera(self, camera):
         self.camera = camera

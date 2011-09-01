@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     w = Window()
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main" )
 
     vert = np.array( [ [0,0,0],
                        [5,5,0],

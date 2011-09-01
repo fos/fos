@@ -40,7 +40,7 @@ positions, connectivity = fos.util.reindex_connectivity( positions, connectivity
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     w = Window()
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main" )
     act = Skeleton( name = "Tractography",
                     vertices = positions,
                     connectivity = connectivity,

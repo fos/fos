@@ -10,8 +10,9 @@ if __name__ == '__main__':
 
     w = Window( width = 1200, height = 800, bgcolor = (0,0,0) )
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
-                     extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
+    region = Region( regionname = "Main",
+                     extent_min = np.array( [-5.0, -5, -5] ),
+                     extent_max = np.array( [5, 5, 5] )  )
 
     vert = np.array( [ [0,0,0],[5,5,0],[5,10,0]], dtype = np.float32 )
     conn = np.array( [[ 0, 1, 2 ]], dtype = np.uint32 )

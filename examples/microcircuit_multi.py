@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+region = Region( regionname = "Main" )
 
 conn_color_map = {
     1 : np.array([[0.0, 1.0, 1.0, 1.0]]),

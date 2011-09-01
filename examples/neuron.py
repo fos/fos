@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     w = Window()
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm") )
+    region = Region( regionname = "Main" )
     act = Skeleton( name = "Neuron",
                     vertices = pos,
                     connectivity = connectivity,

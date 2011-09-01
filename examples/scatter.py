@@ -9,8 +9,9 @@ if __name__ == '__main__':
 
     w = Window()
 
-    region = Region( regionname = "Main", resolution = ("mm", "mm", "mm"),
-                     extent_min = np.array( [-5.0, -5, -5] ), extent_max = np.array( [5, 5, 5] )  )
+    region = Region( regionname = "Main",
+                     extent_min = np.array( [-5.0, -5, -5] ),
+                     extent_max = np.array( [5, 5, 5] ) )
 
     data = np.random.random( (1000, 3) ) * 200 - 50
     values = np.random.random( (1000, 1) ) * 10 - 5
