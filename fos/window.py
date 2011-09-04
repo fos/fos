@@ -37,7 +37,7 @@ class Window(QtGui.QWidget):
         self.setWindowTitle(self.tr(caption))
 
         self.spinCameraTimer = self.timerInit( interval = 30 )
-
+        
         if dynamic:
             self.dynamicWindowTimer = self.timerInit( interval = 30 )
             self.dynamicWindowTimer.timeout.connect(self.glWidget.updateGL)
@@ -48,20 +48,22 @@ class Window(QtGui.QWidget):
         else:
             self.show()
 
-    def spinCameraToggle(self, angle = 0.007 ):
+    def initSpincamera(self, angle = 0.007 ):
+        self.spinCameraTimer.timeout.disconnect()
+        
+        def rotate_camera():
+            self.glWidget.world.camera.rotate_around_focal( angle, "yup" )
+            self.glWidget.updateGL()
+            
+        self.spinCameraTimer.timeout.connect(rotate_camera)
+
+    def spinCameraToggle(self):
 
         if not self.spinCameraTimer.isActive():
             self.spinCameraTimer.start()
         else:
             self.spinCameraTimer.stop()
-            return
 
-        def rotate_camera():
-            self.glWidget.world.camera.rotate_around_focal( angle, "yup" )
-            self.glWidget.updateGL()
-
-        # TODO: do not add if already present
-        self.spinCameraTimer.timeout.connect(rotate_camera)
 
     def timerInit(self, interval = 30):
         timer = QtCore.QTimer(self)
@@ -118,7 +120,13 @@ class Window(QtGui.QWidget):
             self.glWidget.world.camera.update()
             self.glWidget.updateGL()
         elif key == QtCore.Qt.Key_S:
-            self.spinCameraToggle()
+            if (event.modifiers() & QtCore.Qt.ShiftModifier):
+                self.initSpincamera( angle = -0.01 )
+                self.spinCameraToggle()
+            else:
+                self.initSpincamera( angle = 0.01 )
+                self.spinCameraToggle()
+            
         elif key == QtCore.Qt.Key_Escape:
             self.close()
         else:
