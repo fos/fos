@@ -128,9 +128,11 @@ class Skeleton(Actor):
             self.colors_draw[1::2,:3] = connectivity_colors
 
         # bind buffer
-        glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
-        glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_draw.size, self.colors_ptr, GL_DYNAMIC_DRAW)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        # TODO: depending on useva?
+        if not self.useva:
+            glBindBuffer(GL_ARRAY_BUFFER, self.colors_vbo[0])
+            glBufferData(GL_ARRAY_BUFFER, 4 * self.colors_draw.size, self.colors_ptr, GL_DYNAMIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     def _setup_shader_lines(self):
         self.program = get_shader_program( "propagate", "120" )

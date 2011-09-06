@@ -7,7 +7,7 @@ from PySide.QtGui import QApplication
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = Window()
+    w = Window( dynamic = True )
 
     region = Region( regionname = "Main" )
 
@@ -24,14 +24,22 @@ if __name__ == '__main__':
                       [0, 0, 1, 1],
                       [1, 0, 0, 0.5]] , dtype = np.float32 )
     colt[:,:,1] = np.array( [
-                      [1, 0, 0, 0.2],
+                      [1, 0, 1, 1.0],
                       [0, 1, 0, 0.2],
                       [0, 0, 1, 1.0]] , dtype = np.float32 )
 
-    act = DynamicPolygonLinesSimple( name = "Polygon Lines", vertices = vert, connectivity = conn, colors = colt)
+    colt = np.random.rand( 3, 4, 500 ).astype( np.float32 )
+
+    act = DynamicSkeleton( name = "Dynamic Skeleton",
+                    vertices = vert,
+                    connectivity = conn,
+                    connectivity_colors = colt,
+                    extruded = False )
 
     region.add_actor( act )
 
     w.add_region( region )
+
+    act.play()
 
     sys.exit(app.exec_())

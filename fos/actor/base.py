@@ -1,3 +1,4 @@
+from PySide import QtCore
 
 class Actor(object):
 
@@ -47,6 +48,11 @@ class DynamicActor(Actor):
         # the reference to the first time frame
         self.current_time_frame = 0
 
+        # init timer
+        self.timer = QtCore.QTimer( None )
+        self.timer.setInterval( 40 )
+        self.timer.timeout.connect( self.next )
+
     def updatePtr(self):
         """ Updates the pointers to the data arrays
         """
@@ -71,12 +77,12 @@ class DynamicActor(Actor):
     def play(self):
         """ Start playing
         """
-        pass
+        self.timer.start()
 
     def pause(self):
         """ Pause playing
         """
-        pass
+        self.timer.stop()
 
     def stop(self):
         """ Stop playing and reset to start

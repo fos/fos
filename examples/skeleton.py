@@ -24,6 +24,11 @@ if __name__ == '__main__':
                        [1, 0, 0, 1.0],
                        [0, 1, 0, 1.0]] , dtype = np.float32 )
 
+    cols1 = np.array( [ [1, 0, 1, 1.0],
+                       [1, 1, 0, 1.0],
+                       [0, 0, 1, 1.0]] , dtype = np.float32 )
+    
+
     sel = np.array( [ 100, 123, 400] , dtype = np.uint32 )
 
     rad = np.array( [ 1.0, 5.0, 10.0] , dtype = np.float32 )
