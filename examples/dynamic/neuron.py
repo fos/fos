@@ -20,6 +20,7 @@ connectivity = np.vstack( (parents, np.arange(1, len(parents)+1) ) ).T.astype(np
 #colors[:,3] = 1.0
 
 colors = np.random.rand( len(connectivity), 4, 500 ).astype( np.float32 )
+
 colors[:,3] = 1.0
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from light import *
 from fos.actor import Box, Actor
 from fos.transform import *
 from vsml import vsml
+from actor.base import DynamicActor
 
 class Region(object):
 
@@ -141,6 +142,16 @@ class Region(object):
         else:
             print("Not a valid Actor instance or actor name.")
 
+    def nextTimeFrame(self):
+        for k, actor in self.actors.items():
+            if actor.visible and isinstance(actor, DynamicActor):
+                actor.next()
+
+    def previousTimeFrame(self):
+        for k, actor in self.actors.items():
+            if actor.visible and isinstance(actor, DynamicActor):
+                actor.previous()
+
     def draw_actors(self):
         """ Draw all visible actors in the region
         """
@@ -207,6 +218,14 @@ class World(object):
         newloc[2] += dist[0] 
         self.camera.set_location( newloc, np.array([0.0,1.0,0.0]) )
         self.camera.update()
+
+    def nextTimeFrame(self):
+        for k, region in self.regions.items():
+            region.nextTimeFrame()
+
+    def previousTimeFrame(self):
+        for k, region in self.regions.items():
+            region.previousTimeFrame()
 
     def pick_all(self, x, y):
         """ Calls the pick function on all Regions

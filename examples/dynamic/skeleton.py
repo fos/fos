@@ -40,6 +40,6 @@ if __name__ == '__main__':
 
     w.add_region( region )
 
-    act.play()
+    # act.play()
 
     sys.exit(app.exec_())

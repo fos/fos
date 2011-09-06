@@ -115,6 +115,10 @@ class Window(QtGui.QWidget):
             print("Left")
         elif key == QtCore.Qt.Key_Right:
             self.glWidget.world.camera.reset()
+        elif key == QtCore.Qt.Key_N:
+            self.glWidget.world.nextTimeFrame()
+        elif key == QtCore.Qt.Key_B:
+            self.glWidget.world.previousTimeFrame()
         elif key == QtCore.Qt.Key_R:
             self.glWidget.world.refocus_camera()
             self.glWidget.world.camera.update()
