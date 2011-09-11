@@ -6,11 +6,13 @@ from fos.transform import *
 from vsml import vsml
 from actor.base import DynamicActor
 
+
 class Region(object):
 
-    def __init__(self, regionname, transform = None, extent_min = None, extent_max = None ):
-        """Create a Region which is a spatial reference system and acts as a container
-        for Actors presenting datasets.
+    def __init__(self, regionname, transform=None,
+                 extent_min=None, extent_max=None):
+        """Create a Region which is a spatial reference system
+        and acts as a container for Actors presenting datasets.
 
         Parameters
         ----------
@@ -29,11 +31,11 @@ class Region(object):
 
         Notes
         -----
-        Regions can be overlapping.
+        Regions can be overlapping
 
         """
-        super(Region,self).__init__()
-        
+        super(Region, self).__init__()
+
         self.regionname = regionname
         if transform is None:
             self.transform = IdentityTransform()
@@ -42,9 +44,9 @@ class Region(object):
         self.actors = {}
         
         if not extent_min is None and not extent_max is None:
-            self.extent_min = np.array( extent_min, dtype = np.float32 )
-            self.extent_max = np.array( extent_max, dtype = np.float32 )
-            self.add_actor( Box( "AABB", self.extent_min, self.extent_max ) )
+            self.extent_min = np.array(extent_min, dtype=np.float32)
+            self.extent_max = np.array(extent_max, dtype=np.float32)
+            self.add_actor(Box("AABB", self.extent_min, self.extent_max))
         else:
             self.extent_min = None
             self.extent_max = None
