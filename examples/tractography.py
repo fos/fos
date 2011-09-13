@@ -37,15 +37,12 @@ rad = rad / rad.max()
 
 positions, connectivity = fos.util.reindex_connectivity( positions, connectivity )
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    w = Window()
-    region = Region( regionname = "Main" )
-    act = Skeleton( name = "Tractography",
-                    vertices = positions,
-                    connectivity = connectivity,
-                    connectivity_ID = consel ) #, radius = rad)
-    region.add_actor( act )
-    w.add_region( region )
-    w.refocus_camera()
-    sys.exit(app.exec_())
+w = Window()
+region = Region( regionname = "Main" )
+act = Skeleton( name = "Tractography",
+                vertices = positions,
+                connectivity = connectivity,
+                connectivity_ID = consel ) #, radius = rad)
+region.add_actor( act )
+w.add_region( region )
+w.refocus_camera()

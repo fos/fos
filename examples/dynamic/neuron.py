@@ -4,8 +4,6 @@ import os.path as op
 from fos import *
 import numpy as np
 
-from PySide.QtGui import QApplication
-
 a=np.loadtxt(op.join(op.dirname(__file__), "..", "data", "rat-basal-forebrain.swc") )
 
 pos = a[:,2:5].astype( np.float32 )
@@ -23,21 +21,16 @@ colors = np.random.rand( len(connectivity), 4, 500 ).astype( np.float32 )
 
 colors[:,3] = 1.0
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
+w = Window( dynamic = True )
 
-    w = Window( dynamic = True )
+region = Region( regionname = "Main" )
+act = DynamicSkeleton( name = "Neuron",
+                vertices = pos,
+                connectivity = connectivity,
+                connectivity_colors=colors) #, radius = radius)
 
-    region = Region( regionname = "Main" )
-    act = DynamicSkeleton( name = "Neuron",
-                    vertices = pos,
-                    connectivity = connectivity,
-                    connectivity_colors=colors) #, radius = radius)
+region.add_actor( act )
+w.add_region( region )
+w.refocus_camera()
 
-    region.add_actor( act )
-    w.add_region( region )
-    w.refocus_camera()
-    
-    act.play()
-
-    sys.exit(app.exec_())
+act.play()

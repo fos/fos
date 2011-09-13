@@ -12,7 +12,7 @@ Test
 ----
 PYTHONPATH=$PYTHONPATH:.
 export PYTHONPATH
-python examples/sphere.py
+ipython --gui=qt -i examples/sphere.py
 
 Developer Group
 ---------------

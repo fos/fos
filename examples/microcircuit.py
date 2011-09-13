@@ -2,102 +2,93 @@ import sys
 import numpy as np
 from fos import *
 
-from PySide.QtGui import QApplication
+w = Window( dynamic = True )
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
+region = Region( regionname = "Main" )
 
-    w = Window( dynamic = True )
+vert = np.array( [ [0,0,0], # skeleton node
+                   [5,5,0], # skeleton node
+                   [10,3,0], # connector
+                   [15,5,0], # skeleton node
+                   [18,0,0]], # skeleton node
+                   dtype = np.float32 )
 
-    region = Region( regionname = "Main" )
+vert_labels = np.array( [1, 1, 2, 1, 1], dtype = np.uint32 )
+vert_nodeides = np.array( [10, 11, 200, 20, 21], dtype = np.uint32 )
 
-    vert = np.array( [ [0,0,0], # skeleton node
-                       [5,5,0], # skeleton node
-                       [10,3,0], # connector
-                       [15,5,0], # skeleton node
-                       [18,0,0]], # skeleton node
-                       dtype = np.float32 )
+vert_skeleton_index = np.array( [
+    [400, 0, 1], # skeleton with id 400 from 0 to 1
+    [500, 3, 4], # skeleton with id 500 from 3 to 4
+])
 
-    vert_labels = np.array( [1, 1, 2, 1, 1], dtype = np.uint32 )
-    vert_nodeides = np.array( [10, 11, 200, 20, 21], dtype = np.uint32 )
+vertices_properties = {
+    "label" : { "data" : vert_labels, "metadata" : {} },
+    "id" : { "data" : vert_nodeides }
+}
 
-    vert_skeleton_index = np.array( [
-        [400, 0, 1], # skeleton with id 400 from 0 to 1
-        [500, 3, 4], # skeleton with id 500 from 3 to 4
-    ])
+vertices_grouping = {
+    "index" : { "data" : vert_skeleton_index }
+}
 
-    vertices_properties = {
-        "label" : { "data" : vert_labels, "metadata" : {} },
-        "id" : { "data" : vert_nodeides }
-    }
+conn = np.array( [ [0, 1], # parent
+                   [1, 2], # presyn
+                   [3, 2], # postsyn
+                   [3, 4] ], # parent
+                   dtype = np.uint32 )
 
-    vertices_grouping = {
-        "index" : { "data" : vert_skeleton_index }
-    }
+# labels parent relations of skeletons, and pre and postsynaptic connections
+conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
+# to store the skeleton ID for each skeleton node is very redundant,
+# it would be faster with an index into the array (but more complicated to implement)
+# we hope for future numpy (group_by) magic to implement this efficiently
+# count the pre/post to the skeleton id!
+conn_ids = np.array( [100, 100, 500, 500], dtype = np.uint32 )
 
-    conn = np.array( [ [0, 1], # parent
-                       [1, 2], # presyn
-                       [3, 2], # postsyn
-                       [3, 4] ], # parent
-                       dtype = np.uint32 )
+conn_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
+                                  [500, 2, 3], # skeleton with id 500 from 3 to 4
+])
 
-    # labels parent relations of skeletons, and pre and postsynaptic connections
-    conn_labels = np.array( [1, 2, 3, 1], dtype = np.uint32 )
-    # to store the skeleton ID for each skeleton node is very redundant,
-    # it would be faster with an index into the array (but more complicated to implement)
-    # we hope for future numpy (group_by) magic to implement this efficiently
-    # count the pre/post to the skeleton id!
-    conn_ids = np.array( [100, 100, 500, 500], dtype = np.uint32 )
+# colormap as dictionary with labels
+conn_color_map = {
+    1 : np.array([[1.0, 1.0, 0, 1.0]]),
+    2 : np.array([[1.0, 0.0, 0, 1.0]]),
+    3 : np.array([[0, 0, 1.0, 1.0]])
+}
 
-    conn_skeleton_index = np.array( [ [400, 0, 1], # skeleton with id 400 from 0 to 1
-                                      [500, 2, 3], # skeleton with id 500 from 3 to 4
-    ])
+# TODO: best solution?
+conn_color_map_skeleton= {
+    400 : np.array([[0.8, 0.5, 0.2, 1.0]]),
+    500 : np.array([[0.4, 0.3, 0, 1.0]])
+}
 
-    # colormap as dictionary with labels
-    conn_color_map = {
-        1 : np.array([[1.0, 1.0, 0, 1.0]]),
-        2 : np.array([[1.0, 0.0, 0, 1.0]]),
-        3 : np.array([[0, 0, 1.0, 1.0]])
-    }
-    
-    # TODO: best solution?
-    conn_color_map_skeleton= {
-        400 : np.array([[0.8, 0.5, 0.2, 1.0]]),
-        500 : np.array([[0.4, 0.3, 0, 1.0]])
-    }
+connectivity_properties = {
+    "label" : { "data" : conn_labels,
+                "metadata" : {
+                    "semantics" : [
+                        { "name" : "skeleton", "value" : "1" },
+                        { "name" : "presynaptic", "value" : "2" },
+                        { "name" : "postsynaptic", "value" : "3" }
+                    ]
+                }
+              },
+    "id" : { "data" : conn_ids, "metadata" : { } }
+}
 
-    connectivity_properties = {
-        "label" : { "data" : conn_labels,
-                    "metadata" : {
-                        "semantics" : [
-                            { "name" : "skeleton", "value" : "1" },
-                            { "name" : "presynaptic", "value" : "2" },
-                            { "name" : "postsynaptic", "value" : "3" }
-                        ]
-                    }
-                  },
-        "id" : { "data" : conn_ids, "metadata" : { } }
-    }
+act = Microcircuit(
+    name = "Simple microcircuitry",
+    vertices = vert,
+    connectivity = conn,
+    vertices_properties = vertices_properties,
+    connectivity_properties = connectivity_properties,
+    connectivity_colormap = conn_color_map
+)
+region.add_actor( act )
+region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
-    act = Microcircuit(
-        name = "Simple microcircuitry",
-        vertices = vert,
-        connectivity = conn,
-        vertices_properties = vertices_properties,
-        connectivity_properties = connectivity_properties,
-        connectivity_colormap = conn_color_map
-    )
-    region.add_actor( act )
-    region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
-    
-    w.add_region ( region )
+w.add_region ( region )
 
-    act.deselect_all()
-    
-    #act.select_skeleton( [400,500], 0.90 )
+act.deselect_all()
 
-    w.refocus_camera()
+#act.select_skeleton( [400,500], 0.90 )
 
-    sys.exit(app.exec_())
-
-
+w.refocus_camera()

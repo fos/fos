@@ -4,8 +4,6 @@ import os.path as op
 from fos import *
 import numpy as np
 
-from PySide.QtGui import QApplication
-
 a=np.loadtxt(op.join(op.dirname(__file__), "data", "rat-basal-forebrain.swc") )
 
 pos = a[:,2:5].astype( np.float32 )
@@ -59,9 +57,6 @@ con[2*lenc:(2*lenc)+nc, 1] = np.arange(0,nc) + 2*lpos # to
 con[(2*lenc)+nc:, 0] = idx + lpos # from
 con[(2*lenc)+nc:, 1] = np.arange(0,nc) + 2*lpos # to
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
 w = Window( dynamic = True )
 
 region = Region( regionname = "Main" )
@@ -105,6 +100,3 @@ act.deselect_all( 0.2 )
 #act.select_skeleton( [101], 1.0 )
 
 w.refocus_camera()
-
-if __name__ == '__main__':
-    sys.exit(app.exec_())
