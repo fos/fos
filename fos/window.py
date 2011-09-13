@@ -115,6 +115,9 @@ class Window(QtGui.QWidget):
             print("Left")
         elif key == QtCore.Qt.Key_Right:
             self.glWidget.world.camera.reset()
+        elif key == QtCore.Qt.Key_F:
+            # TODO : Fullscreen
+            pass
         elif key == QtCore.Qt.Key_N:
             self.glWidget.world.nextTimeFrame()
         elif key == QtCore.Qt.Key_B:
