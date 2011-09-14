@@ -45,8 +45,10 @@ class Window(QtGui.QWidget):
 
         if fullscreen:
             self.showFullScreen()
+            self.fullscreen = True
         else:
             self.show()
+            self.fullscreen = False
 
     def initSpincamera(self, angle = 0.007 ):
         self.spinCameraTimer.timeout.disconnect()
@@ -116,8 +118,11 @@ class Window(QtGui.QWidget):
         elif key == QtCore.Qt.Key_Right:
             self.glWidget.world.camera.reset()
         elif key == QtCore.Qt.Key_F:
-            # TODO : Fullscreen
-            pass
+            if self.fullscreen:
+                self.showNormal()
+            else:
+                self.showFullScreen()
+            self.fullscreen = not self.fullscreen
         elif key == QtCore.Qt.Key_N:
             self.glWidget.world.nextTimeFrame()
         elif key == QtCore.Qt.Key_B:
