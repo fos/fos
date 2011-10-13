@@ -37,6 +37,7 @@ class Window(QtGui.QWidget):
         self.setWindowTitle(self.tr(caption))
 
         self.spinCameraTimer = self.timerInit( interval = 30 )
+        self._spinCameraTimerInit = False
         
         if dynamic:
             self.dynamicWindowTimer = self.timerInit( interval = 30 )
@@ -51,13 +52,16 @@ class Window(QtGui.QWidget):
             self.fullscreen = False
 
     def initSpincamera(self, angle = 0.007 ):
-        self.spinCameraTimer.timeout.disconnect()
+
+        if self._spinCameraTimerInit:
+            self.spinCameraTimer.timeout.disconnect()
         
         def rotate_camera():
             self.glWidget.world.camera.rotate_around_focal( angle, "yup" )
             self.glWidget.updateGL()
-            
+        
         self.spinCameraTimer.timeout.connect(rotate_camera)
+        self._spinCameraTimerInit = True
 
     def spinCameraToggle(self):
 
