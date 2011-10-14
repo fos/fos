@@ -24,7 +24,7 @@ def get_shader_program(name, version):
     """ Returns a QGLShaderProgram for a specific version.
     Bound and linked.
     """
-
+    print "name", name, "version", version
     vert = get_shader_code( name, version, "vert" )
     frag = get_shader_code( name, version, "frag" )
     geom = get_shader_code( name, version, "geom" )
@@ -32,11 +32,13 @@ def get_shader_program(name, version):
     program = QGLShaderProgram()
 
     if frag:
+        print("Frag shader init")
         fshader = QGLShader(QGLShader.Fragment)
         fshader.compileSourceCode(frag)
         program.addShader(fshader)
 
     if vert:
+        print("Vert shader init")
         vshader = QGLShader(QGLShader.Vertex)
         vshader.compileSourceCode(vert)
         program.addShader(vshader)

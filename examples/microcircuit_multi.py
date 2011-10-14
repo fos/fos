@@ -83,6 +83,7 @@ connectivity_properties = {
               },
     "id" : { "data" : con_ids, "metadata" : { } }
 }
+
 act = Microcircuit(
     name = "Simple microcircuitry",
     vertices = vertbig,
@@ -91,7 +92,7 @@ act = Microcircuit(
     connectivity_properties = connectivity_properties,
     connectivity_colormap = conn_color_map
 )
-region.add_actor( act )
+#region.add_actor( act )
 region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
 w.add_region( region )
