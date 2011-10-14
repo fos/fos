@@ -33,12 +33,11 @@ act = Skeleton( name = "Skeleton",
                 connectivity = conn,
                 connectivity_colors = cols,
                 connectivity_ID = sel,
-                connectivity_radius = rad,
-                extruded = False )
+                connectivity_radius = rad )
 
 region.add_actor( act )
 
 w.add_region( region )
 w.refocus_camera()
 
-# act.deselect()
+act.deselect()
