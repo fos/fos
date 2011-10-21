@@ -40,8 +40,7 @@ class Microcircuit(Actor):
         self.vertices_properties = vertices_properties
 
         if connectivity_properties is None:
-            print("Need to provide connectivity_properties dictionary with label and data")
-            return
+            raise Exception("Need to provide connectivity_properties dictionary with label and data")
         else:
 
             if isinstance(connectivity_properties, dict):
@@ -85,7 +84,7 @@ class Microcircuit(Actor):
         self.connectivity_skeleton = np.array( range(len(self.vertices_skeleton)), dtype = np.uint32 )
         self.connectivity_skeleton = self.connectivity_skeleton.reshape( (len(self.connectivity_skeleton)/2, 2) )
         self.connectivity_ids_skeleton = self.connectivity_ids[ self.index_skeleton ]
-        print "connectivity ids skel", self.connectivity_ids_skeleton.dtype
+
         # look up the start and end vertex id
         # map these to _skeleton arrays, and further to actor???
 
@@ -97,38 +96,45 @@ class Microcircuit(Actor):
         # extract the pre connectivity and create cones
         # store the indices for to be used to create the vector scatter
         # by itself, it represent implicitly the index used to select/deselect the vectors
-
-        self.vertices_pre = vertices[ connectivity[self.index_allpre].ravel() ]
-        self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
-        self.pre_p2 = self.vertices_pre[1::2, :]
-        pren = len(self.index_allpre)
-        r1 = np.ones( pren, dtype = np.float32 ) * size
-        r2 = np.zeros( pren, dtype = np.float32 )
-        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_pre ):
-            preval = np.ones( pren, dtype = np.dtype(type(self.con_pre)) ) * self.con_pre
+        if len(self.index_allpre) == 0:
+            print "no presynaptic"
+            self.pre_actor = None
         else:
-            preval = None
-        self.pre_actor = VectorScatter( "PreConnector", self.pre_p1, self.pre_p2, r1, r2, values = preval,
-                                        resolution = 8, colormap = connectivity_colormap )
-        # len(self.index_pre) = len(self.pre_p1) = len(preval)
+            self.vertices_pre = vertices[ connectivity[self.index_allpre].ravel() ]
+            self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
+            self.pre_p2 = self.vertices_pre[1::2, :]
+            pren = len(self.index_allpre)
+            r1 = np.ones( pren, dtype = np.float32 ) * size
+            r2 = np.zeros( pren, dtype = np.float32 )
+            if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_pre ):
+                preval = np.ones( pren, dtype = np.dtype(type(self.con_pre)) ) * self.con_pre
+            else:
+                preval = None
+            self.pre_actor = VectorScatter( "PreConnector", self.pre_p1, self.pre_p2, r1, r2, values = preval,
+                                            resolution = 8, colormap = connectivity_colormap )
+            # len(self.index_pre) = len(self.pre_p1) = len(preval)
 
         ##########
         # Outgoing connectors
         ##########
 
         # extract the post connectivity and create cones
-        self.vertices_post = vertices[ connectivity[self.index_allpost].ravel() ]
-        self.post_p1 = self.vertices_post[::2, :]
-        self.post_p2 = self.vertices_post[1::2, :]
-        postn = len(self.index_allpost)
-        r1 = np.zeros( postn, dtype = np.float32 )
-        r2 = np.ones( postn, dtype = np.float32 ) * size
-        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_post ):
-            postval = np.ones( postn, dtype = np.dtype(type(self.con_post)) ) * self.con_post
+        if len(self.index_allpost) == 0:
+            print "no post"
+            self.post_actor = None
         else:
-            postval = None
-        self.post_actor = VectorScatter( "PostConnector", self.post_p1, self.post_p2, r1, r2, values = postval,
-                                         resolution = 8, colormap = connectivity_colormap )
+            self.vertices_post = vertices[ connectivity[self.index_allpost].ravel() ]
+            self.post_p1 = self.vertices_post[::2, :]
+            self.post_p2 = self.vertices_post[1::2, :]
+            postn = len(self.index_allpost)
+            r1 = np.zeros( postn, dtype = np.float32 )
+            r2 = np.ones( postn, dtype = np.float32 ) * size
+            if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_post ):
+                postval = np.ones( postn, dtype = np.dtype(type(self.con_post)) ) * self.con_post
+            else:
+                postval = None
+            self.post_actor = VectorScatter( "PostConnector", self.post_p1, self.post_p2, r1, r2, values = postval,
+                                             resolution = 8, colormap = connectivity_colormap )
 
         ##########
         # Skeletons
@@ -157,8 +163,10 @@ class Microcircuit(Actor):
         Sets the alpha value of all polygon lines to 0.2
         """
         self.skeleton_selection = []
-        self.pre_actor.set_coloralpha_all( alphavalue = value )
-        self.post_actor.set_coloralpha_all( alphavalue = value )
+        if self.pre_actor:
+            self.pre_actor.set_coloralpha_all( alphavalue = value )
+        if self.post_actor:
+            self.post_actor.set_coloralpha_all( alphavalue = value )
         self.skeleton.deselect( )
 
     def select_skeleton(self, skeleton_id_list, value = 1.0 ):
@@ -193,7 +201,6 @@ class Microcircuit(Actor):
                 selvalue = self.global_select_alpha
                 self.skeleton_selection.append( skeleton_id )
 
-
             pre_id_index = np.where( self.connectivity_preonly_ids == skeleton_id )[0]
             self.pre_actor.set_coloralpha_index( pre_id_index , selvalue )
 
@@ -202,6 +209,8 @@ class Microcircuit(Actor):
 
 
     def draw(self):
-        self.pre_actor.draw()
-        self.post_actor.draw()
+        if self.pre_actor:
+            self.pre_actor.draw()
+        if self.post_actor:
+            self.post_actor.draw()
         self.skeleton.draw()
