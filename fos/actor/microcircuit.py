@@ -48,23 +48,23 @@ class Microcircuit(Actor):
                 
                 self.connectivity_properties = connectivity_properties
 
+                if self.connectivity_properties.has_key("id"):
+                    self.connectivity_ids = self.connectivity_properties["id"]["data"]
+
                 # extract connectivity labels
                 if self.connectivity_properties.has_key("label"):
                     self.connectivity_labels = self.connectivity_properties["label"]["data"]
 
-                if self.connectivity_properties.has_key("id"):
-                    self.connectivity_ids = self.connectivity_properties["id"]["data"]
-
-                for semanticdict in self.connectivity_properties["label"]["metadata"]["semantics"]:
-                    # name needs to be based on convention, TODO: best from ontology id rather than string!
-                    if semanticdict.has_key("name"):
-                        name = semanticdict["name"]
-                    if "skeleton" in name:
-                        self.con_skeleton = int(semanticdict["value"])
-                    elif "presynaptic" in name:
-                        self.con_pre = int(semanticdict["value"])
-                    elif "postsynaptic" in name:
-                        self.con_post = int(semanticdict["value"])
+                    for semanticdict in self.connectivity_properties["label"]["metadata"]["semantics"]:
+                        # name needs to be based on convention, TODO: best from ontology id rather than string!
+                        if semanticdict.has_key("name"):
+                            name = semanticdict["name"]
+                        if "skeleton" in name:
+                            self.con_skeleton = int(semanticdict["value"])
+                        elif "presynaptic" in name:
+                            self.con_pre = int(semanticdict["value"])
+                        elif "postsynaptic" in name:
+                            self.con_post = int(semanticdict["value"])
 
         # selection stores integer ids from connectivity_selectionID
         # when selected
