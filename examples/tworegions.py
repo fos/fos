@@ -28,4 +28,6 @@ region2 = Region( regionname = "Main2",
 region2.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
 w.add_region( region2 )
 
+
+
 w.refocus_camera()
