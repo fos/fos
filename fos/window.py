@@ -84,7 +84,7 @@ class Window(QtGui.QWidget):
                          extent_max = np.array( [5, 5, 5] ) )
         sphere = Sphere( "MySphere", radius = 2, iterations = 2 )
         region.add_actor( sphere )
-        self.add_region (region )
+        self.add_region( region )
         self.refocus_camera()
         self.glWidget.updateGL()
 
