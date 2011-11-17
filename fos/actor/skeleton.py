@@ -18,7 +18,7 @@ class Skeleton(Actor):
              connectivity_colors = None,
              connectivity_radius = None,
              extruded = False,
-             linewidth = 3.0,
+             linewidth = 2.0,
              useva = True):
         """ A skeleton focused on connectivity
 
@@ -195,7 +195,8 @@ class Skeleton(Actor):
             return r,g,b
 
         for i in range(colorsshape[0]):
-            colors_pick[i,:3] = np.array(con(ID[i]))/255.0
+            #TODO: check dimensions
+            colors_pick[i,:3] = np.array(con(ID[i])).T/255.0
 
         return colors_pick, colors_pick.ctypes.data
 
@@ -540,7 +541,6 @@ class Skeleton(Actor):
         self.program.release()
 
     def _draw_va(self):
-
         glEnable(GL_BLEND)
 
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

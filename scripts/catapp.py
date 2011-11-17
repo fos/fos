@@ -130,7 +130,7 @@ class SimpleWindow(QtGui.QWidget, InternalIPKernel):
         self.webpage.javaScriptAlert = doo
 
         self.webframe = self.webpage.mainFrame()
-        self.webframe.load(QUrl("http://localhost/catmaid2/"))
+        self.webframe.load(QUrl("http://catmaid/"))
 
         self.webview = QWebView()
         self.webview.setPage( self.webpage )

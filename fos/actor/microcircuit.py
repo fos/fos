@@ -10,14 +10,17 @@ from PySide.QtGui import QMatrix4x4
 from fos.shader.lib import *
 from fos.vsml import vsml
 
+import microcircuit as mc
+
 class Microcircuit(Actor):
 
     def __init__(self,
              name,
-             vertices,
+             vertices_location,
              connectivity,
-             vertices_properties = None,
-             connectivity_properties = None,
+             connectivity_ids=None,
+             connectivity_label=None,
+             connectivity_label_metadata=None,
              connectivity_colormap = None):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
@@ -36,34 +39,31 @@ class Microcircuit(Actor):
         """
         super(Microcircuit, self).__init__( name )
 
-        # TODO: properly structure
-        self.vertices_properties = vertices_properties
+        if not connectivity_ids is None:
+            self.connectivity_ids = connectivity_ids
 
-        if connectivity_properties is None:
-            raise Exception("Need to provide connectivity_properties dictionary with label and data")
-        else:
+        if not connectivity_label is None:
+            self.connectivity_labels = connectivity_label
 
-            if isinstance(connectivity_properties, dict):
-                
-                self.connectivity_properties = connectivity_properties
+            if not connectivity_label_metadata is None:
 
-                if self.connectivity_properties.has_key("id"):
-                    self.connectivity_ids = self.connectivity_properties["id"]["data"]
+                for semanticdict in connectivity_label_metadata:
+                    # name needs to be based on convention, TODO: best from ontology id rather than string!
+                    # TODO: use microcircuit convention
+                    if semanticdict.has_key("name"):
+                        name = semanticdict["name"]
+                    if "skeleton" in name:
+                        self.con_skeleton = int(semanticdict["value"])
+                    elif "presynaptic" in name:
+                        self.con_pre = int(semanticdict["value"])
+                    elif "postsynaptic" in name:
+                        self.con_post = int(semanticdict["value"])
 
-                # extract connectivity labels
-                if self.connectivity_properties.has_key("label"):
-                    self.connectivity_labels = self.connectivity_properties["label"]["data"]
-
-                    for semanticdict in self.connectivity_properties["label"]["metadata"]["semantics"]:
-                        # name needs to be based on convention, TODO: best from ontology id rather than string!
-                        if semanticdict.has_key("name"):
-                            name = semanticdict["name"]
-                        if "skeleton" in name:
-                            self.con_skeleton = int(semanticdict["value"])
-                        elif "presynaptic" in name:
-                            self.con_pre = int(semanticdict["value"])
-                        elif "postsynaptic" in name:
-                            self.con_post = int(semanticdict["value"])
+            else:
+                # TODO: default
+                self.con_skeleton = 1
+                self.con_pre = 2
+                self.con_post = 3
 
         # selection stores integer ids from connectivity_selectionID
         # when selected
@@ -74,7 +74,7 @@ class Microcircuit(Actor):
         self.index_allpre = np.where(self.connectivity_labels == self.con_pre)[0]
         self.index_allpost = np.where(self.connectivity_labels == self.con_post)[0]
         
-        self.vertices = vertices
+        self.vertices = vertices_location
         self.connectivity = connectivity
 
         connectivity_skeleton = self.connectivity[self.index_skeleton]
@@ -88,7 +88,11 @@ class Microcircuit(Actor):
         # look up the start and end vertex id
         # map these to _skeleton arrays, and further to actor???
 
-        size = 0.6
+        # colors for skeletons
+        if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_skeleton ):
+            self.connectivity_skeleton_colors = np.repeat(connectivity_colormap[self.con_skeleton], len(self.connectivity_skeleton), axis=0).astype( np.float32 )
+            
+        size = 2.6
         ##########
         # Incoming connectors
         ##########
@@ -97,10 +101,10 @@ class Microcircuit(Actor):
         # store the indices for to be used to create the vector scatter
         # by itself, it represent implicitly the index used to select/deselect the vectors
         if len(self.index_allpre) == 0:
-            print "no presynaptic"
+            print "no presynaptic connection"
             self.pre_actor = None
         else:
-            self.vertices_pre = vertices[ connectivity[self.index_allpre].ravel() ]
+            self.vertices_pre = self.vertices[ connectivity[self.index_allpre].ravel() ]
             self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
             self.pre_p2 = self.vertices_pre[1::2, :]
             pren = len(self.index_allpre)
@@ -120,10 +124,10 @@ class Microcircuit(Actor):
 
         # extract the post connectivity and create cones
         if len(self.index_allpost) == 0:
-            print "no post"
+            print "no postsynaptic connection"
             self.post_actor = None
         else:
-            self.vertices_post = vertices[ connectivity[self.index_allpost].ravel() ]
+            self.vertices_post = self.vertices[ connectivity[self.index_allpost].ravel() ]
             self.post_p1 = self.vertices_post[::2, :]
             self.post_p2 = self.vertices_post[1::2, :]
             postn = len(self.index_allpost)
@@ -142,6 +146,7 @@ class Microcircuit(Actor):
         self.skeleton = Skeleton( name = "Polygon Lines",
                                              vertices = self.vertices_skeleton,
                                              connectivity = self.connectivity_skeleton,
+                                             connectivity_colors = self.connectivity_skeleton_colors,
                                              connectivity_ID = self.connectivity_ids_skeleton )
 
         self.connectivity_skeletononly_ids = None
@@ -201,11 +206,13 @@ class Microcircuit(Actor):
                 selvalue = self.global_select_alpha
                 self.skeleton_selection.append( skeleton_id )
 
-            pre_id_index = np.where( self.connectivity_preonly_ids == skeleton_id )[0]
-            self.pre_actor.set_coloralpha_index( pre_id_index , selvalue )
+            if not self.pre_actor is None:
+                pre_id_index = np.where( self.connectivity_preonly_ids == skeleton_id )[0]
+                self.pre_actor.set_coloralpha_index( pre_id_index , selvalue )
 
-            post_id_index = np.where( self.connectivity_postonly_ids == skeleton_id )[0]
-            self.post_actor.set_coloralpha_index( post_id_index , selvalue )
+            if not self.post_actor is None:
+                post_id_index = np.where( self.connectivity_postonly_ids == skeleton_id )[0]
+                self.post_actor.set_coloralpha_index( post_id_index , selvalue )
 
 
     def draw(self):
