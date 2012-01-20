@@ -21,7 +21,9 @@ class Skeleton(Actor):
              connectivity_radius = None,
              extruded = False,
              linewidth = 2.0,
-             useva = True):
+             useva = True,
+             global_deselect_alpha=0.2,
+             global_select_alpha=1.0):
         """ A skeleton focused on connectivity
 
         Parameters
@@ -52,8 +54,8 @@ class Skeleton(Actor):
                 self.enable_picking = True
             else:
                 self.enable_picking = True
-        self.global_deselect_alpha = 0.2
-        self.global_select_alpha = 1.0
+        self.global_deselect_alpha = global_deselect_alpha
+        self.global_select_alpha = global_select_alpha
         self.current_selection = []
 
         assert( len(connectivity) == connectivity.shape[0] )
@@ -547,8 +549,8 @@ class Skeleton(Actor):
         self.program.release()
 
     def _draw_va(self):
+        glEnable(GL_LINE_SMOOTH)
         glEnable(GL_BLEND)
-
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glLineWidth(self.linewidth)

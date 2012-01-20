@@ -170,12 +170,13 @@ class GLWidget(QtOpenGL.QGLWidget):
 
     def initializeGL(self):
         self.qglClearColor(self.bgcolor)
-        glShadeModel(GL_FLAT)
+        glShadeModel(GL_SMOOTH)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
 
         glEnable(GL_BLEND)
-        glBlendFunc (GL_SRC_ALPHA, GL_ZERO) #_MINUS_SRC_ALPHA)
+        #glBlendFunc (GL_SRC_ALPHA, GL_ZERO) #_MINUS_SRC_ALPHA)
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         if self.enable_light:
             self.world.setup_light()
@@ -276,6 +277,10 @@ class GLWidget(QtOpenGL.QGLWidget):
                 pandy = -0.5
             else:
                 pandy = 0.0
+
+            if shift:
+                pandx *= 4
+                pandy *= 4
 
             self.world.camera.pan( pandx, pandy )
             self.updateGL()

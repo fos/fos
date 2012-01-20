@@ -155,7 +155,9 @@ class Microcircuit(Actor):
                      connectivity = self.connectivity_skeleton,
                      connectivity_colors = self.connectivity_skeleton_colors,
                      connectivity_ID = self.connectivity_ids_skeleton,
-                     linewidth = skeleton_linewidth )
+                     linewidth = skeleton_linewidth,
+                     global_deselect_alpha = global_deselect_alpha,
+                     global_select_alpha = global_select_alpha )
 
         self.connectivity_skeletononly_ids = None
         self.connectivity_preonly_ids = None
