@@ -12,6 +12,8 @@ from fos.vsml import vsml
 
 import microcircuit as mc
 
+DEBUG=False
+
 class Microcircuit(Actor):
 
     def __init__(self,
@@ -21,7 +23,11 @@ class Microcircuit(Actor):
              connectivity_ids=None,
              connectivity_label=None,
              connectivity_label_metadata=None,
-             connectivity_colormap = None):
+             connectivity_colormap = None,
+             connector_size=2.6,
+             global_deselect_alpha=0.2,
+             global_select_alpha=1.0,
+             skeleton_linewidth=2.0 ):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
 
@@ -91,8 +97,7 @@ class Microcircuit(Actor):
         # colors for skeletons
         if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_skeleton ):
             self.connectivity_skeleton_colors = np.repeat(connectivity_colormap[self.con_skeleton], len(self.connectivity_skeleton), axis=0).astype( np.float32 )
-            
-        size = 2.6
+
         ##########
         # Incoming connectors
         ##########
@@ -101,14 +106,15 @@ class Microcircuit(Actor):
         # store the indices for to be used to create the vector scatter
         # by itself, it represent implicitly the index used to select/deselect the vectors
         if len(self.index_allpre) == 0:
-            print "no presynaptic connection"
+            if DEBUG:
+                print "no presynaptic connection"
             self.pre_actor = None
         else:
             self.vertices_pre = self.vertices[ connectivity[self.index_allpre].ravel() ]
             self.pre_p1 = self.vertices_pre[::2, :] # data is NOT copied here
             self.pre_p2 = self.vertices_pre[1::2, :]
             pren = len(self.index_allpre)
-            r1 = np.ones( pren, dtype = np.float32 ) * size
+            r1 = np.ones( pren, dtype = np.float32 ) * connector_size
             r2 = np.zeros( pren, dtype = np.float32 )
             if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_pre ):
                 preval = np.ones( pren, dtype = np.dtype(type(self.con_pre)) ) * self.con_pre
@@ -124,7 +130,8 @@ class Microcircuit(Actor):
 
         # extract the post connectivity and create cones
         if len(self.index_allpost) == 0:
-            print "no postsynaptic connection"
+            if DEBUG:
+                print "no postsynaptic connection"
             self.post_actor = None
         else:
             self.vertices_post = self.vertices[ connectivity[self.index_allpost].ravel() ]
@@ -132,7 +139,7 @@ class Microcircuit(Actor):
             self.post_p2 = self.vertices_post[1::2, :]
             postn = len(self.index_allpost)
             r1 = np.zeros( postn, dtype = np.float32 )
-            r2 = np.ones( postn, dtype = np.float32 ) * size
+            r2 = np.ones( postn, dtype = np.float32 ) * connector_size
             if isinstance(connectivity_colormap, dict) and connectivity_colormap.has_key( self.con_post ):
                 postval = np.ones( postn, dtype = np.dtype(type(self.con_post)) ) * self.con_post
             else:
@@ -144,29 +151,33 @@ class Microcircuit(Actor):
         # Skeletons
         ##########
         self.skeleton = Skeleton( name = "Polygon Lines",
-                                             vertices = self.vertices_skeleton,
-                                             connectivity = self.connectivity_skeleton,
-                                             connectivity_colors = self.connectivity_skeleton_colors,
-                                             connectivity_ID = self.connectivity_ids_skeleton )
+                     vertices = self.vertices_skeleton,
+                     connectivity = self.connectivity_skeleton,
+                     connectivity_colors = self.connectivity_skeleton_colors,
+                     connectivity_ID = self.connectivity_ids_skeleton,
+                     linewidth = skeleton_linewidth )
 
         self.connectivity_skeletononly_ids = None
         self.connectivity_preonly_ids = None
         self.connectivity_postonly_ids = None
 
-        self.global_deselect_alpha = 0.2
-        self.global_select_alpha = 1.0
+        self.global_deselect_alpha = global_deselect_alpha
+        self.global_select_alpha = global_select_alpha
 
     def pick(self, x, y):
         ID = self.skeleton.pick( x, y )
-        print "got id from skeleton", ID
+        if DEBUG:
+            print "pick skeleton id", ID
         if ID is None or ID == 0:
             return
         self.select_skeleton( [ ID ] )
 
-    def deselect_all(self, value = 0.2):
+    def deselect_all(self, value=None):
         """
         Sets the alpha value of all polygon lines to 0.2
         """
+        if value is None:
+            value=self.global_deselect_alpha
         self.skeleton_selection = []
         if self.pre_actor:
             self.pre_actor.set_coloralpha_all( alphavalue = value )
@@ -174,9 +185,9 @@ class Microcircuit(Actor):
             self.post_actor.set_coloralpha_all( alphavalue = value )
         self.skeleton.deselect( )
 
-    def select_skeleton(self, skeleton_id_list, value = 1.0 ):
-
-        print "select..."
+    def select_skeleton(self, skeleton_id_list ):
+        if DEBUG:
+            print "select skeleton..."
         if self.connectivity_skeletononly_ids is None:
             self.connectivity_skeletononly_ids = self.connectivity_ids[self.index_skeleton]
 
@@ -187,22 +198,26 @@ class Microcircuit(Actor):
             self.connectivity_postonly_ids = self.connectivity_ids[self.index_allpost]
 
         for skeleton_id in skeleton_id_list:
-
-            print "... skeleton id", skeleton_id
+            if DEBUG:
+                print "... skeleton id", skeleton_id
             # retrieve skeleton indices for the skeleton ids from vertices_index
             if skeleton_id in self.skeleton_selection:
-                print "micro: call deselect"
+                if DEBUG:
+                    print "micro: call deselect"
                 self.skeleton.deselect( skeleton_id )
             else:
-                print "micro: call select"
+                if DEBUG:
+                    print "micro: call select"
                 self.skeleton.select( skeleton_id )
 
             if skeleton_id in self.skeleton_selection:
-                print("Skeleton with id {0} already selected. Deselect".format(skeleton_id))
+                if DEBUG:
+                    print("Skeleton with id {0} already selected. Deselect".format(skeleton_id))
                 selvalue = self.global_deselect_alpha
                 self.skeleton_selection.remove( skeleton_id )
             else:
-                print("Newly selected skeleton")
+                if DEBUG:
+                    print("Newly selected skeleton")
                 selvalue = self.global_select_alpha
                 self.skeleton_selection.append( skeleton_id )
 

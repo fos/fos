@@ -61,27 +61,22 @@ conn_color_map_skeleton= {
     500 : np.array([[0.4, 0.3, 0, 1.0]])
 }
 
-connectivity_properties = {
-    "label" : { "data" : conn_labels,
-                "metadata" : {
-                    "semantics" : [
+act = Microcircuit(
+    name="Testcircuit",
+    vertices_location=vert,
+    connectivity=conn,
+    connectivity_ids=conn_ids,
+    connectivity_label=conn_labels,
+    connectivity_label_metadata=[
                         { "name" : "skeleton", "value" : "1" },
                         { "name" : "presynaptic", "value" : "2" },
                         { "name" : "postsynaptic", "value" : "3" }
-                    ]
-                }
-              },
-    "id" : { "data" : conn_ids, "metadata" : { } }
-}
-
-act = Microcircuit(
-    name = "Simple microcircuitry",
-    vertices = vert,
-    connectivity = conn,
-    vertices_properties = vertices_properties,
-    connectivity_properties = connectivity_properties,
-    connectivity_colormap = conn_color_map
+                    ],
+    connectivity_colormap=conn_color_map,
+    connector_size=0.2,
+    skeleton_linewidth=30.0
 )
+
 region.add_actor( act )
 region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 

@@ -8,6 +8,8 @@ from fos.vsml import vsml
 from .base import *
 import fos.util
 
+DEBUG=False
+
 class Skeleton(Actor):
 
     def __init__(self,
@@ -321,7 +323,7 @@ class Skeleton(Actor):
 
 
     def _pick_lines_va(self, x, y):
-        print('pick lines va')
+        #print('pick lines va')
         if not self.enable_picking:
             print("Picking not enabled. You need to set the ID parameter for the actor {0}".format(self.name) )
             return
@@ -449,7 +451,8 @@ class Skeleton(Actor):
 
 
     def deselect(self, ID = None):
-        print "deselect(ID)", ID
+        if DEBUG:
+            print "deselect(ID)", ID
 
         if ID is None:
             # deselect all
@@ -461,18 +464,21 @@ class Skeleton(Actor):
                 self._update_color_alpha( selarr, self.global_deselect_alpha )
                 self.current_selection.remove( ID )
             else:
-                print("Not selected identifier {0}".format(ID))
+                if DEBUG:
+                    print("Not selected identifier {0}".format(ID))
 
         return self.current_selection
 
     def select(self, ID):
-        print "select(ID)", ID
+        if DEBUG:
+            print "select(ID)", ID
         
         if ID is None or ID == 0:
             return
 
         if ID in self.current_selection:
-            print("Already selected identifier {0}".format(ID))
+            if DEBUG:
+                print("Already selected identifier {0}".format(ID))
         else:
             selarr = np.where( self.ID_draw == ID )[0]
             self._update_color_alpha( selarr, self.global_select_alpha )
