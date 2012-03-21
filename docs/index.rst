@@ -10,10 +10,12 @@ Fos is a novel scientific visualization platform written in Python.
 
 Fos provides
 
-* a lightweight module for OpenGL renderings
+* a lightweight module for 3D renderings
 * easy-to-use actors for presenting data
 * clearly written and explained code
 * a natural home for collaboration
+
+Fos is based on Python, Numpy, Cython, OpenGL and PySide.
 
 Find the source code `on GitHub <https://github.com/fos/fos>`_
 
