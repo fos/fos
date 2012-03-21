@@ -1,0 +1,158 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; FOS v0.2 documentation</title>
+    <link rel="stylesheet" href="../static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="FOS v0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <h1><a href="../index.html">FOS v0.2 documentation</a></h1>
+        <div class="rel">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p>Possible use cases for scientific 3d visualization, in particular for the neurosciences.</p>
+<ul class="simple">
+<li>Fiji / TrackEM2 3D/5D Image Viewer with use cases</li>
+<li>change subject/modality/add/remove, needs registration</li>
+<li>Allen Brain Atlas</li>
+<li>Connectomes from Electrom Microscopy</li>
+<li>Tracking data of cell migration</li>
+<li>Tracking data of neuronal processes</li>
+<li>Whole Brain Catalog</li>
+<li>Display a movie simultaneously with dynamic data, e.g. brain activation.</li>
+</ul>
+<p>** For optical imaging with visual stimuli
+** Of course fMRI/MEG/EEG with visual stimuli</p>
+<ul class="simple">
+<li>Play a sound simultanesouly with dynamic data</li>
+</ul>
+<p>** Of course for auditory stimuli</p>
+<ul class="simple">
+<li>In general, seeing structural data together with dynamic data</li>
+</ul>
+<p>** Tracs with dynamic data (from fMRI/EEG/MEG) overlay on/as (transparent) surfaces or volume renderings</p>
+<p>&#8212;</p>
+<p>different data types we would need for a neuroscience visualization engine. Please update:
+* surfaces: (triangle)meshes
+* volumes: cubes, volume rendering
+* tracks: polygons
+* diffusion: odf, tensor
+* networks: points, spheres, polygons, tubes, arrows, (bending edges)
+* labels
+* 2d images,  tile them in different ways, compress them in memory, or show them in many different resolutions.
+* plots
+* animation
+* math fonts
+* direct interaction - e.g. picking individual tracks or other objects in multiple datasets</p>
+<blockquote>
+<div><p>And perhaps also say that we will be able to see more datasets than before and load them faster.</p>
+<ul class="simple">
+<li>Use Fos as a &#8220;remote&#8221; service</li>
+</ul>
+<p>A future area of interest for Kitware is support for distance visualization. Being able to view
+the results of a simulation without having to move the data off the supercomputing site is becoming
+more necessary as datasets grow in size. Along those same lines is the concept of collaborative visualization,
+enabling multiple researchers at different sites to share results and look at the data together. A lot of this
+will be enabled by Web-based interfaces, which are slowly edging out the traditional desktop GUI. &#8220;The idea is
+to share data and visualization of data as a larger community,&#8221; explains Geveci. &#8220;Enabling sharing of data and
+results through distance visualization and collaboration is very important to us and I think is going to be
+important to the community at large.&#8221;</p>
+</div></blockquote>
+<hr class="docutils" />
+<ul class="simple">
+<li>model</li>
+</ul>
+<ol class="arabic simple">
+<li>take a neuron skeleton</li>
+<li>transform to V,E, and P</li>
+<li>find graph laplacian and compute eigendecomposition</li>
+<li>apply the coordinate signal to a subspace</li>
+</ol>
+<p>5. see what is coming out
+* efficiently convert mesh to a graph
+* highlight streamlines &#8220;active&#8221; in time based on connecting roi activation</p>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../actors.html">Actors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../links.html">Links</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" size="18" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../sources/todo/usecases.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2010, FOS developers.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

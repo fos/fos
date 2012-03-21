@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>What actors do we support &mdash; FOS v0.2 documentation</title>
+    <link rel="stylesheet" href="../static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="FOS v0.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="header-wrapper">
+      <div class="header">
+        <h1><a href="../index.html">FOS v0.2 documentation</a></h1>
+        <div class="rel">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p># engine has timer</p>
+<div class="section" id="what-actors-do-we-support">
+<h1>What actors do we support<a class="headerlink" href="#what-actors-do-we-support" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li>ConnectedSlices</li>
+<li>Surface</li>
+<li>ODFSlicer</li>
+<li>Network</li>
+<li>Dandelion</li>
+<li>InteractiveCurves (for Trackfiles)</li>
+<li>Video</li>
+<li>Audio</li>
+</ul>
+</div>
+<div class="section" id="what-are-potential-data-sources">
+<h1>What are potential data sources?<a class="headerlink" href="#what-are-potential-data-sources" title="Permalink to this headline">¶</a></h1>
+<p>I will refer to basic building blocks such as voxel, pixel, nodes, vertices, lines as elements.
+And to links, streamlines (=sequence of lines) as connecting elements.</p>
+<p>(I&#8217;d like to think of both these elements as spatio-temporal atoms!)</p>
+<ul class="simple">
+<li>5D homogenous arrays</li>
+</ul>
+<p>** 1./2./3. dim : space; the 3d location of the elements
+** 4. dim : time
+** 5. dim : can be different things : channels / individuals / conditions</p>
+<ul class="simple">
+<li>3D surfaces</li>
+</ul>
+<p>** a sequence of vertex elements
+** a sequence of faces (triangles, quads)</p>
+<ul class="simple">
+<li>3D graphs</li>
+</ul>
+<p>** a set of nodes
+** a set of links</p>
+<ul class="simple">
+<li>Streamlines</li>
+</ul>
+<p>** a set of streamlines (=polygons), where each streamline consists of a sequence of lines</p>
+<p>&#8212;</p>
+<p>Attributes that elements and connecting elements can have:
+* color (e.g. defined directly or via a colormap)
+* scale (i.e. the extend in the 3 spatial, and 1 temporal dimension)</p>
+<p>Numpy array axes need to have more attributes:
+* What is its name?
+* Indices that represent what is loaded in memory (RAM or GPU)? (i.e. which dataset is currently worked on)
+* Indices that represent what is cached?
+* What is visible?
+* What is selected? (see picking, see spatial data structures)</p>
+<p>Interactions
+* Select an element or a connecting element
+* Change affine parameters: translation (in 3d or 4d!), scale, rotate, shear, ...</p>
+<p>&#8212;</p>
+</div>
+<div class="section" id="time-dimension-4th">
+<h1>Time Dimension (4th)<a class="headerlink" href="#time-dimension-4th" title="Permalink to this headline">¶</a></h1>
+<p>Animation Toolbar:
+&lt;&lt; &lt; Block Play &gt; &gt;&gt; Circle</p>
+<p>fast back, 1 step back, stop, play, 1 step forward, fast forward, play in loop</p>
+<p>Comments:
+* frame rate vs. sampling rate. Maybe have a speed up range
+* real milisecond timestamps per frame?
+* What to do with inhomogenous time frame distributions?
+* Idea: Represent only the &#8220;logcial&#8221; point in the data, detached from actual memory and display management.</p>
+<p>Questions:
+* What can change in the time evolution?
+** geometry : location in 3d, topology
+** attributes : colors, opacity, size (?)</p>
+<p>&#8212;</p>
+<p>Comments:
+* We might want to have &#8220;streamable&#8221; sources. With this I mean e.g. memory mapped sources</p>
+<blockquote>
+<div>(The data resides on harddisk and is retrieved upon request)</div></blockquote>
+<ul class="simple">
+<li>What could we do about missing data points? E.g. missing time frames etc.</li>
+<li>Related to the 5. dim, channels could be regardes as attributes,</li>
+<li>5D arrays might be isotropic or anisotropic. Can this be accounted for in the voxel element scaling in the 3 spatial dimensions?
+Idea: Scale for dim 1-3 is spatial, scale for dim 4 is sampling interval duration, for dim 5 it might be a different semantic concept
+(nominal), e.g. wavelength band, particular individual or experimental condition</li>
+<li>Idea: Raycast in 3D and change the depth to select a 3D location, instead of selecting on orthoslices.</li>
+<li>Do we need a SceneGraph? If so, should we make it as tree or really as graph? Does it represent &#8220;change in parameters&#8221; (e.g. appereance)
+or &#8220;transformations&#8221; ?</li>
+<li>Using 2D sprites to create the impression of 3D, or use truly 3D. Scaling up?</li>
+<li>Support for multi-touch screens and audio/video/camera is also important so we can create immersive environments.</li>
+<li>Multithreading and scheduling is also something important. We need very fast threads.</li>
+</ul>
+<p><a class="reference external" href="http://stackoverflow.com/questions/1961203/python-separating-the-gui-process-from-the-core-logic-process">http://stackoverflow.com/questions/1961203/python-separating-the-gui-process-from-the-core-logic-process</a>
+<a class="reference external" href="http://stackoverflow.com/questions/1182315/python-multicore-processing">http://stackoverflow.com/questions/1182315/python-multicore-processing</a>
+* Idea: zoom in and out of spatio-temporal patterns, spatio-temporal dynamic filter</p>
+<p>&#8212;</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="../actors.html">Actors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Developers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../links.html">Links</a></li>
+</ul>
+
+          <h3 style="margin-top: 1.5em;">Search</h3>
+          <form class="search" action="../search.html" method="get">
+            <input type="text" name="q" size="18" />
+            <input type="submit" value="Go" />
+            <input type="hidden" name="check_keywords" value="yes" />
+            <input type="hidden" name="area" value="default" />
+          </form>
+          <p class="searchtip" style="font-size: 90%">
+            Enter search terms or a module, class or function name.
+          </p>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <a href="../genindex.html" title="General Index"
+             >index</a>
+            <br/>
+            <a href="../sources/todo/design.txt"
+               rel="nofollow">Show Source</a>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer">
+        &copy; Copyright 2010, FOS developers.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
