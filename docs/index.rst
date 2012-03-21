@@ -3,14 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-FOS - Free Open Scientific visualization
-========================================
+FOS - Free on Shades
+======================
 
-Fos stands for Φώς meaning light in Greek or free open scientific,
-a lightweight visualization platform in Python & Cython.
+Fos is a novel scientific visualization platform written in Python.
 
-* lightweight package for visualization
-* easy-to-use actors to create visualizations of scientific datasets
+Fos provides
+
+* a lightweight module for OpenGL renderings
+* easy-to-use actors for presenting data
 * clearly written and explained code
 * a natural home for collaboration
 
