@@ -12,7 +12,7 @@ from fos.vsml import vsml
 
 import microcircuit as mc
 
-DEBUG=False
+DEBUG=True
 
 class Microcircuit(Actor):
 
@@ -27,7 +27,7 @@ class Microcircuit(Actor):
              connector_size=2.6,
              global_deselect_alpha=0.2,
              global_select_alpha=1.0,
-             skeleton_linewidth=2.0 ):
+             skeleton_linewidth=2.0):
         """ A Microcircuit actor with skeletons, connectors and incoming
         and outgoing connectivity
 
@@ -170,6 +170,7 @@ class Microcircuit(Actor):
         ID = self.skeleton.pick( x, y )
         if DEBUG:
             print "pick skeleton id", ID
+
         if ID is None or ID == 0:
             return
         self.select_skeleton( [ ID ] )

@@ -1,8 +1,9 @@
 from fos import *
 import numpy as np
+import sys
 
 import h5py
-f=h5py.File('/tmp/6yftk50u9(iifdqa0p=0ucv55i29p5qhjxsxtf+_v)xd4f8+nx.h5', 'r')
+f=h5py.File(sys.argv[1], 'r')
 
 vertices_id = f['Microcircuit']['vertices']['id'].value
 vertices_location = f['Microcircuit']['vertices']['location'].value
@@ -10,8 +11,7 @@ connectivity_id = f['Microcircuit']['connectivity']['id'].value
 connectivity_skeletonid = f['Microcircuit']['connectivity']['skeletonid'].value
 connectivity_type = f['Microcircuit']['connectivity']['type'].value
 
-print connectivity_type
-vertices_location = ((vertices_location - np.mean(vertices_location, axis=0))).astype(np.float32)
+vertices_location = ((vertices_location - np.mean(vertices_location, axis=0))).astype(np.float32) / 100.
 
 def map_vertices_id2index(vertices_id):
     map_vertices_id2index = dict(zip(vertices_id,range(len(vertices_id))))
@@ -23,14 +23,19 @@ def map_vertices_id2index(vertices_id):
 
 conn_color_map = {
     1 : np.array([[1.0, 1.0, 0.0, 1.0]]),
-    2 : np.array([[0.0, 0.0, 1.0, 1.0]]),
-    3 : np.array([[1.0, 0.0, 0.0, 1.0]])
+    2 : np.array([[1.0, 0.0, 0.0, 1.0]]),
+    3 : np.array([[0.0, 0.0, 1.0, 1.0]])
 }
 
-w = Window( dynamic=True )
+# Because the range to encode the id as RGB is limited
+miin=connectivity_skeletonid.min()
+connectivity_skeletonid = connectivity_skeletonid-miin
+
+w = Window( dynamic = True )
 
 mytransform = Transform3D(np.eye(4))
-mytransform.set_scale(0.1, 0.1, 0.1)
+mytransform.set_scale(-1, -1, 1)
+#mytransform.set_scale(0.01, 0.01, 0.01)
 
 region = Region( regionname = "Main", transform = mytransform)
 
@@ -45,18 +50,22 @@ act = Microcircuit(
                         { "name" : "presynaptic", "value" : "2" },
                         { "name" : "postsynaptic", "value" : "3" }
                     ],
-    connectivity_colormap=conn_color_map
+    connectivity_colormap=conn_color_map,
+    skeleton_linewidth=3.0,
+    connector_size=1.0,
+    global_deselect_alpha=0.1
 )
 
 region.add_actor( act )
 region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
-
-values = np.ones( (len(vertices_location)) ) * 100
-region.add_actor( Scatter( "MySphere", vertices_location[:,0], vertices_location[:,1], vertices_location[:,2], values, iterations = 2 ) )
+#values = np.ones( (len(vertices_location)) ) * 0.1
+#region.add_actor( Scatter( "MySphere", vertices_location[:,0], vertices_location[:,1], vertices_location[:,2], values, iterations = 2 ) )
 
 w.add_region ( region )
 
 act.deselect_all()
+
+act.select_skeleton( [17611396-miin] )
 
 w.refocus_camera()

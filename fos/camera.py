@@ -198,4 +198,7 @@ class SimpleCamera(VSMLCamera):
         ret += "Look at direction : {0}\n".format(self.get_lookatdir())
         ret += "Y up direction : {0}\n".format(self.get_yup())
         ret += "Right direction : {0}\n".format(self.get_right())
+
+
+
         return ret

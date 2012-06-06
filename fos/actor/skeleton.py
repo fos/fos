@@ -325,7 +325,7 @@ class Skeleton(Actor):
 
 
     def _pick_lines_va(self, x, y):
-        #print('pick lines va')
+        print('pick lines va')
         if not self.enable_picking:
             print("Picking not enabled. You need to set the ID parameter for the actor {0}".format(self.name) )
             return
