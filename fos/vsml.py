@@ -350,7 +350,7 @@ class VSML(object):
         if DEBUG:
             print "perspective: new projection vsml", self.projection, np.array( vsml.get_projection() )
     
-    def ortho(self, left, right, bottom, top, nearp=-1.0, farp=1.0):
+    def ortho(self, left, right, top, bottom, nearp=-1.0, farp=1.0):
         """
         /** Similar to glOrtho and gluOrtho2D (just leave the last two params blank).
           *
@@ -360,16 +360,26 @@ class VSML(object):
         */
         void ortho(float left, float right, float bottom, float top, float nearp=-1.0f, float farp=1.0f);
         """
-        mat = np.eye( 4, dtype = np.float32 )
 
-        mat[0,0] = 2 / (right - left)
-        mat[1,1] = 2 / (top - bottom)
-        mat[2,2] = -2 / (farp - nearp)
-        mat[0,3] = -(right + left) / (right - left)
-        mat[1,3] = -(top + bottom) / (top - bottom)
-        mat[2,3] = -(farp + nearp) / (farp - nearp)
+        w = right - left
+        h = top - bottom
+        p = farp - nearp
+        if w == 0.0 or h == 0.0 or p == 0.0:
+            return
 
-        self.multMatrix(self.MatrixTypes.PROJECTION, mat)
+        x = ( right + left ) / w
+        y = ( top + bottom ) / h
+        z = ( nearp + farp ) / p
+
+        mat2 = np.eye( 4, dtype = np.float32 )
+        mat2[0,0] = 2. / w
+        mat2[1,1] = 2. / (top - bottom)
+        mat2[2,2] = -2. / (farp - nearp)
+        mat2[0,3] = -x
+        mat2[1,3] = -y
+        mat2[2,3] = -z
+
+        self.multMatrix(self.MatrixTypes.PROJECTION, mat2)
 
 
     def frustum(self, left, right, bottom, top, nearp, farp):

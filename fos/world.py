@@ -10,7 +10,9 @@ from actor.base import DynamicActor
 class Region(object):
 
     def __init__(self, regionname, transform=None,
-                 extent_min=None, extent_max=None, aabb_color=(1.0, 1.0, 1.0, 1.0)):
+                 extent_min=None, extent_max=None,
+                 aabb_color=(1.0, 1.0, 1.0, 1.0),
+                 activate_aabb=True):
         """Create a Region which is a spatial reference system
         and acts as a container for Actors presenting datasets.
 
@@ -38,6 +40,7 @@ class Region(object):
 
         self.regionname = regionname
         self.aabb_color = aabb_color
+        self.activate_aabb = activate_aabb
         if transform is None:
             self.transform = IdentityTransform()
         else:
@@ -47,7 +50,8 @@ class Region(object):
         if not extent_min is None and not extent_max is None:
             self.extent_min = np.array(extent_min, dtype=np.float32)
             self.extent_max = np.array(extent_max, dtype=np.float32)
-            self.add_actor(Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color))
+            if self.activate_aabb:
+                self.add_actor(Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color))
         else:
             self.extent_min = None
             self.extent_max = None
@@ -110,10 +114,11 @@ class Region(object):
                 self.extent_max = actor.get_extent_max()
 
         # update AABB
-        if "AABB" in self.actors:
-            self.actors['AABB'].update( self.extent_min, self.extent_max, 0.0 )
-        else:
-            self.add_actor( Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color) )
+        if self.activate_aabb:
+            if "AABB" in self.actors:
+                self.actors['AABB'].update( self.extent_min, self.extent_max, 0.0 )
+            else:
+                self.add_actor( Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color) )
 
     def update(self):
         self.update_extent()

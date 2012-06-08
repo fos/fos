@@ -103,7 +103,7 @@ class SimpleCamera(VSMLCamera):
     def get_right(self):
         a = np.cross( self.get_lookatdir(), self.get_yup() )
         return a / np.linalg.norm( a )
-        
+
     def move_forward_all(self, amount):
         """ Move forward or backward, changing the camera position
         and the focal point
@@ -152,11 +152,11 @@ class SimpleCamera(VSMLCamera):
 
         # rotate the camera location
         x,y,z = self.location
-        self.location = general_rotation( x, y, z, a, b, c, u, v, w, angle * self.rotation_speed_factor )
+        self.location = general_rotation( x, y, z, a, b, c, u, v, w, angle  ) # * self.rotation_speed_factor
 
         # rotate the yuppoint
         x,y,z = self.yuppoint
-        self.yuppoint = general_rotation( x, y, z, a, b, c, u, v, w, angle * self.rotation_speed_factor )
+        self.yuppoint = general_rotation( x, y, z, a, b, c, u, v, w, angle ) # * self.rotation_speed_factor
 
         self.update()
 
@@ -198,7 +198,4 @@ class SimpleCamera(VSMLCamera):
         ret += "Look at direction : {0}\n".format(self.get_lookatdir())
         ret += "Y up direction : {0}\n".format(self.get_yup())
         ret += "Right direction : {0}\n".format(self.get_right())
-
-
-
         return ret

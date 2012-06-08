@@ -108,6 +108,7 @@ class Window(QtGui.QWidget):
     def screenshot(self, filename):
         """ Store current OpenGL context as image
         """
+        self.glWidget.updateGL()
         self.glWidget.grabFrameBuffer().save( filename )
         
     def keyPressEvent(self, event):
@@ -152,7 +153,7 @@ class Window(QtGui.QWidget):
 # if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): # & == bit wise "and"!
 
 class GLWidget(QtOpenGL.QGLWidget):
-    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = False):
+    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = False, ortho = True):
         QtOpenGL.QGLWidget.__init__(self, parent)
 
         self.lastPos = QtCore.QPoint()
@@ -161,6 +162,7 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.height = height
         self.enable_light = enable_light
         self.world = World()
+        self.ortho = ortho
 
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
@@ -193,10 +195,38 @@ class GLWidget(QtOpenGL.QGLWidget):
         vsml.setSize( width, height )
         self.width = width
         self.height = height
-        ratio =  width * 1.0 / height
         glViewport(0, 0, width, height)
+        if self.ortho:
+            self.width_ortho = self.width
+            self.height_ortho = self.height
+        self.update_projection()
+
+    def update_projection(self, factor = 1.0):
         vsml.loadIdentity(vsml.MatrixTypes.PROJECTION)
-        vsml.perspective(60., ratio, .1, 8000)
+        ratio =  abs(self.width * 1.0 / self.height)
+        if self.ortho:
+            self.width_ortho += -factor * ratio
+            self.height_ortho += -factor
+
+            vsml.ortho(-(self.width_ortho)/2.,(self.width_ortho)/2.,
+                (self.height_ortho)/2.,(self.height_ortho)/-2.,-500,8000)
+        else:
+            vsml.perspective(60., ratio, .1, 8000)
+        glMatrixMode(GL_PROJECTION)
+        glLoadMatrixf(vsml.get_projection())
+        glMatrixMode(GL_MODELVIEW)
+
+    def ortho_zoom(self, zoom_level = 1.0):
+        if not self.ortho:
+            print('Not on orthogonal projection mode')
+            return
+        vsml.loadIdentity(vsml.MatrixTypes.PROJECTION)
+        ratio =  abs(self.width * 1.0 / self.height)
+        self.width_ortho = self.width * zoom_level * ratio
+        self.height_ortho = self.width * zoom_level
+        vsml.ortho(-(self.width_ortho)/2.,(self.width_ortho)/2.,
+            (self.height_ortho)/2.,(self.height_ortho)/-2.,-500,8000)
+
         glMatrixMode(GL_PROJECTION)
         glLoadMatrixf(vsml.get_projection())
         glMatrixMode(GL_MODELVIEW)
@@ -300,6 +330,13 @@ class GLWidget(QtOpenGL.QGLWidget):
             shift = True
         else:
             shift = False
+
+        if self.ortho:
+            if shift:
+                numSteps *= 10
+            self.update_projection( 10.*numSteps )
+            self.updateGL()
+            return
 
         if ctrl:
             if shift:

@@ -36,7 +36,7 @@ class Microcircuit(Actor):
         vertices : Nx3
             3D Coordinates x,y,z
         connectivity : Mx1
-            Tree topology
+            Tree topology, using indices into the vertices array
 
         Notes
         -----
