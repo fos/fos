@@ -6,7 +6,11 @@ Dependencies
 * PySide: http://developer.qt.nokia.com/wiki/PySideDownloads
 * Pyglet: http://www.pyglet.org/ (Debian: python-pyglet)
 * NumPy (Debian: python-numpy)
+
+Optional
+---------
 * Matplotlib (Debian: python-matplotlib)
+* Cython (>0.13) 
 
 Test
 ----
@@ -21,3 +25,13 @@ http://groups.google.com/group/fos-devel
 License
 -------
 BSD, see LICENSE
+
+Generic Key-Bindings
+---------------------
+F1: Fullscreen
+F2: Next Frame
+F3: Previous Frame
+F4: Start Rotating
+F12: Refocus Camera
+Esc: Close Window
+

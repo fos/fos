@@ -51,7 +51,10 @@ class Region(object):
             self.extent_min = np.array(extent_min, dtype=np.float32)
             self.extent_max = np.array(extent_max, dtype=np.float32)
             if self.activate_aabb:
-                self.add_actor(Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color))
+                self.add_actor(Box(name="AABB", 
+                                blf=self.extent_min, 
+                                trb=self.extent_max, 
+                                color=self.aabb_color))
         else:
             self.extent_min = None
             self.extent_max = None
@@ -80,21 +83,17 @@ class Region(object):
             ret = self.extent_min
         else:
             ret = np.zeros( (1,3), dtype = np.float32 )
-
         if apply_transform:
             ret = self.transform.apply( ret )
-
         return ret
 
     def get_extent_max(self, apply_transform = True):
         if not self.extent_max is None:
             ret = self.extent_max
         else:
-            ret = np.zeros( (1,3), dtype = np.float32 )
-            
+            ret = np.zeros( (1,3), dtype = np.float32 )            
         if apply_transform:
             ret = self.transform.apply( ret )
-
         return ret
 
     def update_extent(self):
@@ -104,21 +103,27 @@ class Region(object):
         """
         for name, actor in self.actors.items():
             if not self.extent_min is None:
-                self.extent_min = np.vstack( (self.extent_min,actor.get_extent_min()) ).min( axis = 0 )
+                self.extent_min = np.vstack( (self.extent_min,
+                    actor.get_extent_min()) ).min( axis = 0 )
             else:
                 self.extent_min = actor.get_extent_min()
 
             if not self.extent_max is None:
-                self.extent_max = np.vstack( (self.extent_max,actor.get_extent_max()) ).max( axis = 0 )
+                self.extent_max = np.vstack( (self.extent_max,
+                    actor.get_extent_max()) ).max( axis = 0 )
             else:
                 self.extent_max = actor.get_extent_max()
 
         # update AABB
         if self.activate_aabb:
             if "AABB" in self.actors:
-                self.actors['AABB'].update( self.extent_min, self.extent_max, 0.0 )
+                self.actors['AABB'].update( self.extent_min, 
+                                            self.extent_max, 0.0 )
             else:
-                self.add_actor( Box(name="AABB", blf=self.extent_min, trb=self.extent_max, color=self.aabb_color) )
+                self.add_actor( Box(name="AABB", 
+                                blf=self.extent_min, 
+                                trb=self.extent_max, 
+                                color=self.aabb_color) )
 
     def update(self):
         self.update_extent()
@@ -173,8 +178,12 @@ class Region(object):
         """
         for k, actor in self.actors.items():
             if actor.visible:
-                #print("Draw actor", actor.name)
+                #print("Pick actor", actor.name)
                 actor.pick( x, y )
+    def send_messages(self,messages):
+        for k, actor in self.actors.items():
+            if actor.visible:
+                actor.process_messages(messages)
 
 class World(object):
 
@@ -241,8 +250,9 @@ class World(object):
         self.camera.draw()
         for k, region in self.regions.items():
             # use transformation matrix of the region to setup the modelview
-            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
-            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
+            vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) 
+            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, 
+                                region.transform.get_transform_numpy() )
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(vsml.get_modelview())
             region.pick_actors( x, y )
@@ -256,10 +266,14 @@ class World(object):
         for k, region in self.regions.items():
             # use transformation matrix of the region to setup the modelview
             vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
-            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, region.transform.get_transform_numpy() )
+            vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, 
+                    region.transform.get_transform_numpy() )
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(vsml.get_modelview())
             region.draw_actors()
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
 
+    def send_all_messages(self,interactor):
+        for k,region in self.regions.items():
+            region.send_messages(interactor)

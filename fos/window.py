@@ -9,10 +9,26 @@ try:
 except ImportError:
     print("Need pyglet for OpenGL rendering")
 
+
+interactor_messages={ 'key_pressed':None,
+                      'mouse_pressed':None,
+                      'mouse_position':None,
+                      'mouse_moved':None,
+                      'mod_key_pressed':None}
+
+
 class Window(QtGui.QWidget):
-    def __init__(self, parent = None, caption = "fos - pyside", width = 640, height = 480,
-                 bgcolor = (0,0,0), fullscreen = False, dynamic = False, enable_light = False ):
+
+    def __init__(self, parent = None, 
+                    caption = "fos", 
+                    width = 640, 
+                    height = 480,
+                    bgcolor = (0,0,0), 
+                    fullscreen = False, 
+                    dynamic = False, 
+                    enable_light = False ):
         """ Create a window
+
         Parameters
         ----------
         `caption` : str or unicode
@@ -29,8 +45,11 @@ class Window(QtGui.QWidget):
         """
         # TODO: add PySide.QtOpenGL.QGLFormat to configure the OpenGL context
         QtGui.QWidget.__init__(self, parent)
-        self.glWidget = GLWidget( parent = self, width = width, height = height,
-                                  bgcolor = bgcolor, enable_light = enable_light )
+        self.glWidget = GLWidget( parent = self, 
+                                    width = width, 
+                                    height = height,
+                                    bgcolor = bgcolor, 
+                                    enable_light = enable_light )
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.glWidget)
         self.setLayout(mainLayout)
@@ -38,6 +57,8 @@ class Window(QtGui.QWidget):
 
         self.spinCameraTimer = self.timerInit( interval = 30 )
         self._spinCameraTimerInit = False
+
+        self.messages=interactor_messages
         
         if dynamic:
             self.dynamicWindowTimer = self.timerInit( interval = 30 )
@@ -50,6 +71,8 @@ class Window(QtGui.QWidget):
         else:
             self.show()
             self.fullscreen = False
+
+
 
     def initSpincamera(self, angle = 0.007 ):
 
@@ -76,9 +99,10 @@ class Window(QtGui.QWidget):
         timer.setInterval( interval )
         return timer
 
+    """
     def test_actor(self):
-        """ Dummy test function
-        """
+        ''' Dummy test function
+        '''
         region = Region( regionname = "Main",
                          extent_min = np.array( [-5.0, -5, -5] ),
                          extent_max = np.array( [5, 5, 5] ) )
@@ -87,10 +111,8 @@ class Window(QtGui.QWidget):
         self.add_region( region )
         self.refocus_camera()
         self.glWidget.updateGL()
+    """
 
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Escape:
-            self.close()
 
     def add_region(self, region):
         self.glWidget.world.add_region( region )
@@ -110,33 +132,45 @@ class Window(QtGui.QWidget):
         """
         self.glWidget.updateGL()
         self.glWidget.grabFrameBuffer().save( filename )
-        
+
+    """
+    def mouseMoveEvent(self,event):
+        x = event.x()
+        y = self.height() - event.y()
+        print x,y
+        self.messages['mouse_position']=(x,y)
+        self.glWidget.world.send_all_messages(self.messages)
+        self.glWidget.mouseMoveEvent(event)
+    """
+
     def keyPressEvent(self, event):
         key = event.key()
+        self.messages['key_pressed']=key
+        self.glWidget.world.send_all_messages(self.messages)
 
         if key == QtCore.Qt.Key_Up:
-            print("Up")
+            pass
         elif key == QtCore.Qt.Key_Down:
-            print("Down")
+            pass
         elif key == QtCore.Qt.Key_Left:
-            print("Left")
+            pass  
         elif key == QtCore.Qt.Key_Right:
-            self.glWidget.world.camera.reset()
-        elif key == QtCore.Qt.Key_F:
+            pass
+        elif key == QtCore.Qt.Key_F1:
             if self.fullscreen:
                 self.showNormal()
             else:
                 self.showFullScreen()
             self.fullscreen = not self.fullscreen
-        elif key == QtCore.Qt.Key_N:
+        elif key == QtCore.Qt.Key_F2:
             self.glWidget.world.nextTimeFrame()
-        elif key == QtCore.Qt.Key_B:
+        elif key == QtCore.Qt.Key_F3:
             self.glWidget.world.previousTimeFrame()
-        elif key == QtCore.Qt.Key_R:
+        elif key == QtCore.Qt.Key_F12:
             self.glWidget.world.refocus_camera()
             self.glWidget.world.camera.update()
             self.glWidget.updateGL()
-        elif key == QtCore.Qt.Key_S:
+        elif key == QtCore.Qt.Key_F4:
             if (event.modifiers() & QtCore.Qt.ShiftModifier):
                 self.initSpincamera( angle = -0.01 )
                 self.spinCameraToggle()
@@ -149,13 +183,16 @@ class Window(QtGui.QWidget):
         else:
             super(Window, self).keyPressEvent( event )
 
-
 # if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): # & == bit wise "and"!
 
 class GLWidget(QtOpenGL.QGLWidget):
-    def __init__(self, parent=None, width = None, height = None, bgcolor = None, enable_light = False, ortho = True):
+    def __init__(self, parent=None, 
+                        width = None, 
+                        height = None, 
+                        bgcolor = None, 
+                        enable_light = False, 
+                        ortho = True):
         QtOpenGL.QGLWidget.__init__(self, parent)
-
         self.lastPos = QtCore.QPoint()
         self.bgcolor = QtGui.QColor.fromRgbF(bgcolor[0], bgcolor[1], bgcolor[2], 1.0)
         self.width = width
@@ -163,6 +200,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.enable_light = enable_light
         self.world = World()
         self.ortho = ortho
+        self.messages = interactor_messages
+        self.setMouseTracking(True)
 
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
@@ -175,10 +214,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         glShadeModel(GL_SMOOTH)
         #glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
-
         glEnable(GL_BLEND)
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
         if self.enable_light:
             self.world.setup_light()
 
@@ -231,31 +268,27 @@ class GLWidget(QtOpenGL.QGLWidget):
         glLoadMatrixf(vsml.get_projection())
         glMatrixMode(GL_MODELVIEW)
 
-    # EVENTHANDLING
-
     def mousePressEvent(self, event):
         self.lastPos = QtCore.QPoint(event.pos())
-
         if (event.modifiers() & QtCore.Qt.ControlModifier):
             x, y = event.x(), event.y()
             self.world.pick_all( x, self.height - y)
 
     def mouseMoveEvent(self, event):
+        print event.x(), event.y()
+        self.messages['mouse_position']=(event.x(),event.y())
+        self.world.send_all_messages(self.messages)
         dx = event.x() - self.lastPos.x()
         dy = event.y() - self.lastPos.y()
-
         if (event.modifiers() & QtCore.Qt.ShiftModifier):
             shift = True
         else:
             shift = False
-
         if (event.modifiers() & QtCore.Qt.ControlModifier):
             ctrl = True
         else:
             ctrl = False
-            
         if event.buttons() & QtCore.Qt.LeftButton:
-
             if not ctrl:
                 # should rotate
                 if dx != 0:
@@ -264,26 +297,19 @@ class GLWidget(QtOpenGL.QGLWidget):
                         angle = -0.01
                     else:
                         angle = 0.01
-
                     if shift:
                         angle *= 2
-
                     self.world.camera.rotate_around_focal( angle, "yup" )
-
                 if dy != 0:
                     # rotate around right
                     if dy > 0:
                         angle = -0.01
                     else:
                         angle = 0.01
-
                     if shift:
                         angle *= 2
-
                     self.world.camera.rotate_around_focal( angle, "right" )
-
                 self.updateGL()
-
             else:
                 # with control, do many selects!
                 x, y = event.x(), event.y()
@@ -291,31 +317,25 @@ class GLWidget(QtOpenGL.QGLWidget):
 
         elif event.buttons() & QtCore.Qt.RightButton:
             # should pan
-
             if dx > 0:
                 pandx = -1.0
             elif dx < 0:
                 pandx = 1.0
             else:
                 pandx = 0.0
-
-
             if dy > 0:
                 pandy = 0.5
             elif dy < 0:
                 pandy = -0.5
             else:
                 pandy = 0.0
-
             if shift:
                 pandx *= 4
                 pandy *= 4
-
             self.world.camera.pan( pandx, pandy )
             self.updateGL()
             
         self.lastPos = QtCore.QPoint(event.pos())
-
 
 
     def wheelEvent(self, e):
@@ -325,19 +345,16 @@ class GLWidget(QtOpenGL.QGLWidget):
             ctrl = True
         else:
             ctrl = False
-
         if (e.modifiers() & QtCore.Qt.ShiftModifier):
             shift = True
         else:
             shift = False
-
         if self.ortho:
             if shift:
                 numSteps *= 10
             self.update_projection( 10.*numSteps )
             self.updateGL()
             return
-
         if ctrl:
             if shift:
                 self.world.camera.move_forward_all( numSteps * 10 )
@@ -348,5 +365,4 @@ class GLWidget(QtOpenGL.QGLWidget):
                 self.world.camera.move_forward( numSteps * 10 )
             else:
                 self.world.camera.move_forward( numSteps )
-
         self.updateGL()

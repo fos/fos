@@ -34,6 +34,13 @@ class Actor(object):
     def pick(self, x, y):
         pass
 
+    def process_messages(self,messages):
+        print messages['key_pressed']
+        pass
+    
+
+    
+
 class DynamicActor(Actor):
 
     def __init__(self, name):
