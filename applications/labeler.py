@@ -356,8 +356,10 @@ class TrackLabeler(Actor):
         root = Tkinter.Tk()
         root.wm_title('QuickBundles threshold')
         ts = ThresholdSelector(root, default_value=self.qb.dist_thr/2.0)
+
         root.wait_window()
-        # self.qb = QuickBundles(self.tracks, self.qb.dist_thr/2.0, self.qb.pts)
+
+        print "Threshold value ",ts.value
         self.qb = QuickBundles(self.tracks, dist_thr=ts.value, pts=self.qb.pts)
         self.qb.dist_thr = ts.value
         if self.reps=='virtuals':

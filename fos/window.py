@@ -167,6 +167,7 @@ class Window(QtGui.QWidget):
             self.close()
         else:
             super(Window, self).keyPressEvent( event )
+        self.glWidget.updateGL()
 
 # if event.key() == Qt.Key_O and ( event.modifiers() & Qt.ControlModifier ): 
 # & == bit wise "and"!
@@ -188,6 +189,8 @@ class GLWidget(QtOpenGL.QGLWidget):
         self.ortho = ortho
         self.messages = empty_messages
         self.setMouseTracking(True)
+        # camera rotation speed
+        self.ang_step = 0.02
 
     def minimumSizeHint(self):
         return QtCore.QSize(50, 50)
@@ -278,14 +281,14 @@ class GLWidget(QtOpenGL.QGLWidget):
                 # should rotate
                 if dx != 0:
                     # rotate around yup
-                    if dx > 0: angle = -0.01
-                    else: angle = 0.01
+                    if dx > 0: angle = -self.ang_step #0.01
+                    else: angle = self.ang_step #0.01
                     if shift: angle *= 2
                     self.world.camera.rotate_around_focal( angle, "yup" )
                 if dy != 0:
                     # rotate around right
-                    if dy > 0: angle = -0.01
-                    else: angle = 0.01
+                    if dy > 0: angle = -self.ang_step #0.01
+                    else: angle = self.ang_step #0.01
                     if shift: angle *= 2
                     self.world.camera.rotate_around_focal( angle, "right" )
                 self.updateGL()

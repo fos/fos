@@ -180,6 +180,7 @@ class Region(object):
             if actor.visible:
                 #print("Pick actor", actor.name)
                 actor.pick( x, y )
+
     def send_messages(self,messages):
         for k, actor in self.actors.items():
             if actor.visible:
