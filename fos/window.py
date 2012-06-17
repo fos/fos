@@ -178,7 +178,7 @@ class GLWidget(QtOpenGL.QGLWidget):
                         height = None, 
                         bgcolor = None, 
                         enable_light = False, 
-                        ortho = True):
+                        ortho = False):
         QtOpenGL.QGLWidget.__init__(self, parent)
         self.lastPos = QtCore.QPoint()
         self.bgcolor = QtGui.QColor.fromRgbF(bgcolor[0], bgcolor[1], bgcolor[2], 1.0)
