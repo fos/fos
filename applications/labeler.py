@@ -70,6 +70,8 @@ class TrackLabeler(Actor):
         if affine is None: self.affine = np.eye(4, dtype = np.float32)
         else: self.affine = affine      
          
+        self.mouse_x=None
+        self.mouse_y=None
         self.cache = {}
         self.qb = qb
         self.reps = reps
@@ -184,14 +186,11 @@ class TrackLabeler(Actor):
         self.mouse_x=x
         self.mouse_y=y
 
-
     def process_pickray(self,near,far):
         pass
-    
 
     def update(self,dt):
         pass
-
 
     def select_track(self, ids):
         """Do visual selection of given virtuals.
@@ -238,31 +237,30 @@ class TrackLabeler(Actor):
         self.select_track(tmp_selected)
 
     def process_messages(self,messages):
-        try:
-            key=messages['key_pressed']
-            self.process_keys(key,None)
-        except KeyError:
-            pass
-        try:
-            (x,y)=messages['mouse_position']
-            self.process_mouse_position(x,y)
-        except KeyError:
-            pass
-
-
+        msg=messages['key_pressed']
+        print 'Processing messages in actor', self.name, ' key_press message ', msg
+        if msg!=None:
+            self.process_keys(msg,None)
+        msg=messages['mouse_position']            
+        print 'Processing messages in actor', self.name, ' mouse_pos message ', msg
+        if msg!=None:
+            self.process_mouse_position(*msg)
 
     def process_keys(self,symbol,modifiers):
         """Bind actions to key press.
         """
         prev_selected = copy.copy(self.selected)
-        if symbol == Qt.Key_P:            
+        if symbol == Qt.Key_P:     
+            print('P pressed')
             id = self.picking_virtuals(symbol, modifiers)
-            print('P %d' % id)
+            print('Track id %d' % id)
             if prev_selected.count(id) == 0:
                 self.select_track(id)
             else:
                 self.unselect_track(id)
-            if self.verbose: print self.selected
+            if self.verbose: 
+                print 'Selected:'
+                print self.selected
 
         if symbol==Qt.Key_E:
             print 'E'
@@ -309,7 +307,9 @@ class TrackLabeler(Actor):
             print("Saving %s tracks." % len(self.tracks_ids_to_be_saved))
             root = Tkinter.Tk()
             root.withdraw()
-            pickle.dump(self.tracks_ids_to_be_saved, tkFileDialog.asksaveasfile(), protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.tracks_ids_to_be_saved, 
+                    tkFileDialog.asksaveasfile(), 
+                    protocol=pickle.HIGHEST_PROTOCOL)
 
         elif symbol == Qt.Key_Question:
             print question_message
@@ -324,8 +324,6 @@ class TrackLabeler(Actor):
                 if self.reps=='exemplars':
                     self.virtuals, self.ex_ids = self.qb.exemplars()#virtuals()
                 print len(self.virtuals), 'virtuals'
-                # self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, self.virtuals_count = self.compute_buffers(self.virtuals, self.virtuals_alpha)
-                # self.tracks_buffer, self.tracks_colors, self.tracks_first, self.tracks_count = self.compute_buffers(self.tracks, self.tracks_alpha)
                 self.selected = []
                 self.old_color = {}
                 self.expand = False
@@ -367,20 +365,30 @@ class TrackLabeler(Actor):
         if self.reps=='exemplars':
             self.virtuals,self.ex_ids = self.qb.exemplars()
         print len(self.virtuals), 'virtuals'
-        self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, self.virtuals_count = self.compute_buffers(self.virtuals, self.virtuals_alpha)
+        self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, 
+        self.virtuals_count = self.compute_buffers(self.virtuals, self.virtuals_alpha)
+        #compute buffers
         self.tracks_buffer, self.tracks_colors, self.tracks_first, self.tracks_count = self.compute_buffers(self.tracks, self.tracks_alpha)
         # self.unselect_track('all')
         self.selected = []
         self.old_color = {}
         self.expand = False
-        self.history.append([self.qb, self.tracks, self.tracks_ids, self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, self.virtuals_count, self.tracks_buffer, self.tracks_colors, self.tracks_first, self.tracks_count])
+        self.history.append([self.qb, 
+                            self.tracks, 
+                            self.tracks_ids, 
+                            self.virtuals_buffer, 
+                            self.virtuals_colors, 
+                            self.virtuals_first, 
+                            self.virtuals_count, 
+                            self.tracks_buffer, 
+                            self.tracks_colors, 
+                            self.tracks_first, 
+                            self.tracks_count])
         if self.vol_shape is not None:
             print("Shifting!")
             self.virtuals_shifted = [downsample(t + np.array(self.vol_shape) / 2., 30) for t in self.virtuals]
         else:
             self.virtuals_shifted = None
-
-
 
     def picking_virtuals(self, symbol,modifiers, min_dist=1e-3):
         """Compute the id of the closest track to the mouse pointer.
@@ -389,6 +397,8 @@ class TrackLabeler(Actor):
         # Define two points in model space from mouse+screen(=0) position and mouse+horizon(=1) position
         near = screen_to_model(x, y, 0)
         far = screen_to_model(x, y, 1)
+
+        print 'peak virtuals ', near, far, x, y
         # Compute distance of virtuals from screen and from the line defined by the two points above
         tmp = np.array([cll.mindistance_segment2track_info(near, far, xyz) \
                         for xyz in self.virtuals])
@@ -474,8 +484,9 @@ class ThresholdSelector(object):
 
 
 
-if __name__ == '__main__':    
-   #load T1 volume registered in MNI space 
+if __name__ == '__main__':
+
+    #load T1 volume registered in MNI space 
     dname='/home/eg309/Devel/fos_legacy/applications/'
     img = nib.load(dname+'data/subj_05/MPRAGE_32/T1_flirt_out.nii.gz')
     data = img.get_data()
@@ -499,7 +510,7 @@ if __name__ == '__main__':
     #add one way communication between tl and sl
     #tl.slicer=sl
 
-    title = 'Bundle Picking and Segmentation'
+    title = 'Bundle Picking'
     w = Window(caption = title, 
                 width = 1200, 
                 height = 800, 

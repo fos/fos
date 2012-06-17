@@ -183,6 +183,7 @@ class Region(object):
     def send_messages(self,messages):
         for k, actor in self.actors.items():
             if actor.visible:
+                print('Actor: ',actor.name)
                 actor.process_messages(messages)
 
 class World(object):
@@ -274,6 +275,10 @@ class World(object):
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
 
-    def send_all_messages(self,interactor):
-        for k,region in self.regions.items():
-            region.send_messages(interactor)
+    def send_all_messages(self,messages):
+        #print 'regions.items',self.regions.items
+        print self.regions.items()
+        for regname,region in self.regions.items():
+            print 'Region name ',regname
+            region.send_messages(messages)
+            print 

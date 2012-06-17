@@ -35,7 +35,6 @@ class Actor(object):
         pass
 
     def process_messages(self,messages):
-        print messages['key_pressed']
         pass
     
 
