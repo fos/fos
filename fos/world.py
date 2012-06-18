@@ -184,7 +184,7 @@ class Region(object):
     def send_messages(self,messages):
         for k, actor in self.actors.items():
             if actor.visible:
-                print('Actor: ',actor.name)
+                #print('Actor: ',actor.name)
                 actor.process_messages(messages)
 
 class World(object):
@@ -278,8 +278,8 @@ class World(object):
 
     def send_all_messages(self,messages):
         #print 'regions.items',self.regions.items
-        print self.regions.items()
+        #print self.regions.items()
         for regname,region in self.regions.items():
-            print 'Region name ',regname
+            #print 'Region name ',regname
             region.send_messages(messages)
-            print 
+            #print 

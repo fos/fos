@@ -1,25 +1,22 @@
 import numpy as np
 import nibabel as nib
-import os.path as op
 #Fos modules
 from fos import Actor
-from fos import World, Window, Region
+from fos import Window, Region
 from fos.actor import Axes, Text3D
 from fos.modelmat import screen_to_model
 import fos.interact.collision as cll
 from pyglet.gl import *
-from pyglet.graphics import vertex_list as gl_vertex_list
 from pyglet.lib import load_library
 #dipy modules
 from dipy.segment.quickbundles import QuickBundles
 from dipy.io.dpy import Dpy
-from dipy.io.pickles import load_pickle, save_pickle
+from dipy.io.pickles import load_pickle
 from dipy.viz.colormap import orient2rgb
 from dipy.tracking.metrics import downsample
 #other
 import copy 
 import cPickle as pickle
-import hashlib
 
 glib=load_library('GL')
 
@@ -126,6 +123,10 @@ class TrackLabeler(Actor):
         tracks_colors = np.ascontiguousarray(self.compute_colors(tracks, alpha))
         tracks_count = np.ascontiguousarray(np.array([len(v) for v in tracks],dtype='i4'))
         tracks_first = np.ascontiguousarray(np.r_[0,np.cumsum(tracks_count)[:-1]].astype('i4'))
+        
+        if isinstance(tracks_count,tuple): print '== count'
+        if isinstance(tracks_first,tuple): print '== first'
+
         return tracks_buffer, tracks_colors, tracks_first, tracks_count
 
 
@@ -139,6 +140,7 @@ class TrackLabeler(Actor):
         for curve in tracks:
             color[counter:counter+len(curve),:3] = track2rgb(curve).astype('f4')
             counter += len(curve)
+
         color[:,3] = alpha
         return color
         
@@ -161,6 +163,9 @@ class TrackLabeler(Actor):
             glColorPointer(4,GL_FLOAT,0,self.virtuals_colors.ctypes.data)
             glLineWidth(self.virtuals_line_width)
             glPushMatrix()
+            if isinstance(self.virtuals_first, tuple): print '>> first Tuple'
+            if isinstance(self.virtuals_count, tuple): print '>> count Tuple'
+
             glib.glMultiDrawArrays(GL_LINE_STRIP, self.virtuals_first.ctypes.data, self.virtuals_count.ctypes.data, len(self.virtuals))
             glPopMatrix()
         # reals:
@@ -238,11 +243,13 @@ class TrackLabeler(Actor):
 
     def process_messages(self,messages):
         msg=messages['key_pressed']
-        print 'Processing messages in actor', self.name, ' key_press message ', msg
+        #print 'Processing messages in actor', self.name, 
+        #' key_press message ', msg
         if msg!=None:
             self.process_keys(msg,None)
         msg=messages['mouse_position']            
-        print 'Processing messages in actor', self.name, ' mouse_pos message ', msg
+        #print 'Processing messages in actor', self.name, 
+        #' mouse_pos message ', msg
         if msg!=None:
             self.process_mouse_position(*msg)
 
@@ -251,7 +258,7 @@ class TrackLabeler(Actor):
         """
         prev_selected = copy.copy(self.selected)
         if symbol == Qt.Key_P:     
-            print('P pressed')
+            print 'P'
             id = self.picking_virtuals(symbol, modifiers)
             print('Track id %d' % id)
             if prev_selected.count(id) == 0:
@@ -336,6 +343,7 @@ class TrackLabeler(Actor):
             self.select_track(ids)
 
 
+
     def freeze(self):
         print("Freezing current expanded real tracks, then doing QB on them, then restarting.")
         print("Selected virtuals: %s" % self.selected)
@@ -353,15 +361,16 @@ class TrackLabeler(Actor):
         self.unselect_track('all')
         self.tracks = tracks_frozen
         self.tracks_ids = self.tracks_ids[tracks_frozen_ids] # range(len(self.tracks))
-        root = Tkinter.Tk()
-        root.wm_title('QuickBundles threshold')
-        ts = ThresholdSelector(root, default_value=self.qb.dist_thr/2.0)
-
-        root.wait_window()
-
-        print "Threshold value ",ts.value
-        self.qb = QuickBundles(self.tracks, dist_thr=ts.value, pts=self.qb.pts)
-        self.qb.dist_thr = ts.value
+        #root = Tkinter.Tk()
+        #root.wm_title('QuickBundles threshold')
+        #ts = ThresholdSelector(root, default_value=self.qb.dist_thr/2.0)
+        #root.wait_window()
+        
+        #print "Threshold value ",ts.value
+        self.qb = QuickBundles(self.tracks, dist_thr=qb.dist_thr/2., pts=self.qb.pts)
+        #self.qb = QuickBundles(self.tracks, dist_thr=ts.value, pts=self.qb.pts)
+        self.qb.dist_thr = qb.dist_thr/2.
+        #self.qb.dist_thr = ts.value
         if self.reps=='virtuals':
             self.virtuals=qb.virtuals()
         if self.reps=='exemplars':
@@ -400,7 +409,7 @@ class TrackLabeler(Actor):
         near = screen_to_model(x, y, 0)
         far = screen_to_model(x, y, 1)
 
-        print 'peak virtuals ', near, far, x, y
+        #print 'peak virtuals ', near, far, x, y
         # Compute distance of virtuals from screen and from the line defined by the two points above
         tmp = np.array([cll.mindistance_segment2track_info(near, far, xyz) \
                         for xyz in self.virtuals])

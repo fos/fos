@@ -1,4 +1,4 @@
-from PySide import QtCore, QtGui, QtOpenGL, QtTest
+from PySide import QtCore, QtGui, QtOpenGL
 
 from vsml import vsml
 from world import *
@@ -131,7 +131,7 @@ class Window(QtGui.QWidget):
     def keyPressEvent(self, event):
         """ Handle all key press events
         """
-        print('key pressed')   
+        #print('key pressed')   
         key = event.key()
         self.messages=empty_messages.copy()
         self.messages['key_pressed']=key
