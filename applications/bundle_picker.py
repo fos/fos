@@ -1,6 +1,6 @@
 import numpy as np
 import nibabel as nib
-#Fos modules
+#fos modules
 from fos import Actor
 from fos import Window, Region
 from fos.actor import Axes, Text3D
@@ -35,13 +35,18 @@ I : invert selected tracks to unselected
 H : hide/show all representative tracks.
 >>>Mouse
 Left Button: keep pressed with dragging - rotation
-Middle Button: keep pressed with dragging for slow zoom
-Scrolling : fast zoom
+Scrolling :  zoom
+Shift + Scrolling : fast zoom
 Right Button : panning - translation
+Shift + Right Button : fast panning - translation
 >>>General
-R : reset camera for the entire scene.
-ESC: exit
-? : print this help information.
+F1 : Fullscreen.
+F2 : Next time frame.
+F3 : Previous time frame.
+F4 : Automatic rotation.
+F12 : Reset camera.
+ESC: Exit.
+? : Print this help information.
 """
 
 
@@ -165,8 +170,10 @@ class TrackLabeler(Actor):
             glPushMatrix()
             if isinstance(self.virtuals_first, tuple): print '>> first Tuple'
             if isinstance(self.virtuals_count, tuple): print '>> count Tuple'
-
-            glib.glMultiDrawArrays(GL_LINE_STRIP, self.virtuals_first.ctypes.data, self.virtuals_count.ctypes.data, len(self.virtuals))
+            glib.glMultiDrawArrays(GL_LINE_STRIP, 
+                                   self.virtuals_first.ctypes.data, 
+                                   self.virtuals_count.ctypes.data, 
+                                   len(self.virtuals))
             glPopMatrix()
         # reals:
         if self.expand and self.tracks_visualized_first.size > 0:
@@ -361,23 +368,23 @@ class TrackLabeler(Actor):
         self.unselect_track('all')
         self.tracks = tracks_frozen
         self.tracks_ids = self.tracks_ids[tracks_frozen_ids] # range(len(self.tracks))
-        #root = Tkinter.Tk()
-        #root.wm_title('QuickBundles threshold')
-        #ts = ThresholdSelector(root, default_value=self.qb.dist_thr/2.0)
-        #root.wait_window()
+        
+        root = Tkinter.Tk()
+        root.wm_title('QuickBundles threshold')
+        ts = ThresholdSelector(root, default_value=self.qb.dist_thr/2.0)
+        root.wait_window()
         
         #print "Threshold value ",ts.value
-        self.qb = QuickBundles(self.tracks, dist_thr=qb.dist_thr/2., pts=self.qb.pts)
-        #self.qb = QuickBundles(self.tracks, dist_thr=ts.value, pts=self.qb.pts)
-        self.qb.dist_thr = qb.dist_thr/2.
-        #self.qb.dist_thr = ts.value
+        #self.qb = QuickBundles(self.tracks, dist_thr=qb.dist_thr/2., pts=self.qb.pts)
+        self.qb = QuickBundles(self.tracks, dist_thr=ts.value, pts=self.qb.pts)
+        #self.qb.dist_thr = qb.dist_thr/2.
+        self.qb.dist_thr = ts.value
         if self.reps=='virtuals':
             self.virtuals=qb.virtuals()
         if self.reps=='exemplars':
             self.virtuals,self.ex_ids = self.qb.exemplars()
         print len(self.virtuals), 'virtuals'
-        self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, 
-        self.virtuals_count = self.compute_buffers(self.virtuals, self.virtuals_alpha)
+        self.virtuals_buffer, self.virtuals_colors, self.virtuals_first, self.virtuals_count = self.compute_buffers(self.virtuals, self.virtuals_alpha)
         #compute buffers
         self.tracks_buffer, self.tracks_colors, self.tracks_first, self.tracks_count = self.compute_buffers(self.tracks, self.tracks_alpha)
         # self.unselect_track('all')
@@ -531,11 +538,11 @@ if __name__ == '__main__':
                         extent_min = np.array([-5.0, -5, -5]),
                         extent_max = np.array([5, 5 ,5]))
     
-    ax = Axes(name = "3 axes", linewidth=2.0)
+    ax = Axes(name = "3 axes", scale= 10, linewidth=2.0)
 
     vert = np.array( [[2.0,3.0,0.0]], dtype = np.float32 )
     ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
-    tex = Text3D( "Text3D", vert, "(0,0,0)", 2.5, .5, ptr)
+    tex = Text3D( "Text3D", vert, "(0,0,0)", 10*2.5, 10*.5, ptr)
 
     region.add_actor(ax)
     region.add_actor(tex)
