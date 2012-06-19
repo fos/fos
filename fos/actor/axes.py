@@ -1,8 +1,7 @@
 import numpy as np
 from pyglet.gl import *
 from .base import *
-from primitives import Cylinder
-from text import Text3D
+from .primitives import Cylinder
 
 class Axes(Actor):
 
