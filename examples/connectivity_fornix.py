@@ -11,6 +11,7 @@ import nibabel as nib
 a=nib.trackvis.read( op.join(op.dirname(__file__), "data", "tracks300.trk") )
 g=np.array(a[0], dtype=np.object)
 trk = [tr[0] for tr in a[0]]
+trk = trk[:10]
 #g=np.array(trk, dtype=np.object)
 #g=g[:200]
 
@@ -38,13 +39,23 @@ def prepare_tracks(trk):
     return positions, connectivity, consel
 
 positions,connectivity,consel=prepare_tracks(trk)
+cols=np.random.rand(len(connectivity),4).astype('f4') 
+cols[:,-1]=1
+radii= np.random.randint(1,10,len(connectivity)).astype('f4')
+radii = np.ascontiguousarray(radii[:,None],'f4')
 
 w = Window(caption='Free on shades')
 region = Region( regionname = "Main" )
+
+
 act = Skeleton( name = "Tractography",
-                vertices = positions,
-                connectivity = connectivity,
-                connectivity_ID = consel ) #, radius = rad)
+               vertices = positions,
+               connectivity = connectivity,
+               connectivity_ID = consel,
+               connectivity_colors = cols,
+               connectivity_radius = radii)
+
+
 region.add_actor( act )
 w.add_region( region )
 w.refocus_camera()
