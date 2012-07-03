@@ -2,8 +2,6 @@ import sys
 from fos import *
 from pyglet.lib import load_library
 glib=load_library('GL')
-from PySide.QtGui import QApplication
-from PySide import QtCore, QtGui, QtOpenGL
 from ctypes import *
 
 class Line(Actor):
