@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 import nibabel as nib
 from ctypes import *
@@ -22,6 +23,42 @@ class BuzzTex(Actor):
         """
         super(BuzzTex, self).__init__(name)
         self.name=name
+=======
+""" Not to be used yet
+ 
+"""
+
+
+import numpy as np
+import nibabel as nib
+from ctypes import *
+import pyglet as pyglet
+from pyglet.gl import *
+from pyglet.window import key
+
+from fos import Actor
+from fos.modelmat import screen_to_model
+import fos.interact.collision as cll
+
+
+
+class BuzzTex(Actor):
+
+    def __init__(self,affine,data):
+        """ creates a slicer object
+        
+        Parameters
+        -----------
+        affine : array, shape (4,4), image affine
+                
+        data : array, shape (X,Y,Z), data volume
+        
+        Notes
+        ---------                
+        http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
+        
+        """
+
         self.shape=data.shape
         self.data=data
         self.affine=affine
@@ -78,8 +115,7 @@ class BuzzTex(Actor):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)        
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)       
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, 1, w, h, 0, 
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, pic)        
+        glTexImage2D(GL_TEXTURE_2D, 0, 1, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pic)        
         list_index = glGenLists(1)  
         glNewList(list_index,GL_COMPILE)
         glEnable(GL_TEXTURE_2D)
@@ -109,6 +145,47 @@ class BuzzTex(Actor):
         glPopMatrix()
         #self.draw_cube()            
         self.unset_state()
+    
+    def process_pickray(self,near,far):
+        pass
+    
+    def process_mouse_motion(self,x,y,dx,dy):
+        self.mouse_x=x
+        self.mouse_y=y
+    
+    def process_keys(self,symbol,modifiers):        
+        if modifiers & key.MOD_SHIFT:            
+            print 'Shift'
+        if symbol == key.UP:
+            print 'Up'
+        if symbol == key.DOWN:
+            print 'Down'            
+        if symbol == key.LEFT:
+            print 'Left'
+        if symbol == key.RIGHT:
+            print 'Right'
+        if symbol == key.PAGEUP:
+            print 'PgUp'
+        if symbol == key.PAGEDOWN:
+            print 'PgDown'
+        #HIDE SLICES
+        if symbol == key._0:
+            print('0')
+        if symbol == key._1:
+            print('1')
+            self.show_slices[0]= not self.show_slices[0]            
+        if symbol == key._2:
+            print('2')
+            self.show_slices[1]= not self.show_slices[1]            
+        if symbol == key._3:
+            print('3')
+        if symbol == key.ENTER:
+            print('Enter - Store ROI in mask')
+        if symbol == key.QUESTION:
+            print "?"
+                          
+        return None            
+
 
     def set_state(self):
         glEnable(GL_DEPTH_TEST)
@@ -119,8 +196,6 @@ class BuzzTex(Actor):
         glDisable(GL_BLEND)
         glDisable(GL_DEPTH_TEST)
    
-    def update(self,dt):
-        pass
 
 
 
@@ -170,5 +245,4 @@ if __name__=='__main__':
     #w.screenshot( 'red.png' )
     w.add_region(region)
     w.refocus_camera()
-
 
