@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 from fos import *
 from pyglet.lib import load_library
 glib=load_library('GL')
