@@ -5,6 +5,7 @@ glib=load_library('GL')
 from PySide.QtGui import QApplication
 from PySide import QtCore, QtGui, QtOpenGL
 from ctypes import *
+from fos.actor import Actor
 
 class Line(Actor):
     ''' Lines, curves, tracks actor

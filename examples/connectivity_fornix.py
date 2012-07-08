@@ -11,7 +11,7 @@ import nibabel as nib
 a=nib.trackvis.read( op.join(op.dirname(__file__), "data", "tracks300.trk") )
 g=np.array(a[0], dtype=np.object)
 trk = [tr[0] for tr in a[0]]
-trk = trk[:10]
+#trk = trk[:10]
 #g=np.array(trk, dtype=np.object)
 #g=g[:200]
 
@@ -51,9 +51,9 @@ region = Region( regionname = "Main" )
 act = Skeleton( name = "Tractography",
                vertices = positions,
                connectivity = connectivity,
-               connectivity_ID = consel,
-               connectivity_colors = cols,
-               connectivity_radius = radii)
+               connectivity_ID = consel)
+               #connectivity_colors = cols,
+               #connectivity_radius = radii)
 
 
 region.add_actor( act )

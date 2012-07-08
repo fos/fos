@@ -31,9 +31,8 @@ class Skeleton(Actor):
         vertices : array, shape (N,3)
         connectivity : array, shape (M,2)
         connectivity_ID : array, shape (M,)
-        connectivity_colors : array, shape (M,4)
-        connectivity_radius : array, shape (M,)
-
+        connectivity_colors : array, shape (M,4), float32
+        connectivity_radius : array, shape (M,), float32
         """
         super(Skeleton, self).__init__( name )
 
