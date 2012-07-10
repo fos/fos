@@ -72,7 +72,21 @@ class Line(Actor):
 	glDisable(GL_BLEND)
 	glDisable(GL_DEPTH_TEST)
 
+def one_colour_per_line(tracks, colormap):
+    """ Colours such that one color from the colormap
+    for each track
 
+    tracks : sequence of M (N_i, 3) arrays
+    colormap : (M, 3) RGB values
+
+    """
+    #colormap=np.random.rand(len(tracks),3)
+    track_sizes = [len(t) for t in tracks]
+    colors = np.ones((np.sum(track_sizes), 4))
+    cs_track_sizes = np.append(0, np.cumsum(track_sizes))
+    for i, t in enumerate(tracks):
+        colors[cs_track_sizes[i]:cs_track_sizes[i+1],:3]=colormap[i]
+    return colors
 
 
 if __name__ == '__main__':    
