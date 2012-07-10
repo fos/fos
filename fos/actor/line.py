@@ -1,8 +1,11 @@
 import sys
-from fos import *
+import numpy as np
+#from fos import *
+from pyglet.gl import *
 from pyglet.lib import load_library
 glib=load_library('GL')
 from ctypes import *
+from fos.actor import Actor
 
 class Line(Actor):
     ''' Lines, curves, tracks actor
@@ -79,21 +82,21 @@ if __name__ == '__main__':
     colors=np.ones((120,4))
     colors[0:100,:3]=np.array([1,0,0.])
     colors[100:120,:3]=np.array([0,1,0])
-
+    """
     import nibabel as nib
     from os import path as op
     a=nib.trackvis.read( op.join(op.dirname(__file__),\
-            "data",\
-            "tracks300.trk") )
+            "..", "data", "tracks300.trk") )
     g=np.array(a[0], dtype=np.object)
     tracks = [tr[0] for tr in a[0]]
     #tracks = tracks-np.concatenate(tracks,axis=0)
     lentra = [len(t) for t in tracks]
     colors = np.random.rand(np.sum(lentra),4)
     #colors[:,3]=0.9
-    #"""
+    """
 
     streamlines = Line('fornix',tracks,colors,line_width=2)
+    from fos import Window, Region
     from fos.actor.axes import Axes
     from fos.actor.text import Text3D
 

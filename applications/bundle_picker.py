@@ -505,17 +505,16 @@ class ThresholdSelector(object):
 if __name__ == '__main__':
 
     #load T1 volume registered in MNI space 
-    dname='/home/eg309/Devel/fos_legacy/applications/'
-    img = nib.load(dname+'data/subj_05/MPRAGE_32/T1_flirt_out.nii.gz')
+    img = nib.load('data/subj_05/MPRAGE_32/T1_flirt_out.nii.gz')
     data = img.get_data()
     affine = img.get_affine()    
     #load the tracks registered in MNI space 
-    fdpyw = dname+'data/subj_05/101_32/DTI/tracks_gqi_1M_linear.dpy'    
+    fdpyw = 'data/subj_05/101_32/DTI/tracks_gqi_1M_linear.dpy'    
     dpr = Dpy(fdpyw, 'r')
     T = dpr.read_tracks()
     dpr.close()    
     #load initial QuickBundles with threshold 30mm
-    fpkl = dname+'data/subj_05/101_32/DTI/qb_gqi_1M_linear_30.pkl'
+    fpkl = 'data/subj_05/101_32/DTI/qb_gqi_1M_linear_30.pkl'
     #qb=QuickBundles(T,30.,12)    
     #save_pickle(fpkl,qb)
     qb=load_pickle(fpkl)
