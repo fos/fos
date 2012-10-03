@@ -505,9 +505,9 @@ class ThresholdSelector(object):
 if __name__ == '__main__':
 
     #load T1 volume registered in MNI space 
-    img = nib.load('data/subj_05/MPRAGE_32/T1_flirt_out.nii.gz')
-    data = img.get_data()
-    affine = img.get_affine()    
+    #img = nib.load('data/subj_05/MPRAGE_32/T1_flirt_out.nii.gz')
+    #data = img.get_data()
+    #affine = img.get_affine()    
     #load the tracks registered in MNI space 
     fdpyw = 'data/subj_05/101_32/DTI/tracks_gqi_1M_linear.dpy'    
     dpr = Dpy(fdpyw, 'r')
@@ -518,10 +518,11 @@ if __name__ == '__main__':
     #qb=QuickBundles(T,30.,12)    
     #save_pickle(fpkl,qb)
     qb=load_pickle(fpkl)
+
     #create the interaction system for tracks 
     tl = TrackLabeler('Bundle Picker',
                         qb,qb.downsampled_tracks(),
-                        vol_shape=data.shape,tracks_alpha=1)   
+                        vol_shape=(182, 218, 182),tracks_alpha=1)   
     #add a interactive slicing/masking tool
     #sl = Slicer(affine,data)    
     #add one way communication between tl and sl
@@ -543,8 +544,8 @@ if __name__ == '__main__':
     ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
     tex = Text3D( "Text3D", vert, "(0,0,0)", 10*2.5, 10*.5, ptr)
 
-    region.add_actor(ax)
-    region.add_actor(tex)
+    #region.add_actor(ax)
+    #region.add_actor(tex)
     region.add_actor(tl)
     #region.add_actor(streamlines)
     #w.screenshot( 'red.png' )

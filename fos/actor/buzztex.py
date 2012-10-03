@@ -1,50 +1,12 @@
-<<<<<<< HEAD
 import numpy as np
-import nibabel as nib
 from ctypes import *
 from pyglet.gl import *
 from fos import Actor
+
 
 class BuzzTex(Actor):
 
     def __init__(self, name, data, affine):
-        """ creates a slicer object
-        
-        Parameters
-        ----------
-        data : array, shape (X,Y,Z), data volume
-        
-        affine : array, shape (4,4), image affine
-        
-        Notes
-        -----               
-        http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
-        
-        """
-        super(BuzzTex, self).__init__(name)
-        self.name=name
-=======
-""" Not to be used yet
- 
-"""
-
-
-import numpy as np
-import nibabel as nib
-from ctypes import *
-import pyglet as pyglet
-from pyglet.gl import *
-from pyglet.window import key
-
-from fos import Actor
-from fos.modelmat import screen_to_model
-import fos.interact.collision as cll
-
-
-
-class BuzzTex(Actor):
-
-    def __init__(self,affine,data):
         """ creates a slicer object
         
         Parameters
@@ -58,16 +20,17 @@ class BuzzTex(Actor):
         http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
         
         """
-
+        
+        self.name=name
+        super(BuzzTex, self).__init__(self.name)
         self.shape=data.shape
         self.data=data
         self.affine=affine
         #volume center coordinates
         self.vertices=np.array([[-130,-130,-130],[130,130,130]])
-        #self.make_aabb(margin=0)
-        #self.show_aabb=True
-        #masking       
         self.setup_texture(self.data)
+        #pic=255*np.ones((100, 100),dtype=np.uint8)
+        #self.buzz=self.create_texture(pic,100,100)
 
     def setup_texture(self,volume):
         
@@ -82,9 +45,7 @@ class BuzzTex(Actor):
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT)
-        glTexImage3D(GL_TEXTURE_3D, 0, 1, 
-                     WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, 
-                     volume.ctypes.data)
+        glTexImage3D(GL_TEXTURE_3D, 0, 1, WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, volume.ctypes.data)
         w=255
         h=255
         list_index = glGenLists(1)
@@ -92,6 +53,7 @@ class BuzzTex(Actor):
         glEnable(GL_TEXTURE_3D)
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_REPLACE)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
+        print 'yo', texture_index.value
         glBegin(GL_QUADS)
         glTexCoord3d(0,0,0)
         glVertex3f(-w/2., -h/2., 0.0)
@@ -115,11 +77,13 @@ class BuzzTex(Actor):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)        
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)       
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, 1, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, pic)        
+        glTexImage2D(GL_TEXTURE_2D, 0, 1, w, h, 0, GL_LUMINANCE,
+                     GL_UNSIGNED_BYTE, pic.ctypes.data)        
         list_index = glGenLists(1)  
         glNewList(list_index,GL_COMPILE)
         glEnable(GL_TEXTURE_2D)
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_REPLACE)
+        print 'hey', texture_index.value
         glBindTexture(GL_TEXTURE_2D, texture_index.value)
         glBegin(GL_QUADS)
         glTexCoord2f(0.0, 0.0)
@@ -141,52 +105,12 @@ class BuzzTex(Actor):
         self.set_state()            
         glPushMatrix()
         #print self.buzz
-        glCallList(self.buzz)                
+        glCallList(self.buzz)
+        #self.setup_texture(self.data)
         glPopMatrix()
         #self.draw_cube()            
         self.unset_state()
     
-    def process_pickray(self,near,far):
-        pass
-    
-    def process_mouse_motion(self,x,y,dx,dy):
-        self.mouse_x=x
-        self.mouse_y=y
-    
-    def process_keys(self,symbol,modifiers):        
-        if modifiers & key.MOD_SHIFT:            
-            print 'Shift'
-        if symbol == key.UP:
-            print 'Up'
-        if symbol == key.DOWN:
-            print 'Down'            
-        if symbol == key.LEFT:
-            print 'Left'
-        if symbol == key.RIGHT:
-            print 'Right'
-        if symbol == key.PAGEUP:
-            print 'PgUp'
-        if symbol == key.PAGEDOWN:
-            print 'PgDown'
-        #HIDE SLICES
-        if symbol == key._0:
-            print('0')
-        if symbol == key._1:
-            print('1')
-            self.show_slices[0]= not self.show_slices[0]            
-        if symbol == key._2:
-            print('2')
-            self.show_slices[1]= not self.show_slices[1]            
-        if symbol == key._3:
-            print('3')
-        if symbol == key.ENTER:
-            print('Enter - Store ROI in mask')
-        if symbol == key.QUESTION:
-            print "?"
-                          
-        return None            
-
-
     def set_state(self):
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_BLEND)
@@ -195,8 +119,6 @@ class BuzzTex(Actor):
     def unset_state(self):
         glDisable(GL_BLEND)
         glDisable(GL_DEPTH_TEST)
-   
-
 
 
 if __name__=='__main__':
@@ -211,6 +133,7 @@ if __name__=='__main__':
     #affine = img.get_affine()
     affine=None
     data=(255*np.random.rand(256,256,256)).astype(np.uint8)
+    data[:]=255
     bz=BuzzTex('Buzz', data, affine)
 
     title='The invisible BuzzTex'
@@ -227,8 +150,20 @@ if __name__=='__main__':
     vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
     ptr = np.array([[.2,.2,.2]], dtype = np.float32)
     tex = Text3D("Text3D", vert, "Reg", 10, 2, ptr)
+    vert2 = np.array([[10.0,10.0,0.0]], dtype = np.float32)
+    ptr2 = np.array([[.2,.2,.2]], dtype = np.float32)
+
+    #tex2 = Text3D("Text3D2", vert, "Differ", 10, 2)
 
     """
+    def process_pickray(self,near,far):
+        pass
+    
+    def process_mouse_motion(self,x,y,dx,dy):
+        self.mouse_x=x
+        self.mouse_y=y
+    
+
     from fos import Mesh
     from dipy.data import get_sphere
     vertices,faces=get_sphere('symmetric724')       
@@ -239,8 +174,10 @@ if __name__=='__main__':
             faces.astype(np.uint32),
             vertices_normals=normals.astype('f4'))
     """
-    #region.add_actor(ax)
+    region.add_actor(ax)
     region.add_actor(bz)
+    region.add_actor(tex)
+    #region.add_actor(tex2)
     #region.add_actor(me)
     #w.screenshot( 'red.png' )
     w.add_region(region)
