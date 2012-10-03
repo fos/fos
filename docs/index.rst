@@ -5,6 +5,7 @@
 
 FOS - Free on Shades
 ======================
+News: Working on major update of Fos. Stay alert :)
 
 Fos is a novel scientific visualization platform written in Python.
 
