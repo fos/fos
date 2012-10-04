@@ -21,84 +21,59 @@ class BuzzTex(Actor):
         
         """
         
-        self.name=name
+        self.name = name
         super(BuzzTex, self).__init__(self.name)
-        self.shape=data.shape
-        self.data=data
-        self.affine=affine
+        self.shape = data.shape
+        self.data = data
+        self.affine = affine
         #volume center coordinates
-        self.vertices=np.array([[-130,-130,-130],[130,130,130]])
+        self.vertices = np.array([[-130, -130, -130], 
+                                  [130, 130, 130]])
         self.setup_texture(self.data)
         #pic=255*np.ones((100, 100),dtype=np.uint8)
         #self.buzz=self.create_texture(pic,100,100)
 
-    def setup_texture(self,volume):
+    def setup_texture(self, volume):
         
-        WIDTH,HEIGHT,DEPTH=volume.shape
+        WIDTH,HEIGHT,DEPTH = volume.shape
         print WIDTH,HEIGHT,DEPTH
         texture_index = c_uint(0)
-        glGenTextures(1,byref(texture_index))
+        glGenTextures(1, byref(texture_index))
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glPixelStorei(GL_UNPACK_ALIGNMENT,1)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP)
+        #glTexImage3D(GL_TEXTURE_3D, 0, 1, WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, volume.ctypes.data)
         glTexImage3D(GL_TEXTURE_3D, 0, 1, WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, volume.ctypes.data)
-        w=255
-        h=255
+
+        w=256
+        h=256
         list_index = glGenLists(1)
         glNewList(list_index,GL_COMPILE)               
         glEnable(GL_TEXTURE_3D)
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_REPLACE)
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
-        print 'yo', texture_index.value
         glBegin(GL_QUADS)
-        glTexCoord3d(0,0,0)
+
+        glTexCoord3d(0, 0, 120)
         glVertex3f(-w/2., -h/2., 0.0)
-        glTexCoord3d(255,0,0)
+
+        glTexCoord3d(255, 0, 120)
         glVertex3f(-w/2., h/2., 0.0)
-        glTexCoord3d(255, 255,0)
+
+        glTexCoord3d(255, 255, 120)
         glVertex3f(w/2., h/2., 0.0)
-        glTexCoord3d(255, 0,0)
+
+        glTexCoord3d(0, 255, 120)
         glVertex3f(w/2., -h/2., 0.0)
+
         glEnd()
         glDisable(GL_TEXTURE_3D)
         glEndList()
         self.buzz=list_index
-        
-    def create_texture(self,pic,w,h):        
-        texture_index = c_uint(0)        
-        glGenTextures(1,byref(texture_index))
-        glBindTexture(GL_TEXTURE_2D, texture_index.value)
-        glPixelStorei(GL_UNPACK_ALIGNMENT,1)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)       
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexImage2D(GL_TEXTURE_2D, 0, 1, w, h, 0, GL_LUMINANCE,
-                     GL_UNSIGNED_BYTE, pic.ctypes.data)        
-        list_index = glGenLists(1)  
-        glNewList(list_index,GL_COMPILE)
-        glEnable(GL_TEXTURE_2D)
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_REPLACE)
-        print 'hey', texture_index.value
-        glBindTexture(GL_TEXTURE_2D, texture_index.value)
-        glBegin(GL_QUADS)
-        glTexCoord2f(0.0, 0.0)
-        glVertex3f(-w/2., -h/2., 0.0)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3f(-w/2., h/2., 0.0)
-        glTexCoord2f(1.0, 1.0)
-        glVertex3f(w/2., h/2., 0.0)
-        glTexCoord2f(1.0, 0.0)
-        glVertex3f(w/2., -h/2., 0.0)
-        glEnd()
-        glFlush()
-        glDisable(GL_TEXTURE_2D)
-        glEndList()
-        return list_index
         
     def draw(self):
         #print 'in draw'
@@ -183,18 +158,4 @@ def main():
     #w.screenshot( 'red.png' )
     w.add_region(region)
     w.refocus_camera()
-
-import sys
-import trace
-tracer = trace.Trace(
-    ignoredirs=[sys.prefix, sys.exec_prefix],
-    trace=0,
-    count=1)
-
-# run the new command using the given tracer
-tracer.run('main()')
-
-# make a report, placing output in /tmp
-r = tracer.results()
-r.write_results(show_missing=True, coverdir="/tmp/trace")
 
