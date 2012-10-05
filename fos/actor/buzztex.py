@@ -1,3 +1,16 @@
+import pyglet
+pyglet.options['debug_gl'] = True
+pyglet.options['debug_gl_trace'] = True
+pyglet.options['debug_gl_trace_args'] = True
+pyglet.options['debug_lib'] = True
+pyglet.options['debug_media'] = True
+pyglet.options['debug_trace'] = True
+pyglet.options['debug_trace_args'] = True
+#pyglet.options['debug_trace_depth'] = 1
+pyglet.options['debug_font'] = True
+pyglet.options['debug_x11'] = True
+pyglet.options['debug_trace'] = True
+
 import numpy as np
 from ctypes import *
 from pyglet.gl import *
@@ -34,40 +47,41 @@ class BuzzTex(Actor):
         #self.buzz=self.create_texture(pic,100,100)
 
     def setup_texture(self, volume):
-        
         WIDTH,HEIGHT,DEPTH = volume.shape
         print WIDTH,HEIGHT,DEPTH
         texture_index = c_uint(0)
         glGenTextures(1, byref(texture_index))
-        glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+        glBindTexture(GL_TEXTURE_3D, texture_index.value)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP)
-        #glTexImage3D(GL_TEXTURE_3D, 0, 1, WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, volume.ctypes.data)
-        glTexImage3D(GL_TEXTURE_3D, 0, 1, WIDTH,HEIGHT, DEPTH, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, volume.ctypes.data)
-
+        glTexImage3D(GL_TEXTURE_3D, 0, 1, 
+                     WIDTH, HEIGHT, DEPTH, 0, 
+                     GL_LUMINANCE, GL_UNSIGNED_BYTE, 
+                     volume.ctypes.data)
         w=256
         h=256
         list_index = glGenLists(1)
-        glNewList(list_index,GL_COMPILE)               
+        glNewList(list_index, GL_COMPILE) 
+        glActiveTexture(GL_TEXTURE0)
         glEnable(GL_TEXTURE_3D)
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glBegin(GL_QUADS)
 
-        glTexCoord3d(0, 0, 120)
+        glTexCoord3d(0, 0, 0)
         glVertex3f(-w/2., -h/2., 0.0)
 
-        glTexCoord3d(255, 0, 120)
+        glTexCoord3d(255, 0, 0)
         glVertex3f(-w/2., h/2., 0.0)
 
-        glTexCoord3d(255, 255, 120)
+        glTexCoord3d(255, 255, 0)
         glVertex3f(w/2., h/2., 0.0)
 
-        glTexCoord3d(0, 255, 120)
+        glTexCoord3d(0, 255, 0)
         glVertex3f(w/2., -h/2., 0.0)
 
         glEnd()
@@ -77,7 +91,7 @@ class BuzzTex(Actor):
         
     def draw(self):
         #print 'in draw'
-        self.set_state()            
+        self.set_state() 
         glPushMatrix()
         #print self.buzz
         glCallList(self.buzz)
@@ -87,6 +101,7 @@ class BuzzTex(Actor):
         self.unset_state()
     
     def set_state(self):
+        glShadeModel(GL_FLAT)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -96,8 +111,7 @@ class BuzzTex(Actor):
         glDisable(GL_DEPTH_TEST)
 
 
-#if __name__=='__main__':
-def main():
+if __name__=='__main__':
 
     from fos.actor.axes import Axes
     from fos import Window, Region

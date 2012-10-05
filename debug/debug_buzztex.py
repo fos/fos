@@ -2,16 +2,16 @@
 
 import pyglet
 pyglet.options['debug_gl'] = True
-pyglet.options['debug_gl_trace'] = True
-pyglet.options['debug_gl_trace_args'] = True
-pyglet.options['debug_lib'] = True
-pyglet.options['debug_media'] = True
-pyglet.options['debug_trace'] = True
-pyglet.options['debug_trace_args'] = True
+pyglet.options['debug_gl_trace'] = False
+pyglet.options['debug_gl_trace_args'] = False
+pyglet.options['debug_lib'] = False
+pyglet.options['debug_media'] = False
+pyglet.options['debug_trace'] = False
+pyglet.options['debug_trace_args'] = False
 #pyglet.options['debug_trace_depth'] = 1
-pyglet.options['debug_font'] = True
-pyglet.options['debug_x11'] = True
-pyglet.options['debug_trace'] = True
+pyglet.options['debug_font'] = False
+pyglet.options['debug_x11'] = False
+pyglet.options['debug_trace'] = False
 from pyglet.gl import *
 
 
@@ -56,7 +56,7 @@ def on_draw():
     bz.unset_state()
 
 import numpy as np
-import nibabel as nib
+#import nibabel as nib
 from fos.actor.buzztex import BuzzTex
 """
 fname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/T1_flirt_out.nii.gz'
@@ -65,11 +65,18 @@ data = img.get_data()
 affine = img.get_affine()
 """
 affine = None
-data = (255*np.random.rand(256,256,256)).astype(np.uint8)
+data = (255*np.random.rand(256, 256, 256)).astype(np.uint8)
 #data[]
-data[:] = 155
-#data[:128, :128, :128] = 100
-#data=np.asfortranarray(data)
+#data[:] = 155
+#data[]
+w = 30
+#data[128-w:128+w, 128-w:128+w, 128-w:128+w] = 100
+data[:128, :128, :128] = 10
+
+print data.flags
+print data.dtype
+#1/0
+data=np.asfortranarray(data)
 bz=BuzzTex('Buzz', data, affine)
 
 pyglet.app.run()

@@ -61,6 +61,7 @@ def setup():
     glColor3f(1, 0, 0)
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_CULL_FACE)
+    glCullFace(GL_BACK)
 
     # Uncomment this line for a wireframe view
     #glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
@@ -70,22 +71,23 @@ def setup():
     # include it.
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
-    glEnable(GL_LIGHT1)
+    #glEnable(GL_LIGHT1)
 
     # Define a simple function to create ctypes arrays of floats:
     def vec(*args):
         return (GLfloat * len(args))(*args)
 
     glLightfv(GL_LIGHT0, GL_POSITION, vec(.5, .5, 1, 0))
-    glLightfv(GL_LIGHT0, GL_SPECULAR, vec(.5, .5, 1, 1))
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, vec(1, 1, 1, 1))
-    glLightfv(GL_LIGHT1, GL_POSITION, vec(1, 0, .5, 0))
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, vec(.5, .5, .5, 1))
-    glLightfv(GL_LIGHT1, GL_SPECULAR, vec(1, 1, 1, 1))
+    glLightfv(GL_LIGHT0, GL_SPECULAR, vec(1, 1., 1., 1))
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, vec(.5, .1, .1, 1))
+    #glLightfv(GL_LIGHT1, GL_POSITION, vec(1, 0, .5, 0))
+    #glLightfv(GL_LIGHT1, GL_DIFFUSE, vec(.5, .5, .5, 1))
+    #glLightfv(GL_LIGHT1, GL_SPECULAR, vec(1, 1, 1, 1))
 
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, vec(0.5, 0, 0.3, 1))
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, vec(1, 1, 1, 1))
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50)
+    #glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, vec(0.5, 0, 0.3, 1))
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, vec(0, 0, 0., 1))
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, vec(1, 0, 0., 1))
+    #glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50)
 
 class Torus(object):
     def __init__(self, radius, inner_radius, slices, inner_slices):
@@ -151,7 +153,7 @@ class Torus(object):
 
 
 setup()
-torus = Torus(1, 0.3, 50, 30)
+torus = Torus(1, 0.3, 60, 30)
 rx = ry = rz = 0
 
 pyglet.app.run()
