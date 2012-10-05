@@ -142,7 +142,7 @@ class Torus(object):
         glDrawElements(GL_TRIANGLES, 
                         len(indices), 
                         GL_UNSIGNED_INT, 
-                        list(indices))
+                        indices)
         glPopClientAttrib()
         glEndList()
 
