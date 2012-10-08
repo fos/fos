@@ -1,16 +1,3 @@
-import pyglet
-pyglet.options['debug_gl'] = True
-pyglet.options['debug_gl_trace'] = True
-pyglet.options['debug_gl_trace_args'] = True
-pyglet.options['debug_lib'] = True
-pyglet.options['debug_media'] = True
-pyglet.options['debug_trace'] = True
-pyglet.options['debug_trace_args'] = True
-#pyglet.options['debug_trace_depth'] = 1
-pyglet.options['debug_font'] = True
-pyglet.options['debug_x11'] = True
-pyglet.options['debug_trace'] = True
-
 import numpy as np
 from ctypes import *
 from pyglet.gl import *
@@ -19,7 +6,7 @@ from fos import Actor
 
 class BuzzTex(Actor):
 
-    def __init__(self, name, data, affine):
+    def __init__(self, name, data, affine, index):
         """ creates a slicer object
         
         Parameters
@@ -33,7 +20,7 @@ class BuzzTex(Actor):
         http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
         
         """
-        
+        self.index = index
         self.name = name
         super(BuzzTex, self).__init__(self.name)
         self.shape = data.shape
@@ -47,41 +34,47 @@ class BuzzTex(Actor):
         #self.buzz=self.create_texture(pic,100,100)
 
     def setup_texture(self, volume):
-        WIDTH,HEIGHT,DEPTH = volume.shape
-        print WIDTH,HEIGHT,DEPTH
+        WIDTH,HEIGHT,DEPTH = volume.shape[:-1]
+        #print WIDTH,HEIGHT,DEPTH
+        glActiveTexture(GL_TEXTURE0)
         texture_index = c_uint(0)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
         glGenTextures(1, byref(texture_index))
-        glPixelStorei(GL_UNPACK_ALIGNMENT,1)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        glTexImage3D(GL_TEXTURE_3D, 0, 1, 
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, 
                      WIDTH, HEIGHT, DEPTH, 0, 
-                     GL_LUMINANCE, GL_UNSIGNED_BYTE, 
+                     GL_RGB, GL_UNSIGNED_BYTE, 
                      volume.ctypes.data)
-        w=256
-        h=256
         list_index = glGenLists(1)
         glNewList(list_index, GL_COMPILE) 
-        glActiveTexture(GL_TEXTURE0)
         glEnable(GL_TEXTURE_3D)
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glBegin(GL_QUADS)
 
-        glTexCoord3d(0, 0, 0)
+        
+        depth = (0.5 + self.index) / np.float(DEPTH)
+        w = np.float32(WIDTH)
+        h = np.float32(HEIGHT)
+
+        glTexCoord3d(0, 0, depth)
         glVertex3f(-w/2., -h/2., 0.0)
 
-        glTexCoord3d(255, 0, 0)
+        glTexCoord3d(np.float(WIDTH-1), 0, depth)
+        #glTexCoord3d(1., 0, depth)
         glVertex3f(-w/2., h/2., 0.0)
 
-        glTexCoord3d(255, 255, 0)
+        glTexCoord3d(np.float(WIDTH-1), np.float(HEIGHT-1), depth)
+        #glTexCoord3d(1., 0., depth)
         glVertex3f(w/2., h/2., 0.0)
 
-        glTexCoord3d(0, 255, 0)
+        glTexCoord3d(0, np.float(HEIGHT-1), depth)
+        #glTexCoord3d(0, 1, depth)
         glVertex3f(w/2., -h/2., 0.0)
 
         glEnd()

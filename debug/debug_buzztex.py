@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 import pyglet
-pyglet.options['debug_gl'] = True
-pyglet.options['debug_gl_trace'] = False
-pyglet.options['debug_gl_trace_args'] = False
-pyglet.options['debug_lib'] = False
-pyglet.options['debug_media'] = False
-pyglet.options['debug_trace'] = False
-pyglet.options['debug_trace_args'] = False
-#pyglet.options['debug_trace_depth'] = 1
-pyglet.options['debug_font'] = False
-pyglet.options['debug_x11'] = False
-pyglet.options['debug_trace'] = False
+debug = False
+pyglet.options['debug_gl'] = debug
+pyglet.options['debug_gl_trace'] = debug
+pyglet.options['debug_gl_trace_args'] = debug
+pyglet.options['debug_lib'] = debug
+pyglet.options['debug_media'] = debug
+pyglet.options['debug_trace'] = debug
+pyglet.options['debug_trace_args'] = debug
+pyglet.options['debug_trace_depth'] = 1
+pyglet.options['debug_font'] = debug
+pyglet.options['debug_x11'] = debug
+pyglet.options['debug_trace'] = debug
 from pyglet.gl import *
 
 
@@ -50,33 +51,44 @@ pyglet.clock.schedule(update)
 def on_draw():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    glTranslatef(0, 0, -280.)
+    glTranslatef(0, 0, -100.)#-280
     bz.set_state()
     bz.draw()
     bz.unset_state()
 
-import numpy as np
-#import nibabel as nib
-from fos.actor.buzztex import BuzzTex
-"""
-fname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/T1_flirt_out.nii.gz'
-img=nib.load(fname)
-data = img.get_data()
-affine = img.get_affine()
-"""
-affine = None
-data = (255*np.random.rand(256, 256, 256)).astype(np.uint8)
-#data[]
-#data[:] = 155
-#data[]
-w = 30
-#data[128-w:128+w, 128-w:128+w, 128-w:128+w] = 100
-data[:128, :128, :128] = 10
+if __name__ == '__main__':
+    
+    import numpy as np
+    import nibabel as nib
+    from fos.actor.buzztex import BuzzTex
+    """
+    fname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/T1_flirt_out.nii.gz'
+    img=nib.load(fname)
+    data = img.get_data()
+    affine = img.get_affine()
+    affine = None
 
-print data.flags
-print data.dtype
-#1/0
-data=np.asfortranarray(data)
-bz=BuzzTex('Buzz', data, affine)
-
-pyglet.app.run()
+    volume = np.zeros(data.shape+(3,))
+    volume[...,0] = data.copy()
+    volume[...,1] = data.copy()
+    volume[...,2] = data.copy()
+    volume = volume.astype(np.ubyte)
+    print volume.shape, volume.min(), volume.max()
+    """
+    affine=None
+    szx = 128#30
+    szy = 64#20
+    szz = 16#4
+    #data = (255*np.random.rand(sz, sz, sz, 3)).astype(np.ubyte)
+    #data[:] = 255
+    data = (np.zeros((szx, szy, szz)+(3,))).astype(np.ubyte)
+    data[:, :, :] = (0, 0, 255)
+    w = 8
+    data[szx - w : szx + w, szy - w : szy + w] = (100, 0, 0)
+    print data.shape
+    print data.dtype
+    print data.min(), data.max()
+    volume = data
+    #data=np.asfortranarray(data)
+    bz=BuzzTex('Buzz', volume, affine, 8)
+    pyglet.app.run()
