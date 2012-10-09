@@ -82,7 +82,7 @@ def aVolume(N=5, size=64):
         vol[ b.k1:-b.k2, b.i-b.w1:b.i+b.w1, b.j-b.w2:b.j+b.w2 ] += b.value
 
     # Clip and return
-    vol[vol>1.0]=1.0    
+    vol[vol>1.0] = 1.0    
     return vol
 
 
@@ -100,13 +100,14 @@ def make_red_bible_image(szx, szy, szz, w):
     for s in range(szx):
         for t in range(szy):
             for r in range(szz):
-                image[r, t, s, 0] = np.ubyte(s * 17)
+                image[r, t, s, 0] = np.ubyte(255)
                 image[r, t, s, 1] = 0#np.ubyte(t * 17)
                 image[r, t, s, 2] = 0#np.ubyte(r * 17)
     hr=szz/2
     ht=szy/2
     hs=szx/2
-    image[hr - w : hr + w, ht - w : ht + w, hs - w : hs + w] = (0, 0, 255)
+    #image[hr - w : hr + w, ht - w : ht + w, hs - w : hs + w] = (0, 0, 255)
+    image[hr, ht, hs] = (0, 0, 255)
     return image
 
 
@@ -114,7 +115,7 @@ def make_red_bible_image(szx, szy, szz, w):
 def on_draw():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
-    glTranslatef(0, 0, -100.)#-280
+    glTranslatef(0, 0, -150.)#-280
     bz.set_state()
     bz.draw()
     bz.unset_state()
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     import numpy as np
     import nibabel as nib
     from fos.actor.buzztex import BuzzTex
-    """
+    #"""
     fname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/T1_flirt_out.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
@@ -147,12 +148,13 @@ if __name__ == '__main__':
     #data[:] = 255
     #data = (np.zeros((szx, szy, szz)+(3,))).astype(np.ubyte)
     #data[:, :, :] = (0, 0, 255)
-    data = make_red_bible_image(szx, szy, szz, szz/4)
+    data = make_red_bible_image(szx, szy, szz, szz/16)
     #data[szx - w : szx + w, szy - w : szy + w] = (100, 0, 0)
     print data.shape
     print data.dtype
     print data.min(), data.max()
-    volume = data
-    #data=np.asfortranarray(data)
-    bz=BuzzTex('Buzz', volume, affine, 0)
+    """
+	
+    #volume = data
+    bz=BuzzTex('Buzz', volume, affine, 100)
     pyglet.app.run()

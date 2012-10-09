@@ -57,24 +57,24 @@ class BuzzTex(Actor):
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glBegin(GL_QUADS)
         
-        #depth = (0.5 + self.index) / np.float(DEPTH)
+        dep = (0.5 + self.index) / np.float(DEPTH)
 
         w = WIDTH
         h = HEIGHT
 
-        depth, height, width = (.5, 0., 0.)
+        depth, height, width = (dep, 0., 0.)
         glTexCoord3d(depth, height, width)
         glVertex3d(-w/2., -h/2., 0.0)
 
-        depth, height, width = (.5, 0., 1.)
+        depth, height, width = (dep, 0., 1.)
         glTexCoord3d(depth, height, width)
         glVertex3d(-w/2., h/2., 0.0)
 
-        depth, height, width = (.5, 1., 1.)
+        depth, height, width = (dep, 1., 1.)
         glTexCoord3d(depth, height, width)
         glVertex3f(w/2., h/2., 0.0)
 
-        depth, height, width = (.5, 1., 0)
+        depth, height, width = (dep, 1., 0)
         glTexCoord3d(depth, height, width)
         glVertex3d(w/2., -h/2., 0.0)
 
