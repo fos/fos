@@ -39,12 +39,75 @@ def on_resize(width, height):
 #global zzz 
 #zzz = 0
 
+class Bar:
+    def __init__(self, sze):
+        self.i = int(np.random.uniform(0,sze))
+        self.j = int(np.random.uniform(0,sze))
+        self.k1 = int(np.random.uniform(0,sze/3))
+        self.k2 = int(np.random.uniform(0,sze/3))
+        self.w1 = int(np.random.uniform(1,10))
+        self.w2 = int(np.random.uniform(1,10))
+        self.value = np.random.uniform(0,1)
+
+
+def aVolume(N=5, size=64):
+    """ aVolume(N=5, size=64)
+    
+    Creates a volume (3D image) with random bars. 
+    The returned numpy array has values between 0 and 1.
+    Intended for quick illustration and test purposes.
+    
+    Parameters
+    ----------
+    N : int
+        The number of bars for each dimension.
+    size : int
+        The size of the volume (for each dimension).
+    
+    """
+    
+    # Create volume
+    vol = np.zeros((size,size,size), dtype=np.float32)
+
+    # Make bars
+    for iter in range(N):
+        # x
+        b = Bar(size)
+        vol[ b.i-b.w1:b.i+b.w1, b.j-b.w2:b.j+b.w2, b.k1:-b.k2 ] += b.value
+        # y
+        b = Bar(size)
+        vol[ b.i-b.w1:b.i+b.w1, b.k1:-b.k2, b.j-b.w2:b.j+b.w2 ] += b.value
+        # z
+        b = Bar(size)
+        vol[ b.k1:-b.k2, b.i-b.w1:b.i+b.w1, b.j-b.w2:b.j+b.w2 ] += b.value
+
+    # Clip and return
+    vol[vol>1.0]=1.0    
+    return vol
+
+
 def update(dt):
     #global zzz 
     #zzz -= 0.1
     #print zzz
     pass
 pyglet.clock.schedule(update)
+
+
+def make_red_bible_image(szx, szy, szz, w):
+
+    image = np.zeros((szx, szy, szz) + (3,), np.ubyte)
+    for s in range(szx):
+        for t in range(szy):
+            for r in range(szz):
+                image[r, t, s, 0] = np.ubyte(s * 17)
+                image[r, t, s, 1] = 0#np.ubyte(t * 17)
+                image[r, t, s, 2] = 0#np.ubyte(r * 17)
+    hr=szz/2
+    ht=szy/2
+    hs=szx/2
+    image[hr - w : hr + w, ht - w : ht + w, hs - w : hs + w] = (0, 0, 255)
+    return image
 
 
 @window.event
@@ -55,6 +118,7 @@ def on_draw():
     bz.set_state()
     bz.draw()
     bz.unset_state()
+
 
 if __name__ == '__main__':
     
@@ -76,19 +140,19 @@ if __name__ == '__main__':
     print volume.shape, volume.min(), volume.max()
     """
     affine=None
-    szx = 128#30
-    szy = 64#20
+    szx = 16#128#30
+    szy = 16#64#20
     szz = 16#4
     #data = (255*np.random.rand(sz, sz, sz, 3)).astype(np.ubyte)
     #data[:] = 255
-    data = (np.zeros((szx, szy, szz)+(3,))).astype(np.ubyte)
-    data[:, :, :] = (0, 0, 255)
-    w = 8
-    data[szx - w : szx + w, szy - w : szy + w] = (100, 0, 0)
+    #data = (np.zeros((szx, szy, szz)+(3,))).astype(np.ubyte)
+    #data[:, :, :] = (0, 0, 255)
+    data = make_red_bible_image(szx, szy, szz, szz/4)
+    #data[szx - w : szx + w, szy - w : szy + w] = (100, 0, 0)
     print data.shape
     print data.dtype
     print data.min(), data.max()
     volume = data
     #data=np.asfortranarray(data)
-    bz=BuzzTex('Buzz', volume, affine, 8)
+    bz=BuzzTex('Buzz', volume, affine, 0)
     pyglet.app.run()

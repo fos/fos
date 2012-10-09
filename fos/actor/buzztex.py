@@ -53,29 +53,48 @@ class BuzzTex(Actor):
         list_index = glGenLists(1)
         glNewList(list_index, GL_COMPILE) 
         glEnable(GL_TEXTURE_3D)
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
+        #glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
         glBindTexture(GL_TEXTURE_3D, texture_index.value)
         glBegin(GL_QUADS)
-
         
-        depth = (0.5 + self.index) / np.float(DEPTH)
-        w = np.float32(WIDTH)
-        h = np.float32(HEIGHT)
+        #depth = (0.5 + self.index) / np.float(DEPTH)
 
+        w = WIDTH
+        h = HEIGHT
+
+        depth, height, width = (.5, 0., 0.)
+        glTexCoord3d(depth, height, width)
+        glVertex3d(-w/2., -h/2., 0.0)
+
+        depth, height, width = (.5, 0., 1.)
+        glTexCoord3d(depth, height, width)
+        glVertex3d(-w/2., h/2., 0.0)
+
+        depth, height, width = (.5, 1., 1.)
+        glTexCoord3d(depth, height, width)
+        glVertex3f(w/2., h/2., 0.0)
+
+        depth, height, width = (.5, 1., 0)
+        glTexCoord3d(depth, height, width)
+        glVertex3d(w/2., -h/2., 0.0)
+
+
+        """
         glTexCoord3d(0, 0, depth)
         glVertex3f(-w/2., -h/2., 0.0)
 
-        glTexCoord3d(np.float(WIDTH-1), 0, depth)
-        #glTexCoord3d(1., 0, depth)
+        #glTexCoord3d(np.float(WIDTH-1), 0, depth)
+        glTexCoord3d(1., 0, depth)
         glVertex3f(-w/2., h/2., 0.0)
 
-        glTexCoord3d(np.float(WIDTH-1), np.float(HEIGHT-1), depth)
-        #glTexCoord3d(1., 0., depth)
+        #glTexCoord3d(np.float(WIDTH-1), np.float(HEIGHT-1), depth)
+        glTexCoord3d(1., 1., depth)
         glVertex3f(w/2., h/2., 0.0)
 
-        glTexCoord3d(0, np.float(HEIGHT-1), depth)
-        #glTexCoord3d(0, 1, depth)
+        #glTexCoord3d(0, np.float(HEIGHT-1), depth)
+        glTexCoord3d(0., 1., depth)
         glVertex3f(w/2., -h/2., 0.0)
+        """
 
         glEnd()
         glDisable(GL_TEXTURE_3D)
