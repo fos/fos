@@ -119,6 +119,7 @@ class Box(Actor):
     def draw(self):
         glDisable(GL_CULL_FACE)
         glDisable(GL_LIGHTING)
+        #make it wireframe
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         glLineWidth(1.0)
         glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
