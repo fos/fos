@@ -113,19 +113,20 @@ def make_red_bible_image(szx, szy, szz, w):
 
 @window.event
 def on_draw():
+    global tex
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     glTranslatef(0, 0, -150.)#-280
-    bz.set_state()
-    bz.draw()
-    bz.unset_state()
+    tex.set_state()
+    tex.draw()
+    tex.unset_state()
 
 
 if __name__ == '__main__':
     
     import numpy as np
     import nibabel as nib
-    from fos.actor.buzztex import BuzzTex
+    from fos.actor.tex3d import Texture3D
     #"""
     fname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/T1_flirt_out.nii.gz'
     img=nib.load(fname)
@@ -156,5 +157,18 @@ if __name__ == '__main__':
     """
 	
     #volume = data
-    bz=BuzzTex('Buzz', volume, affine, 100)
+    tex = Texture3D('Buzz', volume, affine)
+    w, h, d = volume.shape[:-1]
+    depindex = 100
+    dep = (0.5 + depindex) / np.float(d)
+    texcoords = np.array([  [dep, 0, 0], 
+                            [dep, 0, 1], 
+                            [dep, 1, 1],
+                            [dep, 1, 0] ])
+    vertcoords = np.array( [ [-w/2., -h/2., 0.],
+                            [-w/2., h/2., 0.],
+                            [w/2., h/2., 0.],
+                            [w/2, -h/2., 0] ])
+ 
+    tex.update_quad(texcoords, vertcoords)
     pyglet.app.run()

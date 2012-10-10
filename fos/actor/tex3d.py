@@ -4,9 +4,9 @@ from pyglet.gl import *
 from fos import Actor
 
 
-class BuzzTex(Actor):
+class Texture3D(Actor):
 
-    def __init__(self, name, data, affine, index):
+    def __init__(self, name, data, affine):
         """ creates a slicer object
         
         Parameters
@@ -20,9 +20,8 @@ class BuzzTex(Actor):
         http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
         
         """
-        self.index = index
         self.name = name
-        super(BuzzTex, self).__init__(self.name)
+        super(Texture3D, self).__init__(self.name)
         self.shape = data.shape
         self.data = data
         self.affine = affine
@@ -37,10 +36,10 @@ class BuzzTex(Actor):
         WIDTH,HEIGHT,DEPTH = volume.shape[:-1]
         #print WIDTH,HEIGHT,DEPTH
         glActiveTexture(GL_TEXTURE0)
-        texture_index = c_uint(0)
+        self.texture_index = c_uint(0)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-        glGenTextures(1, byref(texture_index))
-        glBindTexture(GL_TEXTURE_3D, texture_index.value)
+        glGenTextures(1, byref(self.texture_index))
+        glBindTexture(GL_TEXTURE_3D, self.texture_index.value)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP)
@@ -50,6 +49,10 @@ class BuzzTex(Actor):
                      WIDTH, HEIGHT, DEPTH, 0, 
                      GL_RGB, GL_UNSIGNED_BYTE, 
                      volume.ctypes.data)
+
+        #glBindTexture(GL_TEXTURE_3D, texture_index.value)
+
+        """
         list_index = glGenLists(1)
         glNewList(list_index, GL_COMPILE) 
         glEnable(GL_TEXTURE_3D)
@@ -77,37 +80,29 @@ class BuzzTex(Actor):
         depth, height, width = (dep, 1., 0)
         glTexCoord3d(depth, height, width)
         glVertex3d(w/2., -h/2., 0.0)
-
-
-        """
-        glTexCoord3d(0, 0, depth)
-        glVertex3f(-w/2., -h/2., 0.0)
-
-        #glTexCoord3d(np.float(WIDTH-1), 0, depth)
-        glTexCoord3d(1., 0, depth)
-        glVertex3f(-w/2., h/2., 0.0)
-
-        #glTexCoord3d(np.float(WIDTH-1), np.float(HEIGHT-1), depth)
-        glTexCoord3d(1., 1., depth)
-        glVertex3f(w/2., h/2., 0.0)
-
-        #glTexCoord3d(0, np.float(HEIGHT-1), depth)
-        glTexCoord3d(0., 1., depth)
-        glVertex3f(w/2., -h/2., 0.0)
-        """
-
+        
         glEnd()
         glDisable(GL_TEXTURE_3D)
         glEndList()
         self.buzz=list_index
+        """
+    def update_quad(self, texcoords, vertcoords):
+        self.texcoords = texcoords
+        self.vertcoords = vertcoords
+
         
     def draw(self):
         #print 'in draw'
         self.set_state() 
         glPushMatrix()
-        #print self.buzz
-        glCallList(self.buzz)
-        #self.setup_texture(self.data)
+        glBegin
+        glEnable(GL_TEXTURE_3D)
+        glBindTexture(GL_TEXTURE_3D, self.texture_index.value)
+        glBegin(GL_QUADS)        
+        for i in range(4):
+            glTexCoord3d(*tuple(self.texcoords[i]))
+            glVertex3d(*tuple(self.vertcoords[i]))
+        glEnd()
         glPopMatrix()
         #self.draw_cube()            
         self.unset_state()
