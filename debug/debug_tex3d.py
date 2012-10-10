@@ -25,7 +25,6 @@ except pyglet.window.NoSuchConfigException:
     # Fall back to no multisampling for old hardware
     window = pyglet.window.Window(resizable=True)
 
-
 @window.event
 def on_resize(width, height):
     # Override the default on_resize handler to create a 3D projection
@@ -65,10 +64,8 @@ def aVolume(N=5, size=64):
         The size of the volume (for each dimension).
     
     """
-    
     # Create volume
     vol = np.zeros((size,size,size), dtype=np.float32)
-
     # Make bars
     for iter in range(N):
         # x
@@ -80,7 +77,6 @@ def aVolume(N=5, size=64):
         # z
         b = Bar(size)
         vol[ b.k1:-b.k2, b.i-b.w1:b.i+b.w1, b.j-b.w2:b.j+b.w2 ] += b.value
-
     # Clip and return
     vol[vol>1.0] = 1.0    
     return vol
@@ -95,7 +91,6 @@ pyglet.clock.schedule(update)
 
 
 def make_red_bible_image(szx, szy, szz, w):
-
     image = np.zeros((szx, szy, szz) + (3,), np.ubyte)
     for s in range(szx):
         for t in range(szy):

@@ -33,7 +33,7 @@ class Texture3D(Actor):
         #self.buzz=self.create_texture(pic,100,100)
 
     def setup_texture(self, volume):
-        WIDTH,HEIGHT,DEPTH = volume.shape[:-1]
+        WIDTH,HEIGHT,DEPTH = volume.shape[:3]
         #print WIDTH,HEIGHT,DEPTH
         glActiveTexture(GL_TEXTURE0)
         self.texture_index = c_uint(0)
@@ -52,40 +52,7 @@ class Texture3D(Actor):
 
         #glBindTexture(GL_TEXTURE_3D, texture_index.value)
 
-        """
-        list_index = glGenLists(1)
-        glNewList(list_index, GL_COMPILE) 
-        glEnable(GL_TEXTURE_3D)
-        #glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)
-        glBindTexture(GL_TEXTURE_3D, texture_index.value)
-        glBegin(GL_QUADS)
-        
-        dep = (0.5 + self.index) / np.float(DEPTH)
-
-        w = WIDTH
-        h = HEIGHT
-
-        depth, height, width = (dep, 0., 0.)
-        glTexCoord3d(depth, height, width)
-        glVertex3d(-w/2., -h/2., 0.0)
-
-        depth, height, width = (dep, 0., 1.)
-        glTexCoord3d(depth, height, width)
-        glVertex3d(-w/2., h/2., 0.0)
-
-        depth, height, width = (dep, 1., 1.)
-        glTexCoord3d(depth, height, width)
-        glVertex3f(w/2., h/2., 0.0)
-
-        depth, height, width = (dep, 1., 0)
-        glTexCoord3d(depth, height, width)
-        glVertex3d(w/2., -h/2., 0.0)
-        
-        glEnd()
-        glDisable(GL_TEXTURE_3D)
-        glEndList()
-        self.buzz=list_index
-        """
+    
     def update_quad(self, texcoords, vertcoords):
         self.texcoords = texcoords
         self.vertcoords = vertcoords
@@ -99,9 +66,14 @@ class Texture3D(Actor):
         glEnable(GL_TEXTURE_3D)
         glBindTexture(GL_TEXTURE_3D, self.texture_index.value)
         glBegin(GL_QUADS)        
-        for i in range(4):
-            glTexCoord3d(*tuple(self.texcoords[i]))
-            glVertex3d(*tuple(self.vertcoords[i]))
+        glTexCoord3d(*tuple(self.texcoords[0]))
+        glVertex3d(*tuple(self.vertcoords[0]))
+        glTexCoord3d(*tuple(self.texcoords[1]))
+        glVertex3d(*tuple(self.vertcoords[1]))
+        glTexCoord3d(*tuple(self.texcoords[2]))
+        glVertex3d(*tuple(self.vertcoords[2]))
+        glTexCoord3d(*tuple(self.texcoords[3]))
+        glVertex3d(*tuple(self.vertcoords[3]))
         glEnd()
         glPopMatrix()
         #self.draw_cube()            
@@ -131,7 +103,26 @@ if __name__=='__main__':
     affine=None
     data=(255*np.random.rand(256,256,256)).astype(np.uint8)
     data[:]=255
-    bz=BuzzTex('Buzz', data, affine)
+    volume = np.zeros(data.shape+(3,))
+    volume[...,0] = data.copy()
+    volume[...,1] = data.copy()
+    volume[...,2] = data.copy()
+    volume = volume.astype(np.ubyte)
+    bz=Texture3D('Buzz', volume, affine)
+    w, h, d = volume.shape[:-1]
+    depindex = 100
+    dep = (0.5 + depindex) / np.float(d)
+    texcoords = np.array([  [dep, 0, 0], 
+                            [dep, 0, 1], 
+                            [dep, 1, 1],
+                            [dep, 1, 0] ])
+    vertcoords = np.array( [ [-w/2., -h/2., 0.],
+                            [-w/2., h/2., 0.],
+                            [w/2., h/2., 0.],
+                            [w/2, -h/2., 0] ])
+ 
+    bz.update_quad(texcoords, vertcoords)
+    
 
     title='The invisible BuzzTex'
     w = Window(caption = title, 
@@ -143,37 +134,16 @@ if __name__=='__main__':
                         extent_min = np.array([-5.0, -5, -5]),
                         extent_max = np.array([5, 5 ,5]))
     
-    ax = Axes(name="3 axes", linewidth=2.0)
-    vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
-    ptr = np.array([[.2,.2,.2]], dtype = np.float32)
-    tex = Text3D("Text3D", vert, "Reg", 10, 2, ptr)
-    vert2 = np.array([[10.0,10.0,0.0]], dtype = np.float32)
-    ptr2 = np.array([[.2,.2,.2]], dtype = np.float32)
+    #ax = Axes(name="3 axes", linewidth=2.0)
+    #vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
+    #ptr = np.array([[.2,.2,.2]], dtype = np.float32)
+    #tex = Text3D("Text3D", vert, "Reg", 10, 2, ptr)
+    #vert2 = np.array([[10.0,10.0,0.0]], dtype = np.float32)
+    #ptr2 = np.array([[.2,.2,.2]], dtype = np.float32)
 
-    #tex2 = Text3D("Text3D2", vert, "Differ", 10, 2)
-
-    """
-    def process_pickray(self,near,far):
-        pass
-    
-    def process_mouse_motion(self,x,y,dx,dy):
-        self.mouse_x=x
-        self.mouse_y=y
-    
-
-    from fos import Mesh
-    from dipy.data import get_sphere
-    vertices,faces=get_sphere('symmetric724')       
-    from fos.compgeom.gen_normals import normals_from_vertices_faces
-    normals=normals_from_vertices_faces(vertices,faces)
-    me=Mesh('sphere',
-            vertices.astype('f4'),
-            faces.astype(np.uint32),
-            vertices_normals=normals.astype('f4'))
-    """
-    region.add_actor(ax)
+    #region.add_actor(ax)
     region.add_actor(bz)
-    region.add_actor(tex)
+    #region.add_actor(tex)
     #region.add_actor(tex2)
     #region.add_actor(me)
     #w.screenshot( 'red.png' )
