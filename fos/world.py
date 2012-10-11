@@ -9,7 +9,7 @@ from actor.base import DynamicActor
 
 class Region(object):
 
-    def __init__(self, regionname, transform=None,
+    def __init__(self, regionname="Main", transform=None,
                  extent_min=None, extent_max=None,
                  aabb_color=(1.0, 1.0, 1.0, 1.0),
                  activate_aabb=True):

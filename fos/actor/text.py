@@ -12,8 +12,7 @@ class Text3D(Actor):
                  fontcolor = (1,1,1),  pointercolor = (1,1,1)):
         """ A Text3D actor
         """
-        super(Text3D, self).__init__( name )
-
+        super(Text3D, self).__init__(name)
         self.vertices = location
         self.width = width
         self.height = height
@@ -24,11 +23,11 @@ class Text3D(Actor):
         self.pointercolor = pointercolor
 
         # create freetype bitmap
-        dataAlpha = self.make_bitmap( self.text )
+        dataAlpha = self.make_bitmap(self.text)
         self.data = np.ones( (dataAlpha.shape[0], dataAlpha.shape[1], 4), dtype = np.ubyte)
-        self.data[:,:,0] *= int(255*self.fontcolor[0])
-        self.data[:,:,1] *= int(255*self.fontcolor[1])
-        self.data[:,:,2] *= int(255*self.fontcolor[2])
+        self.data[:,:,0] *= int(255 * self.fontcolor[0])
+        self.data[:,:,1] *= int(255 * self.fontcolor[1])
+        self.data[:,:,2] *= int(255 * self.fontcolor[2])
         self.data[:,:,3] = dataAlpha
 
         # create 2d texture
@@ -40,20 +39,17 @@ class Text3D(Actor):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)      
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data.shape[1], self.data.shape[0], 0, \
-                     GL_RGBA, GL_UNSIGNED_BYTE, self.data_ptr)
-
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data.shape[1], 
+                        self.data.shape[0], 0, GL_RGBA, 
+                        GL_UNSIGNED_BYTE, self.data_ptr)
         glBindTexture(GL_TEXTURE_2D, 0)
 
     def make_bitmap(self, text):
-
         face = Face(get_font( 'Vera' ))
         face.set_char_size( 96*64 ) #48*64 )
         slot = face.glyph
-
         # First pass to compute bbox
         width, height, baseline = 0, 0, 0
         previous = 0
