@@ -108,6 +108,7 @@ class Texture3D(Actor):
         glTexCoord3d(*tuple(self.texcoords[3]))
         glVertex3d(*tuple(self.vertcoords[3]))
         glEnd()
+        glDisable(GL_TEXTURE_3D)
         self.unset_state()
     
     def set_state(self):
@@ -132,20 +133,31 @@ if __name__=='__main__':
     from fos import Window, Region
     from fos.actor import Axes, Text3D
 
+    """
     dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
     fname = dname + 'T1_flirt_out.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
+    data = np.interp(data, [data.min(), data.max()], [0, 255])
     affine = img.get_affine()
+    """
+  
     affine = None
-
+    
+    data = np.zeros((256, 128, 32), np.uint8)
     volume = np.zeros(data.shape+(3,))
     volume[...,0] = data.copy()
     volume[...,1] = data.copy()
     volume[...,2] = data.copy()
     volume = volume.astype(np.ubyte)
+    volume[..., :] = (255, 0 , 0)
+    
+    #volume[] = 
     print volume.shape, volume.min(), volume.max()
 	
+    window = Window()
+    region = Region()
+    
     #volume = data
     tex = Texture3D('Buzz', volume, affine)
     w, h, d = volume.shape[:-1]
@@ -165,10 +177,8 @@ if __name__=='__main__':
     ax = Axes(name="3 axes", linewidth=2.0)
     vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
     ptr = np.array([[.2,.2,.2]], dtype = np.float32)
-    text = Text3D("Text3D", vert, "Reg", 10, 2, ptr)
+    text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
 
-    window = Window()
-    region = Region()
     region.add_actor(tex)
     #region.add_actor(ax)
     region.add_actor(text)
