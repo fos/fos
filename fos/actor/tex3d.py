@@ -35,26 +35,26 @@ class Texture3D(Actor):
         CULLFACE is disabled here otherwise the texture needs to be drawn twice on for GL_FRONT and one for GL_BACK
 
         Texture Coordinates  
-
+                +   +
                 |  /
           T     | / R (depth)
        (height) |/
-                -------- 
+                -------- +
                     S (width)
 
         Data Coordinates
         data[r, t, s] (reverse order)        
 
         World Coordinates
-
+                +  
                 |
               y |
                 |                 
-                ----------
+                ---------- +
                /     x
             z /
              /
-
+            +
         """
         self.name = name
         super(Texture3D, self).__init__(self.name)
@@ -72,7 +72,8 @@ class Texture3D(Actor):
         #self.buzz=self.create_texture(pic,100,100)
 
     def setup_texture(self, volume):
-        WIDTH,HEIGHT,DEPTH = volume.shape[:3]
+        WIDTH, HEIGHT, DEPTH = volume.shape[:3]
+        #HEIGHT, WIDTH, DEPTH = volume.shape[:3]
         #print WIDTH,HEIGHT,DEPTH
         #glActiveTexture(GL_TEXTURE0)
         self.texture_index = c_uint(0)
@@ -124,64 +125,127 @@ class Texture3D(Actor):
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_LIGHTING)
 
+def make_red_bible_image(szx, szy, szz, w):
+    image = np.zeros((szx, szy, szz) + (3,), np.ubyte)
+    for s in range(szx):
+        for t in range(szy):
+            for r in range(szz):
+                image[r, t, s, 0] = np.ubyte(255)
+                image[r, t, s, 1] = 0#np.ubyte(t * 17)
+                image[r, t, s, 2] = 0#np.ubyte(r * 17)
+    hr=szz/2
+    ht=szy/2
+    hs=szx/2
+    #image[hr - w : hr + w, ht - w : ht + w, hs - w : hs + w] = (0, 0, 255)
+    image[hr, ht, hs] = (0, 0, 255)
+    return image
+
+def prepare_volume(data, fill=(255, 255, 255, 255)):
+    vol_shape = (256, 256, 256, 4) 
+    volume = texture_volume(vol_shape, fill) 
+    i, j, k = volume.shape[:3]
+    ci, cj, ck = (i/2, j/2, k/2)
+    di, dj, dk = data.shape    
+    for i in range(3):
+        volume[ ci - di/2 : ci + di/2, \
+                cj - dj/2 : cj + dj/2, \
+                ck - dk/2 : ck + dk/2, i] = data.copy()
+    return volume
+
+
+def texture_volume(shape, fill):
+    volume = np.zeros(shape)
+    volume = volume.astype(np.ubyte)    
+    volume[..., :] = fill #(255, 255 , 255, 255)
+    #w, h, d = volume.shape[:3]
+    #volume[w/2 - 80 : w/2 + 80, h/2 - 20 : h/2 + 20, d/2 - 10 : d/2 + 10, :] = (255, 0, 0, 255)
+    #print volume.shape, volume.min(), volume.max()
+    return volume
+
+def slice_i(i, shape):
+    I, J, K = shape[:3]
+    i = (i + 0.5) / np.float(I)
+    texcoords = np.array([  [0, 0, i], 
+                            [ 0, 1, i], 
+                            [ 1, 1, i],
+                            [1, 0, i] ])
+    vertcoords = np.array([ [-J/2., -K/2., 0.],
+                            [-J/2., K/2., 0.],
+                            [J/2., K/2., 0.],
+                            [J/2, -K/2., 0] ])
+    return texcoords, vertcoords    
+
+
+def slice_j(j, shape):
+    I, J, K = shape[:3]
+    j = (j + 0.5) / np.float(J)
+    texcoords = np.array([  [0, j, 0], 
+                            [ 0, j, 1], 
+                            [ 1, j, 1],
+                            [1, j, 0] ])
+    vertcoords = np.array([ [-I/2., -K/2., 0.],
+                            [-I/2., K/2., 0.],
+                            [I/2., K/2., 0.],
+                            [I/2, -K/2., 0] ])
+    return texcoords, vertcoords    
+
+
+def slice_k(k, shape):
+    I, J, K = shape[:3]
+    k = (k + 0.5) / np.float(K)
+    texcoords = np.array([  [k, 0, 0], 
+                            [k, 0, 1], 
+                            [k, 1, 1],
+                            [k, 1, 0] ])
+    vertcoords = np.array([ [-I/2., -J/2., 0.],
+                            [-I/2., J/2., 0.],
+                            [I/2., J/2., 0.],
+                            [I/2, -J/2., 0] ])
+    return texcoords, vertcoords    
+    
+
 
 if __name__=='__main__':
-
 
     import numpy as np
     import nibabel as nib
     from fos import Window, Region
     from fos.actor import Axes, Text3D
-
-    """
-    dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
-    fname = dname + 'T1_flirt_out.nii.gz'
+    
+    #dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
+    #fname = dname + 'T1_flirt_out.nii.gz'
+    dname = '/usr/share/fsl/data/standard/'
+    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
     data = np.interp(data, [data.min(), data.max()], [0, 255])
-    affine = img.get_affine()
-    """
-  
+    #affine = img.get_affine()  
     affine = None
-    
-    data = np.zeros((256, 128, 32), np.uint8)
-    volume = np.zeros(data.shape+(3,))
-    volume[...,0] = data.copy()
-    volume[...,1] = data.copy()
-    volume[...,2] = data.copy()
-    volume = volume.astype(np.ubyte)
-    volume[..., :] = (255, 0 , 0)
-    
-    #volume[] = 
-    print volume.shape, volume.min(), volume.max()
+
+    volume = prepare_volume(data)
+    i, j, k = volume.shape[:3]
 	
     window = Window()
     region = Region()
     
-    #volume = data
-    tex = Texture3D('Buzz', volume, affine)
-    w, h, d = volume.shape[:-1]
-    depindex = 100
-    dep = (0.5 + depindex) / np.float(d)
-    texcoords = np.array([  [dep, 0, 0], 
-                            [dep, 0, 1], 
-                            [dep, 1, 1],
-                            [dep, 1, 0] ])
-    vertcoords = np.array( [ [-w/2., -h/2., 0.],
-                            [-w/2., h/2., 0.],
-                            [w/2., h/2., 0.],
-                            [w/2, -h/2., 0] ])
- 
+    #volume = np.ascontiguousarray(np.swapaxes(volume, 1, 0))
+    
+    tex = Texture3D('Buzz', volume, affine, type=GL_RGBA, interp=GL_LINEAR)
+
+    #texcoords, vertcoords = slice_i(i/2, volume.shape) 
+    #texcoords, vertcoords = slice_j(j/2, volume.shape) 
+    texcoords, vertcoords = slice_k(k/2, volume.shape) 
+
     tex.update_quad(texcoords, vertcoords)
 
     ax = Axes(name="3 axes", linewidth=2.0)
     vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
     ptr = np.array([[.2,.2,.2]], dtype = np.float32)
-    text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
+    #text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
 
     region.add_actor(tex)
     #region.add_actor(ax)
-    region.add_actor(text)
+    #region.add_actor(text)
     window.add_region(region)
     window.refocus_camera()
 
