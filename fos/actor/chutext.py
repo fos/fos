@@ -5,14 +5,36 @@ from ..vsml import vsml
 from fos.external.freetype import *
 
 from fos.data import get_font
-
-class Text3D(Actor):
-
-    def __init__(self, name, location, text, width, height, targetpoint = None, linewidth = 3.0, \
-                 fontcolor = (1,1,1),  pointercolor = (1,1,1)):
-        """ A Text3D actor
+''' For writting many text at many position at the same time
+'''
+class ChuText3D(Actor):
+    
+    #    def __init__(self, name, numofchu, location, text, width, height, targetpoint = None, linewidth = 3.0, \
+#                 fontcolor = (1,1,1),  pointercolor = (1,1,1)):
+    def __init__(self, name, numchu, location, text, width, height, linewidth, \
+                 fontcolor): #,  pointercolor):#, targetpoint = None):
+    
+        """ A ChuText3D actor
         """
-        super(Text3D, self).__init__(name)
+        super(ChuText3D, self).__init__(name)
+        #self.numofchu = None
+        self.numofchu = numchu        
+        self.vertices = location#np.zeros((self.numofchu,3), dtype = np.float32)
+        self.width = width#np.zeros(self.numofchu, dtype = np.int32)
+        self.height = height#np.zeros(self.numofchu, dtype = np.int32)
+        
+        self.linewidth = linewidth#np.zeros(self.numofchu, dtype = np.int32)
+        self.fontcolor = fontcolor#np.zeros((self.numofchu,3), dtype = np.int32)
+        self.data =[]
+        self.data_ptr =[]
+        self.tex_ptr=[]        
+        self.text = text         
+                          
+        self.setup()
+        
+        
+    def setup(self):        
+        """        
         self.vertices = location
         self.width = width
         self.height = height
@@ -21,31 +43,38 @@ class Text3D(Actor):
         self.linewidth = linewidth
         self.fontcolor = fontcolor
         self.pointercolor = pointercolor
-
+        """
+        for i in range(0,self.numofchu):
         # create freetype bitmap
-        dataAlpha = self.make_bitmap(self.text)
-        self.data = np.ones( (dataAlpha.shape[0], dataAlpha.shape[1], 4), dtype = np.ubyte)
-        self.data[:,:,0] *= int(255 * self.fontcolor[0])
-        self.data[:,:,1] *= int(255 * self.fontcolor[1])
-        self.data[:,:,2] *= int(255 * self.fontcolor[2])
-        self.data[:,:,3] = dataAlpha
+            txt = self.text[i]
+            dataAlpha = self.make_bitmap(txt)
+            temp = np.ones( (dataAlpha.shape[0], dataAlpha.shape[1], 4), dtype = np.ubyte)            
+            temp [:,:,0] *= int(255 * self.fontcolor[i][0])
+            temp[:,:,1] *= int(255 * self.fontcolor[i][1])
+            temp[:,:,2] *= int(255 * self.fontcolor[i][2])
+            temp[:,:,3] = dataAlpha             
+            self.data.append(temp)
+    
+            # create 2d texture
+            self.data_ptr.append( self.data[i].ctypes.data)
+            self.tex_ptr.append(GLuint(0))
+            glGenTextures(1, self.tex_ptr[i])
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+            glBindTexture(GL_TEXTURE_2D, self.tex_ptr[i])
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)      
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data[i].shape[1], 
+                             self.data[i].shape[0], 0, GL_RGBA, 
+                            GL_UNSIGNED_BYTE, self.data_ptr[i])
+            glBindTexture(GL_TEXTURE_2D, 0)
 
-        # create 2d texture
-        self.data_ptr = self.data.ctypes.data
-        self.tex_ptr = GLuint(0)
-        glGenTextures(1, self.tex_ptr)
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-        glBindTexture(GL_TEXTURE_2D, self.tex_ptr)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)      
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data.shape[1], 
-                        self.data.shape[0], 0, GL_RGBA, 
-                        GL_UNSIGNED_BYTE, self.data_ptr)
-        glBindTexture(GL_TEXTURE_2D, 0)
-
+#---------------------------------------------------------------------------------
+    
+    # create a bit map of a text
+    # return the bitmap - array (height and width)
     def make_bitmap(self, text):
         face = Face(get_font( 'Vera' ))
         face.set_char_size( 96*64 ) #48*64 )
@@ -53,7 +82,7 @@ class Text3D(Actor):
         # First pass to compute bbox
         width, height, baseline = 0, 0, 0
         previous = 0
-        for i,c in enumerate(text):
+        for i,c in enumerate(text):            
             face.load_char(c)
             bitmap = slot.bitmap
             height = max(height,
@@ -68,7 +97,8 @@ class Text3D(Actor):
         # Second pass for actual rendering
         x, y = 0, 0
         previous = 0
-        for c in text:
+        
+        for c in text:            
             face.load_char(c)
             bitmap = slot.bitmap
             top = slot.bitmap_top
@@ -77,65 +107,71 @@ class Text3D(Actor):
             y = height-baseline-top
             kerning = face.get_kerning(previous, c)
             x += (kerning.x >> 6)
+#            Z[y:y+h,x:x+w] |= np.reshape(bitmap.buffer,(h,w))
             Z[y:y+h,x:x+w] |= np.array(bitmap.buffer).reshape(h,w)
             x += (slot.advance.x >> 6) # for the last one, use bitmap.width
             previous = c
 
         return Z
 
+
+#-------------------------------------------------------------------------
     def draw(self):
 
-        glEnable( GL_BLEND )
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
-        glEnable(GL_DEPTH_TEST)
-        glActiveTexture(GL_TEXTURE0)
-        glEnable(GL_TEXTURE_2D)
-
-        glBindTexture (GL_TEXTURE_2D, self.tex_ptr)
-
-        if hasattr( vsml, 'camera'):
-            # follow with the camera
-            ri = vsml.camera.get_right()
-            up = vsml.camera.get_yup()
-            lb = (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
-            rb = (self.vertices[0,0]+self.width*ri[0],
-                  self.vertices[0,1]+self.width*ri[1],
-                  self.vertices[0,2]+self.width*ri[2])
-            rt = (self.vertices[0,0]+self.width*ri[0]+self.height*up[0],
-                  self.vertices[0,1]+self.width*ri[1]+self.height*up[1],
-                  self.vertices[0,2]+self.width*ri[2]+self.height*up[2])
-            lt = (self.vertices[0,0]+self.height*up[0],
-                  self.vertices[0,1]+self.height*up[1],
-                  self.vertices[0,2]+self.height*up[2])
-        else:
-            lb = (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
-            rb = (self.vertices[0,0]+self.width, self.vertices[0,1], self.vertices[0,2])
-            rt = (self.vertices[0,0]+self.width, self.vertices[0,1]+self.height, self.vertices[0,2])
-            lt = (self.vertices[0,0], self.vertices[0,1]+self.height, self.vertices[0,2])
-
-        glBegin(GL_QUADS)
-        glTexCoord2f(0.0, 1.0)
-        glVertex3f(*lb)
-
-        glTexCoord2f(1.0, 1.0)
-        glVertex3f(*rb)
-
-        glTexCoord2f(1.0, 0.0)
-        glVertex3f(*rt)
-
-        glTexCoord2f(0.0, 0.0)
-        glVertex3f(*lt)
-
-        glEnd()
+        for i in range(self.numofchu):
         
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_DEPTH_TEST)
-
-        # draw line
-        if not self.targetpoint is None:
-            glLineWidth(self.linewidth)
-            glBegin(GL_LINES)
-            glColor3f(*self.pointercolor)
-            glVertex3f (self.vertices[0,0], self.vertices[0,1], self.vertices[0,2])
-            glVertex3f (self.targetpoint[0,0], self.targetpoint[0,1], self.targetpoint[0,2])
+            glEnable( GL_BLEND )
+            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+            glEnable(GL_DEPTH_TEST)
+            glActiveTexture(GL_TEXTURE0)
+            glEnable(GL_TEXTURE_2D)
+    
+            glBindTexture (GL_TEXTURE_2D, self.tex_ptr[i])
+    
+            if hasattr( vsml, 'camera'):
+                # follow with the camera
+                ri = vsml.camera.get_right()
+                up = vsml.camera.get_yup()
+                lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
+                rb = (self.vertices[i,0]+self.width[i]*ri[0],
+                      self.vertices[i,1]+self.width[i]*ri[1],
+                      self.vertices[i,2]+self.width[i]*ri[2])
+                rt = (self.vertices[i,0]+self.width[i]*ri[0]+self.height[i]*up[0],
+                      self.vertices[i,1]+self.width[i]*ri[1]+self.height[i]*up[1],
+                      self.vertices[i,2]+self.width[i]*ri[2]+self.height[i]*up[2])
+                lt = (self.vertices[i,0]+self.height[i]*up[0],
+                      self.vertices[i,1]+self.height[i]*up[1],
+                      self.vertices[i,2]+self.height[i]*up[2])
+            else:
+                lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
+                rb = (self.vertices[i,0]+self.width, self.vertices[i,1], self.vertices[i,2])
+                rt = (self.vertices[i,0]+self.width, self.vertices[i,1]+self.height, self.vertices[i,0,2])
+                lt = (self.vertices[i,0], self.vertices[i,1]+self.height, self.vertices[i,2])
+    
+            glBegin(GL_QUADS)
+            glTexCoord2f(0.0, 1.0)
+            glVertex3f(*lb)
+    
+            glTexCoord2f(1.0, 1.0)
+            glVertex3f(*rb)
+    
+            glTexCoord2f(1.0, 0.0)
+            glVertex3f(*rt)
+    
+            glTexCoord2f(0.0, 0.0)
+            glVertex3f(*lt)
+    
             glEnd()
+            
+            glDisable(GL_TEXTURE_2D)
+            glDisable(GL_DEPTH_TEST)
+
+            # draw line
+            #if not self.targetpoint is None:            
+            #    if not self.targetpoint[i] is None:
+            #        glLineWidth(self.linewidth[i])
+            #        glBegin(GL_LINES)
+            #        glColor3f(*self.pointercolor[i])
+            #        glVertex3f (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
+            #        glVertex3f (self.targetpoint[i,0], self.targetpoint[i,1], self.targetpoint[i,2])
+            #        glEnd()
