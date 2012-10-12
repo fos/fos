@@ -42,6 +42,7 @@ class Texture3D(Actor):
                 -------- +
                     S (width)
 
+        S T R
         Data Coordinates
         data[r, t, s] (reverse order)        
 
@@ -55,6 +56,8 @@ class Texture3D(Actor):
             z /
              /
             +
+
+        Use imshow imshow(data[/2, :, :, 0], cmap='gray', origin='lower') to see the correspondence.
         """
         self.name = name
         super(Texture3D, self).__init__(self.name)
@@ -89,6 +92,7 @@ class Texture3D(Actor):
                      WIDTH, HEIGHT, DEPTH, 0, 
                      self.type, GL_UNSIGNED_BYTE, 
                      volume.ctypes.data)
+        glBindTexture(GL_TEXTURE_3D, 0)
     
     def update_quad(self, texcoords, vertcoords):
         self.texcoords = texcoords
@@ -109,7 +113,9 @@ class Texture3D(Actor):
         glTexCoord3d(*tuple(self.texcoords[3]))
         glVertex3d(*tuple(self.vertcoords[3]))
         glEnd()
+        glBindTexture(GL_TEXTURE_3D, 0)
         glDisable(GL_TEXTURE_3D)
+
         self.unset_state()
     
     def set_state(self):
@@ -162,45 +168,62 @@ def texture_volume(shape, fill):
     #print volume.shape, volume.min(), volume.max()
     return volume
 
-def slice_i(i, shape):
-    I, J, K = shape[:3]
+def slice_i(i, volshape, datashape):
+    I, J, K = volshape[:3]
+    M, N, O = datashape[:3]  
     i = (i + 0.5) / np.float(I)
-    texcoords = np.array([  [0, 0, i], 
-                            [ 0, 1, i], 
-                            [ 1, 1, i],
-                            [1, 0, i] ])
-    vertcoords = np.array([ [-J/2., -K/2., 0.],
-                            [-J/2., K/2., 0.],
-                            [J/2., K/2., 0.],
-                            [J/2, -K/2., 0] ])
+    j = (J / 2.) / np.float(J)
+    k = (K / 2.) / np.float(K)
+    n = (np.float(N)/2.) / np.float(J) 
+    o = (np.float(O)/2.) / np.float(K)
+    texcoords = np.array([  [k-o, j-n, i], 
+                            [k-o, j+n, i], 
+                            [k+o, j+n, i],
+                            [k+o, j-n, i] ])
+    vertcoords = np.array([ [-O/2., -N/2., 0.],
+                            [-O/2., N/2., 0.],
+                            [O/2., N/2., 0.],
+                            [O/2, -N/2., 0] ])
     return texcoords, vertcoords    
 
 
-def slice_j(j, shape):
-    I, J, K = shape[:3]
+def slice_j(j, volshape, datashape):
+    I, J, K = volshape[:3]
+    M, N, O = datashape[:3]
     j = (j + 0.5) / np.float(J)
-    texcoords = np.array([  [0, j, 0], 
-                            [ 0, j, 1], 
-                            [ 1, j, 1],
-                            [1, j, 0] ])
-    vertcoords = np.array([ [-I/2., -K/2., 0.],
-                            [-I/2., K/2., 0.],
-                            [I/2., K/2., 0.],
-                            [I/2, -K/2., 0] ])
+    i = (I / 2.) / np.float(I)
+    k = (K / 2.) / np.float(K)
+    m = (np.float(M) /2.) / np.float(I)
+    o = (np.float(O) /2.) / np.float(K)
+    
+    texcoords = np.array([  [k-o, j, i-m], 
+                            [k-o, j, i+m], 
+                            [k+o, j, i+m],
+                            [k+o, j, i-m] ])
+    vertcoords = np.array([ [-O/2., -M/2., 0.],
+                            [-O/2., M/2., 0.],
+                            [O/2., M/2., 0.],
+                            [O/2, -M/2., 0] ])
     return texcoords, vertcoords    
 
 
-def slice_k(k, shape):
-    I, J, K = shape[:3]
+def slice_k(k, volshape, datashape):
+    I, J, K = volshape[:3]
+    M, N, O = datashape[:3]
     k = (k + 0.5) / np.float(K)
-    texcoords = np.array([  [k, 0, 0], 
-                            [k, 0, 1], 
-                            [k, 1, 1],
-                            [k, 1, 0] ])
-    vertcoords = np.array([ [-I/2., -J/2., 0.],
-                            [-I/2., J/2., 0.],
-                            [I/2., J/2., 0.],
-                            [I/2, -J/2., 0] ])
+    i = (I / 2.) / np.float(I)
+    j = (K / 2.) / np.float(J)
+    m = (np.float(M) /2.) / np.float(I)
+    n = (np.float(N) /2.) / np.float(J)
+ 
+    texcoords = np.array([  [k, j-n, i-m], 
+                            [k, j-n, i+m], 
+                            [k, j+n, i+m],
+                            [k, j+n, i-m] ])
+    vertcoords = np.array([ [-N/2., -M/2., 0.],
+                            [-N/2., M/2., 0.],
+                            [N/2., M/2., 0.],
+                            [N/2, -M/2., 0] ])
     return texcoords, vertcoords    
     
 
@@ -225,16 +248,16 @@ if __name__=='__main__':
     volume = prepare_volume(data)
     i, j, k = volume.shape[:3]
 	
-    window = Window()
+    window = Window(bgcolor=(0, 0, 0.2))
     region = Region()
     
     #volume = np.ascontiguousarray(np.swapaxes(volume, 1, 0))
     
-    tex = Texture3D('Buzz', volume, affine, type=GL_RGBA, interp=GL_LINEAR)
+    tex = Texture3D('Buzz', volume, affine, type=GL_RGBA, interp=GL_NEAREST)
 
-    #texcoords, vertcoords = slice_i(i/2, volume.shape) 
-    #texcoords, vertcoords = slice_j(j/2, volume.shape) 
-    texcoords, vertcoords = slice_k(k/2, volume.shape) 
+    #texcoords, vertcoords = slice_i(i/2, volume.shape, data.shape) 
+    #texcoords, vertcoords = slice_j(j/2, volume.shape, data.shape) 
+    texcoords, vertcoords = slice_k(k/2, volume.shape, data.shape) 
 
     tex.update_quad(texcoords, vertcoords)
 
