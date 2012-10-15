@@ -13,10 +13,10 @@ class Axes(Actor):
         self.scale = scale
         self.linewidth = linewidth
 
-        self.vertices = np.array( [ [0.0, 0.0, 0.0],[1.0, 0.0, 0.0],
+        self.vertices = self.scale * np.array( [ 
+            [0.0, 0.0, 0.0],[1.0, 0.0, 0.0],
             [0.0, 0.0, 0.0],[0.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0],[0.0, 0.0, 1.0],
-        ], dtype = np.float32 )
+            [0.0, 0.0, 0.0],[0.0, 0.0, 1.0]], dtype = np.float32 )
 
         # x axes arrow
         self.x_cone = Cylinder( "XCone", np.array([0.8,0,0]), np.array([1.1,0,0]), 0.15, 0, 10, color = (1.0, 0, 0, 1.0) )

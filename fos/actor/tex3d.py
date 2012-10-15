@@ -57,27 +57,27 @@ class Texture3D(Actor):
              /
             +
 
-        Use imshow imshow(data[/2, :, :, 0], cmap='gray', origin='lower') to see the correspondence.
+        Use imshow(data[/2, :, :, 0], cmap='gray', origin='lower') to see the correspondence.
         """
         self.name = name
         super(Texture3D, self).__init__(self.name)
-        self.shape = data.shape
+        container = prepare_volume(data)
         self.data = data
+        self.container = container
         self.affine = affine
         self.type = type
         self.interp = interp
         self.mode = mode
+        if self.affine is not None:
+            raise NotImplementedError()
+
         #volume center coordinates
         self.vertices = np.array([[-130, -130, -130], 
                                   [130, 130, 130]])
-        self.setup_texture(self.data)
-        #pic=255*np.ones((100, 100),dtype=np.uint8)
-        #self.buzz=self.create_texture(pic,100,100)
+        self.setup_texture(self.container)
 
     def setup_texture(self, volume):
         WIDTH, HEIGHT, DEPTH = volume.shape[:3]
-        #HEIGHT, WIDTH, DEPTH = volume.shape[:3]
-        #print WIDTH,HEIGHT,DEPTH
         #glActiveTexture(GL_TEXTURE0)
         self.texture_index = c_uint(0)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
@@ -115,7 +115,6 @@ class Texture3D(Actor):
         glEnd()
         glBindTexture(GL_TEXTURE_3D, 0)
         glDisable(GL_TEXTURE_3D)
-
         self.unset_state()
     
     def set_state(self):
@@ -131,27 +130,77 @@ class Texture3D(Actor):
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_LIGHTING)
 
-def make_red_bible_image(szx, szy, szz, w):
-    image = np.zeros((szx, szy, szz) + (3,), np.ubyte)
-    for s in range(szx):
-        for t in range(szy):
-            for r in range(szz):
-                image[r, t, s, 0] = np.ubyte(255)
-                image[r, t, s, 1] = 0#np.ubyte(t * 17)
-                image[r, t, s, 2] = 0#np.ubyte(r * 17)
-    hr=szz/2
-    ht=szy/2
-    hs=szx/2
-    #image[hr - w : hr + w, ht - w : ht + w, hs - w : hs + w] = (0, 0, 255)
-    image[hr, ht, hs] = (0, 0, 255)
-    return image
+    def slice_i(self, i):
+        I, J, K = self.container.shape[:3]
+        M, N, O = self.data.shape[:3] 
+        i = i + I/2 - M/2 
+        i = (i + 0.5) / np.float(I)
+        j = (J / 2.) / np.float(J)
+        k = (K / 2.) / np.float(K)
+        n = (np.float(N)/2.) / np.float(J) 
+        o = (np.float(O)/2.) / np.float(K)
+        texcoords = np.array([  [k-o, j-n, i], 
+                                [k-o, j+n, i], 
+                                [k+o, j+n, i],
+                                [k+o, j-n, i] ])
+        vertcoords = np.array([ [-O/2., -N/2., 0.],
+                                [-O/2., N/2., 0.],
+                                [O/2., N/2., 0.],
+                                [O/2, -N/2., 0] ])
+        return texcoords, vertcoords    
 
-def prepare_volume(data, fill=(255, 255, 255, 255)):
-    vol_shape = (256, 256, 256, 4) 
+
+    def slice_j(self, j):
+        I, J, K = self.container.shape[:3]
+        M, N, O = self.data.shape[:3]
+        j = j + J/2 - N/2 
+        j = (j + 0.5) / np.float(J)
+        i = (I / 2.) / np.float(I)
+        k = (K / 2.) / np.float(K)
+        m = (np.float(M) /2.) / np.float(I)
+        o = (np.float(O) /2.) / np.float(K)
+        
+        texcoords = np.array([  [k-o, j, i-m], 
+                                [k-o, j, i+m], 
+                                [k+o, j, i+m],
+                                [k+o, j, i-m] ])
+        vertcoords = np.array([ [-O/2., -M/2., 0.],
+                                [-O/2., M/2., 0.],
+                                [O/2., M/2., 0.],
+                                [O/2, -M/2., 0] ])
+        return texcoords, vertcoords    
+
+
+    def slice_k(self, k):
+        I, J, K = self.container.shape[:3]
+        M, N, O = self.data.shape[:3]
+        k = k + K/2 - O/2
+        k = (k + 0.5) / np.float(K)
+        i = (I / 2.) / np.float(I)
+        j = (K / 2.) / np.float(J)
+        m = (np.float(M) /2.) / np.float(I)
+        n = (np.float(N) /2.) / np.float(J)
+     
+        texcoords = np.array([  [k, j-n, i-m], 
+                                [k, j-n, i+m], 
+                                [k, j+n, i+m],
+                                [k, j+n, i-m] ])
+        vertcoords = np.array([ [-N/2., -M/2., 0.],
+                                [-N/2., M/2., 0.],
+                                [N/2., M/2., 0.],
+                                [N/2, -M/2., 0] ])
+        return texcoords, vertcoords    
+
+
+def prepare_volume(data, fill=(0, 0, 0, 255)):
+    max_dimension = max(data.shape)
+    pow2 = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024])
+    vol_dim = pow2[np.where(pow2>=max_dimension)[0][0]]
+    vol_shape = 3*(vol_dim,) + (4,) 
     volume = texture_volume(vol_shape, fill) 
     i, j, k = volume.shape[:3]
     ci, cj, ck = (i/2, j/2, k/2)
-    di, dj, dk = data.shape    
+    di, dj, dk = data.shape
     for i in range(3):
         volume[ ci - di/2 : ci + di/2, \
                 cj - dj/2 : cj + dj/2, \
@@ -163,69 +212,8 @@ def texture_volume(shape, fill):
     volume = np.zeros(shape)
     volume = volume.astype(np.ubyte)    
     volume[..., :] = fill #(255, 255 , 255, 255)
-    #w, h, d = volume.shape[:3]
-    #volume[w/2 - 80 : w/2 + 80, h/2 - 20 : h/2 + 20, d/2 - 10 : d/2 + 10, :] = (255, 0, 0, 255)
-    #print volume.shape, volume.min(), volume.max()
     return volume
 
-def slice_i(i, volshape, datashape):
-    I, J, K = volshape[:3]
-    M, N, O = datashape[:3]  
-    i = (i + 0.5) / np.float(I)
-    j = (J / 2.) / np.float(J)
-    k = (K / 2.) / np.float(K)
-    n = (np.float(N)/2.) / np.float(J) 
-    o = (np.float(O)/2.) / np.float(K)
-    texcoords = np.array([  [k-o, j-n, i], 
-                            [k-o, j+n, i], 
-                            [k+o, j+n, i],
-                            [k+o, j-n, i] ])
-    vertcoords = np.array([ [-O/2., -N/2., 0.],
-                            [-O/2., N/2., 0.],
-                            [O/2., N/2., 0.],
-                            [O/2, -N/2., 0] ])
-    return texcoords, vertcoords    
-
-
-def slice_j(j, volshape, datashape):
-    I, J, K = volshape[:3]
-    M, N, O = datashape[:3]
-    j = (j + 0.5) / np.float(J)
-    i = (I / 2.) / np.float(I)
-    k = (K / 2.) / np.float(K)
-    m = (np.float(M) /2.) / np.float(I)
-    o = (np.float(O) /2.) / np.float(K)
-    
-    texcoords = np.array([  [k-o, j, i-m], 
-                            [k-o, j, i+m], 
-                            [k+o, j, i+m],
-                            [k+o, j, i-m] ])
-    vertcoords = np.array([ [-O/2., -M/2., 0.],
-                            [-O/2., M/2., 0.],
-                            [O/2., M/2., 0.],
-                            [O/2, -M/2., 0] ])
-    return texcoords, vertcoords    
-
-
-def slice_k(k, volshape, datashape):
-    I, J, K = volshape[:3]
-    M, N, O = datashape[:3]
-    k = (k + 0.5) / np.float(K)
-    i = (I / 2.) / np.float(I)
-    j = (K / 2.) / np.float(J)
-    m = (np.float(M) /2.) / np.float(I)
-    n = (np.float(N) /2.) / np.float(J)
- 
-    texcoords = np.array([  [k, j-n, i-m], 
-                            [k, j-n, i+m], 
-                            [k, j+n, i+m],
-                            [k, j+n, i-m] ])
-    vertcoords = np.array([ [-N/2., -M/2., 0.],
-                            [-N/2., M/2., 0.],
-                            [N/2., M/2., 0.],
-                            [N/2, -M/2., 0] ])
-    return texcoords, vertcoords    
-    
 
 
 if __name__=='__main__':
@@ -245,19 +233,17 @@ if __name__=='__main__':
     #affine = img.get_affine()  
     affine = None
 
-    volume = prepare_volume(data)
-    i, j, k = volume.shape[:3]
+    #volume = prepare_volume(data)
+    i, j, k = data.shape[:3]
 	
-    window = Window(bgcolor=(0, 0, 0.2))
+    window = Window(bgcolor=(0, 0, 0.6))
     region = Region()
     
-    #volume = np.ascontiguousarray(np.swapaxes(volume, 1, 0))
-    
-    tex = Texture3D('Buzz', volume, affine, type=GL_RGBA, interp=GL_NEAREST)
+    tex = Texture3D('Buzz', data, affine, type=GL_RGBA, interp=GL_LINEAR)
 
-    #texcoords, vertcoords = slice_i(i/2, volume.shape, data.shape) 
-    #texcoords, vertcoords = slice_j(j/2, volume.shape, data.shape) 
-    texcoords, vertcoords = slice_k(k/2, volume.shape, data.shape) 
+    #texcoords, vertcoords = tex.slice_i(i/2) 
+    #texcoords, vertcoords = tex.slice_j(j/2) 
+    texcoords, vertcoords = tex.slice_k(k/2 - 5) 
 
     tex.update_quad(texcoords, vertcoords)
 
