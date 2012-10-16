@@ -132,7 +132,8 @@ class Texture3D(Actor):
 
     def slice_i(self, i):
         I, J, K = self.container.shape[:3]
-        M, N, O = self.data.shape[:3] 
+        M, N, O = self.data.shape[:3]
+        di = i
         i = i + I/2 - M/2 
         i = (i + 0.5) / np.float(I)
         j = (J / 2.) / np.float(J)
@@ -143,15 +144,16 @@ class Texture3D(Actor):
                                 [k-o, j+n, i], 
                                 [k+o, j+n, i],
                                 [k+o, j-n, i] ])
-        vertcoords = np.array([ [-O/2., -N/2., 0.],
-                                [-O/2., N/2., 0.],
-                                [O/2., N/2., 0.],
-                                [O/2, -N/2., 0] ])
+        vertcoords = np.array([ [-O/2., -N/2., di - M/2],
+                                [-O/2., N/2., di - M/2],
+                                [O/2., N/2., di - M/2],
+                                [O/2, -N/2., di - M/2] ])
         return texcoords, vertcoords    
 
     def slice_j(self, j):
         I, J, K = self.container.shape[:3]
         M, N, O = self.data.shape[:3]
+        dj = j
         j = j + J/2 - N/2 
         j = (j + 0.5) / np.float(J)
         i = (I / 2.) / np.float(I)
@@ -163,16 +165,17 @@ class Texture3D(Actor):
                                 [k-o, j, i+m], 
                                 [k+o, j, i+m],
                                 [k+o, j, i-m] ])
-        vertcoords = np.array([ [-O/2., -M/2., 0.],
-                                [-O/2., M/2., 0.],
-                                [O/2., M/2., 0.],
-                                [O/2, -M/2., 0] ])
+        vertcoords = np.array([ [-O/2., -M/2., dj - N/2],
+                                [-O/2., M/2., dj - N/2],
+                                [O/2., M/2., dj - N/2],
+                                [O/2, -M/2., dj - N/2] ])
         return texcoords, vertcoords    
 
 
     def slice_k(self, k):
         I, J, K = self.container.shape[:3]
         M, N, O = self.data.shape[:3]
+        dk = k
         k = k + K/2 - O/2
         k = (k + 0.5) / np.float(K)
         i = (I / 2.) / np.float(I)
@@ -184,10 +187,10 @@ class Texture3D(Actor):
                                 [k, j-n, i+m], 
                                 [k, j+n, i+m],
                                 [k, j+n, i-m] ])
-        vertcoords = np.array([ [-N/2., -M/2., 0.],
-                                [-N/2., M/2., 0.],
-                                [N/2., M/2., 0.],
-                                [N/2, -M/2., 0] ])
+        vertcoords = np.array([ [-N/2., -M/2., dk - O/2],
+                                [-N/2., M/2., dk - O/2],
+                                [N/2., M/2., dk - O/2],
+                                [N/2, -M/2., dk - O/2] ])
         return texcoords, vertcoords    
 
 

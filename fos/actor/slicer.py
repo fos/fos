@@ -28,11 +28,11 @@ class Slicer(Actor):
                                 type=GL_RGBA, interp=GL_LINEAR)
         self.vertices = self.tex.vertices
         self.visible = True
-        self.i, self.j, self.k = self.data.shape[:3]
-        self.texcoords_i, self.vertcoords_i = self.tex.slice_i(self.i/2) 
-        self.texcoords_j, self.vertcoords_j = self.tex.slice_j(self.j/2) 
-        self.texcoords_k, self.vertcoords_k = self.tex.slice_k(self.k/2) 
-        #tex.update_quad(texcoords, vertcoords)
+        self.I, self.J, self.K = self.data.shape[:3]
+        self.i, self.j, self.k = self.I/2, self.J/2, self.K/3
+        self.texcoords_i, self.vertcoords_i = self.tex.slice_i(self.i) 
+        self.texcoords_j, self.vertcoords_j = self.tex.slice_j(self.j) 
+        self.texcoords_k, self.vertcoords_k = self.tex.slice_k(self.k) 
 
         self.show_i = True
         self.show_j = True
@@ -92,15 +92,15 @@ class Slicer(Actor):
 
 if __name__ == '__main__':
 
-    #import nibabel as nib    
-    #dname = '/usr/share/fsl/data/standard/'
-    #fname = dname + 'FMRIB58_FA_1mm.nii.gz'
-    #img=nib.load(fname)
-    #data = img.get_data()
-    #data = np.interp(data, [data.min(), data.max()], [0, 255])
-    data = np.ones((156, 122, 96), dtype=np.ubyte)
-    data = 255*data
-    data[70:100, 70:90, 70:80 ] = 140
+    import nibabel as nib    
+    dname = '/usr/share/fsl/data/standard/'
+    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    img=nib.load(fname)
+    data = img.get_data()
+    data = np.interp(data, [data.min(), data.max()], [0, 255])
+    #data = np.ones((156, 122, 96), dtype=np.ubyte)
+    #data = 255*data
+    #data[70:100, 70:90, 70:80 ] = 140
     window = Window(caption="Interactive Slicer", 
                         bgcolor=(0.4, 0.4, 0.9))
     region = Region(activate_aabb=False)
