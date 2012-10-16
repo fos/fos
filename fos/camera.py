@@ -61,7 +61,7 @@ class SimpleCamera(VSMLCamera):
 
     def setup(self):
         # The lookAt point
-        self.focal = np.array( [0.0, 0.0, 0.0] )
+        self.focal = np.array( [0.0, 0.0, 50.0] )
         # Camera position
         self.location = np.array( [0.0, 0.0, 5.0] )
         # Need complete orientation of the camera, i.e. 3 orthogonal axes
@@ -91,6 +91,8 @@ class SimpleCamera(VSMLCamera):
 
     def get_lookatdir(self):
         a = self.focal - self.location
+        #print self.focal
+        #print self.location
         return a / np.linalg.norm( a )
 
     def get_focal_location_distance(self):
@@ -125,6 +127,7 @@ class SimpleCamera(VSMLCamera):
         # along the look at direction
 
         # TODO: do not move beyond the focal point!
+        #!!!!!!!!!!
         if self.get_focal_location_distance() < 5 and amount > 0:
             return
         

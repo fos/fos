@@ -89,20 +89,19 @@ class Slicer(Actor):
 
 if __name__ == '__main__':
 
-
-    import nibabel as nib
-    
-    dname = '/usr/share/fsl/data/standard/'
-    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
-    img=nib.load(fname)
-    data = img.get_data()
-    data = np.interp(data, [data.min(), data.max()], [0, 255])
-
-    window = Window(caption="Interactive Slicer with Free on Shades", 
+    #import nibabel as nib    
+    #dname = '/usr/share/fsl/data/standard/'
+    #fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    #img=nib.load(fname)
+    #data = img.get_data()
+    #data = np.interp(data, [data.min(), data.max()], [0, 255])
+    data = np.ones((156, 122, 96), dtype=np.ubyte)
+    data = 255*data
+    data[70:100, 70:90, 70:80 ] = 140
+    window = Window(caption="Interactive Slicer", 
                         bgcolor=(0.4, 0.4, 0.9))
     region = Region(activate_aabb=False)
-
-    slicer = Slicer('BuzzTex', data)
+    slicer = Slicer('VolumeSlicer', data)
     region.add_actor(slicer)
     window.add_region(region)
     window.refocus_camera()
