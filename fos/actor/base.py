@@ -37,7 +37,8 @@ class Actor(object):
     def process_messages(self,messages):
         pass
     
-
+    def draw(self):
+        pass
     
 
 class DynamicActor(Actor):

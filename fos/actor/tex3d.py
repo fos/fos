@@ -149,7 +149,6 @@ class Texture3D(Actor):
                                 [O/2, -N/2., 0] ])
         return texcoords, vertcoords    
 
-
     def slice_j(self, j):
         I, J, K = self.container.shape[:3]
         M, N, O = self.data.shape[:3]

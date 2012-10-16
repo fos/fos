@@ -12,48 +12,40 @@ class Line(Actor):
 
     '''
 
-    def __init__(self,name,tracks,colors=None, line_width=2.,affine=None):
-	
+    def __init__(self, name, tracks, colors=None, line_width=2.,affine=None):	
         super(Line, self).__init__(name)
-        #if affine==None:
-        #   self.affine=np.eye(4)
-	#else: self.affine=affine
-	self.tracks_no=len(tracks)
-	self.tracks_len=[len(t) for t in tracks]
-	self.tracks=tracks
-        self.vertices = np.ascontiguousarray(np.concatenate(self.tracks).astype('f4'))        
-	if colors==None:
-        	self.colors = np.ascontiguousarray(np.ones((len(self.vertices),4)).astype('f4'))
-	else:		
-        	self.colors = np.ascontiguousarray(colors.astype('f4'))	
-        self.vptr=self.vertices.ctypes.data
-        self.cptr=self.colors.ctypes.data        
-        self.count=np.array(self.tracks_len, dtype=np.int32)
-        self.first=np.r_[0,np.cumsum(self.count)[:-1]].astype(np.int32)
-        self.firstptr=self.first.ctypes.data
-        self.countptr=self.count.ctypes.data
-        #print self.firstptr
-        #print self.countptr
-        #self.firstptr=pointer(c_int(self.firstptr))
-        #self.countptr=pointer(c_int(self.countptr))
-        self.line_width=line_width
-        self.items=self.tracks_no
-        mn=self.vertices.min()
-	mx=self.vertices.max()
+        self.tracks_no = len(tracks)
+        self.tracks_len = [len(t) for t in tracks]
+        self.tracks = tracks
+        self.vertices = np.ascontiguousarray(np.concatenate(self.tracks).astype('f4'))
+        if colors==None:
+            self.colors = np.ascontiguousarray(np.ones((len(self.vertices),4)).astype('f4'))
+        else:		
+            self.colors = np.ascontiguousarray(colors.astype('f4'))	
+            self.vptr=self.vertices.ctypes.data
+            self.cptr=self.colors.ctypes.data        
+            self.count=np.array(self.tracks_len, dtype=np.int32)
+            self.first=np.r_[0,np.cumsum(self.count)[:-1]].astype(np.int32)
+            self.firstptr=self.first.ctypes.data
+            self.countptr=self.count.ctypes.data
+            #print self.firstptr
+            #print self.countptr
+            #self.firstptr=pointer(c_int(self.firstptr))
+            #self.countptr=pointer(c_int(self.countptr))
+            self.line_width=line_width
+            self.items=self.tracks_no
+            mn=self.vertices.min()
+            mx=self.vertices.max()
     
-    #def update(self, dt):
-    #    pass
-
     def pick(self, x,y):
         print x,y
-
+    
     def draw(self):
-	
-	glEnable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)        
-	glEnable(GL_LINE_SMOOTH)
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)	
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glEnable(GL_LINE_SMOOTH)
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA)
         glLineWidth(self.line_width)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
@@ -66,11 +58,12 @@ class Line(Actor):
                 self.items)
         glPopMatrix()
         glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)      
+        glDisableClientState(GL_VERTEX_ARRAY)
         glLineWidth(1.)
-	glDisable(GL_LINE_SMOOTH)
-	glDisable(GL_BLEND)
-	glDisable(GL_DEPTH_TEST)
+        glDisable(GL_LINE_SMOOTH)
+        glDisable(GL_BLEND)
+        glDisable(GL_DEPTH_TEST)
+
 
 def one_colour_per_line(tracks, colormap):
     """ Colours such that one color from the colormap
@@ -91,7 +84,6 @@ def one_colour_per_line(tracks, colormap):
 
 if __name__ == '__main__':    
 
-    #"""
     tracks=[100*np.random.rand(100,3),100*np.random.rand(20,3)]
     colors=np.ones((120,4))
     colors[0:100,:3]=np.array([1,0,0.])

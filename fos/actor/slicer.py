@@ -40,15 +40,18 @@ class Slicer(Actor):
 
     def slice_i(self, i):
         self.i = i
-        self.texcoords_i, self.vertcoords_i = self.tex.slice_i(i) 
+        self.texcoords_i, self.vertcoords_i = self.tex.slice_i(i)
+        self.draw()
 
     def slice_j(self, j):
         self.j = j
         self.texcoords_j, self.vertcoords_j = self.tex.slice_j(j) 
+        self.draw()
 
     def slice_k(self, k):
         self.k = k
-        self.texcoords_k, self.vertcoords_k = self.tex.slice_k(k)        
+        self.texcoords_k, self.vertcoords_k = self.tex.slice_k(k)
+        self.draw()
 
     def draw(self):
         
