@@ -1,7 +1,7 @@
 import numpy as np
 from pyglet.gl import *
-from .base import Actor
-from ..vsml import vsml
+from fos.actor.base import Actor
+from fos.vsml import vsml
 from fos.external.freetype import *
 
 from fos.data import get_font
@@ -9,22 +9,26 @@ from fos.data import get_font
 '''
 class ChuText3D(Actor):
     
-    #    def __init__(self, name, numofchu, location, text, width, height, targetpoint = None, linewidth = 3.0, \
-#                 fontcolor = (1,1,1),  pointercolor = (1,1,1)):
-    def __init__(self, name, numchu, location, text, width, height, linewidth, \
-                 fontcolor): #,  pointercolor):#, targetpoint = None):
-    
-        """ A ChuText3D actor
-        """
-        super(ChuText3D, self).__init__(name)
-        #self.numofchu = None
-        self.numofchu = numchu        
-        self.vertices = location#np.zeros((self.numofchu,3), dtype = np.float32)
-        self.width = width#np.zeros(self.numofchu, dtype = np.int32)
-        self.height = height#np.zeros(self.numofchu, dtype = np.int32)
+    def __init__(self, name, numchu, location, text, fontcolor):
         
-        self.linewidth = linewidth#np.zeros(self.numofchu, dtype = np.int32)
-        self.fontcolor = fontcolor#np.zeros((self.numofchu,3), dtype = np.int32)
+        """ A ChuText3D actor
+        linewidth,
+        Parameters
+        -----------
+        name: name of an instant of actor
+        numofchu: number of text to be displayed - integer
+        location: array of locations - each text has it own location - array (n,3) - float
+        text: array of text be displayed - array(n) - string        
+        fontcolor: array of color of each text - array (n,3) - float                     
+        """
+        super(ChuText3D, self).__init__(name)      
+        
+        self.numofchu = numchu        
+        self.vertices = location
+        self.width = np.zeros(self.numofchu,dtype=np.int32) 
+        self.height = np.zeros(self.numofchu,dtype=np.int32)    
+                
+        self.fontcolor = fontcolor
         self.data =[]
         self.data_ptr =[]
         self.tex_ptr=[]        
@@ -34,16 +38,6 @@ class ChuText3D(Actor):
         
         
     def setup(self):        
-        """        
-        self.vertices = location
-        self.width = width
-        self.height = height
-        self.text = text
-        self.targetpoint = targetpoint
-        self.linewidth = linewidth
-        self.fontcolor = fontcolor
-        self.pointercolor = pointercolor
-        """
         for i in range(0,self.numofchu):
         # create freetype bitmap
             txt = self.text[i]
@@ -54,10 +48,15 @@ class ChuText3D(Actor):
             temp[:,:,2] *= int(255 * self.fontcolor[i][2])
             temp[:,:,3] = dataAlpha             
             self.data.append(temp)
+            t = dataAlpha.shape           
+            self.height[i] = t[0]/64. #(96,64) - (w,h) is the size of one character in the normal Vera font
+            self.width[i] = t[1]/96.            
     
             # create 2d texture
             self.data_ptr.append( self.data[i].ctypes.data)
             self.tex_ptr.append(GLuint(0))
+
+               
             glGenTextures(1, self.tex_ptr[i])
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glBindTexture(GL_TEXTURE_2D, self.tex_ptr[i])
@@ -69,6 +68,7 @@ class ChuText3D(Actor):
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data[i].shape[1], 
                              self.data[i].shape[0], 0, GL_RGBA, 
                             GL_UNSIGNED_BYTE, self.data_ptr[i])
+                            
             glBindTexture(GL_TEXTURE_2D, 0)
 
 #---------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ class ChuText3D(Actor):
             face.load_char(c)
             bitmap = slot.bitmap
             height = max(height,
-                         bitmap.rows + max(0,-(slot.bitmap_top-bitmap.rows)))
+                         bitmap.rows + max(0,-(slot.bitmap_top-bitmap.rows))) + 1            
             baseline = max(baseline, max(0,-(slot.bitmap_top-bitmap.rows)))
             kerning = face.get_kerning(previous, c)
             width += (slot.advance.x >> 6) + (kerning.x >> 6)
@@ -94,6 +94,7 @@ class ChuText3D(Actor):
 
         Z = np.zeros((height,width), dtype=np.ubyte)
 
+        
         # Second pass for actual rendering
         x, y = 0, 0
         previous = 0
@@ -107,31 +108,33 @@ class ChuText3D(Actor):
             y = height-baseline-top
             kerning = face.get_kerning(previous, c)
             x += (kerning.x >> 6)
-#            Z[y:y+h,x:x+w] |= np.reshape(bitmap.buffer,(h,w))
             Z[y:y+h,x:x+w] |= np.array(bitmap.buffer).reshape(h,w)
             x += (slot.advance.x >> 6) # for the last one, use bitmap.width
             previous = c
-
+       
         return Z
 
 
 #-------------------------------------------------------------------------
     def draw(self):
 
-        for i in range(self.numofchu):
-        
+        for i in range(self.numofchu):    
+            
             glEnable( GL_BLEND )
-            glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
-            glEnable(GL_DEPTH_TEST)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+            glDisable(GL_DEPTH_TEST)
             glActiveTexture(GL_TEXTURE0)
-            glEnable(GL_TEXTURE_2D)
-    
-            glBindTexture (GL_TEXTURE_2D, self.tex_ptr[i])
-    
+            glEnable(GL_TEXTURE_2D)                       
+                     
+            glDisable(GL_LIGHTING)
+            
+            glBindTexture(GL_TEXTURE_2D, self.tex_ptr[i])                  
+            
             if hasattr( vsml, 'camera'):
-                # follow with the camera
+                # follow with the camera                                       
                 ri = vsml.camera.get_right()
                 up = vsml.camera.get_yup()
+                                
                 lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
                 rb = (self.vertices[i,0]+self.width[i]*ri[0],
                       self.vertices[i,1]+self.width[i]*ri[1],
@@ -142,7 +145,7 @@ class ChuText3D(Actor):
                 lt = (self.vertices[i,0]+self.height[i]*up[0],
                       self.vertices[i,1]+self.height[i]*up[1],
                       self.vertices[i,2]+self.height[i]*up[2])
-            else:
+            else:               
                 lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
                 rb = (self.vertices[i,0]+self.width, self.vertices[i,1], self.vertices[i,2])
                 rt = (self.vertices[i,0]+self.width, self.vertices[i,1]+self.height, self.vertices[i,0,2])
@@ -161,17 +164,10 @@ class ChuText3D(Actor):
             glTexCoord2f(0.0, 0.0)
             glVertex3f(*lt)
     
-            glEnd()
+            glEnd()            
+                    
             
             glDisable(GL_TEXTURE_2D)
             glDisable(GL_DEPTH_TEST)
-
-            # draw line
-            #if not self.targetpoint is None:            
-            #    if not self.targetpoint[i] is None:
-            #        glLineWidth(self.linewidth[i])
-            #        glBegin(GL_LINES)
-            #        glColor3f(*self.pointercolor[i])
-            #        glVertex3f (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
-            #        glVertex3f (self.targetpoint[i,0], self.targetpoint[i,1], self.targetpoint[i,2])
-            #        glEnd()
+            #glDisable(GL_BLEND)
+           
