@@ -29,7 +29,7 @@ class Slicer(Actor):
         self.vertices = self.tex.vertices
         self.visible = True
         self.I, self.J, self.K = self.data.shape[:3]
-        self.i, self.j, self.k = self.I/2, self.J/2, self.K/3
+        self.i, self.j, self.k = self.I/2, self.J/2, self.K/2
         self.texcoords_i, self.vertcoords_i = self.tex.slice_i(self.i) 
         self.texcoords_j, self.vertcoords_j = self.tex.slice_j(self.j) 
         self.texcoords_k, self.vertcoords_k = self.tex.slice_k(self.k) 
