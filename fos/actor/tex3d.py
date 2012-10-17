@@ -103,6 +103,8 @@ class Texture3D(Actor):
         glActiveTexture(GL_TEXTURE0)
         glEnable(GL_TEXTURE_3D)
         glBindTexture(GL_TEXTURE_3D, self.texture_index.value)
+        #enable full colour for the texture
+        glColor4f(1., 1., 1, 1.)
         glBegin(GL_QUADS)        
         glTexCoord3d(*tuple(self.texcoords[0]))
         glVertex3d(*tuple(self.vertcoords[0]))
