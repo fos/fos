@@ -3,12 +3,11 @@ from pyglet.gl import *
 from fos.actor.base import Actor
 from fos.vsml import vsml
 from fos.external.freetype import *
-
 from fos.data import get_font
 ''' For writting many text at many position at the same time
 '''
 class ChuText3D(Actor):
-    
+
     def __init__(self, name, numchu, location, text, fontcolor):
         
         """ A ChuText3D actor
@@ -29,6 +28,7 @@ class ChuText3D(Actor):
         self.height = np.zeros(self.numofchu,dtype=np.int32)    
                 
         self.fontcolor = fontcolor
+
         self.data =[]
         self.data_ptr =[]
         self.tex_ptr=[]        
@@ -38,6 +38,7 @@ class ChuText3D(Actor):
         
         
     def setup(self):        
+
         for i in range(0,self.numofchu):
         # create freetype bitmap
             txt = self.text[i]
@@ -51,12 +52,12 @@ class ChuText3D(Actor):
             t = dataAlpha.shape           
             self.height[i] = t[0]/64. #(96,64) - (w,h) is the size of one character in the normal Vera font
             self.width[i] = t[1]/96.            
+
     
             # create 2d texture
             self.data_ptr.append( self.data[i].ctypes.data)
             self.tex_ptr.append(GLuint(0))
 
-               
             glGenTextures(1, self.tex_ptr[i])
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             glBindTexture(GL_TEXTURE_2D, self.tex_ptr[i])
@@ -68,7 +69,6 @@ class ChuText3D(Actor):
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.data[i].shape[1], 
                              self.data[i].shape[0], 0, GL_RGBA, 
                             GL_UNSIGNED_BYTE, self.data_ptr[i])
-                            
             glBindTexture(GL_TEXTURE_2D, 0)
 
 #---------------------------------------------------------------------------------
@@ -85,8 +85,8 @@ class ChuText3D(Actor):
         for i,c in enumerate(text):            
             face.load_char(c)
             bitmap = slot.bitmap
-            height = max(height,
-                         bitmap.rows + max(0,-(slot.bitmap_top-bitmap.rows))) + 1            
+            height = max(height, bitmap.rows + max(0,-(slot.bitmap_top-bitmap.rows))) + 1            
+
             baseline = max(baseline, max(0,-(slot.bitmap_top-bitmap.rows)))
             kerning = face.get_kerning(previous, c)
             width += (slot.advance.x >> 6) + (kerning.x >> 6)
@@ -94,7 +94,7 @@ class ChuText3D(Actor):
 
         Z = np.zeros((height,width), dtype=np.ubyte)
 
-        
+
         # Second pass for actual rendering
         x, y = 0, 0
         previous = 0
@@ -112,11 +112,13 @@ class ChuText3D(Actor):
             x += (slot.advance.x >> 6) # for the last one, use bitmap.width
             previous = c
        
+
         return Z
 
 
 #-------------------------------------------------------------------------
     def draw(self):
+
 
         for i in range(self.numofchu):    
             
@@ -135,6 +137,7 @@ class ChuText3D(Actor):
                 ri = vsml.camera.get_right()
                 up = vsml.camera.get_yup()
                                 
+
                 lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
                 rb = (self.vertices[i,0]+self.width[i]*ri[0],
                       self.vertices[i,1]+self.width[i]*ri[1],
@@ -145,7 +148,9 @@ class ChuText3D(Actor):
                 lt = (self.vertices[i,0]+self.height[i]*up[0],
                       self.vertices[i,1]+self.height[i]*up[1],
                       self.vertices[i,2]+self.height[i]*up[2])
+
             else:               
+
                 lb = (self.vertices[i,0], self.vertices[i,1], self.vertices[i,2])
                 rb = (self.vertices[i,0]+self.width, self.vertices[i,1], self.vertices[i,2])
                 rt = (self.vertices[i,0]+self.width, self.vertices[i,1]+self.height, self.vertices[i,0,2])
@@ -164,8 +169,7 @@ class ChuText3D(Actor):
             glTexCoord2f(0.0, 0.0)
             glVertex3f(*lt)
     
-            glEnd()            
-                    
+            glEnd()                                
             
             glDisable(GL_TEXTURE_2D)
             glDisable(GL_DEPTH_TEST)

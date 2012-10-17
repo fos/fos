@@ -5,11 +5,13 @@ from fos import *
 import string
 import random
 
+
 w = Window( bgcolor = (0,0,0) )
 
 region = Region( regionname = "Main",
                  extent_min = np.array( [-5.0, -5, -5] ),
                  extent_max = np.array( [5, 5, 5] ) )
+
 
 
 
@@ -49,6 +51,7 @@ vert = np.array( [[-5.0,0.0,2.0],[5.0,0.0,2.0],
 fontcolor = [(0,1,0),(0,1,0),(1,0,0),(1,0,0),(0,0,1),(0,0,1)]
 
 tex = ChuText3D("ChuText3D",6, vert, ["Left", "Right","Superior","Interior","Anterior", "Posterior"],fontcolor)
+
 #, pointercolor)#,ptr)
 
 region.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
