@@ -37,7 +37,7 @@ mytransform = Transform3D(np.eye(4))
 mytransform.set_scale(-1, -1, 1)
 #mytransform.set_scale(0.01, 0.01, 0.01)
 
-region = Region( regionname = "Main", transform = mytransform)
+scene = Scene( scenename = "Main", transform = mytransform)
 
 act = Microcircuit(
     name="Testcircuit",
@@ -56,13 +56,13 @@ act = Microcircuit(
     global_deselect_alpha=0.1
 )
 
-region.add_actor( act )
-region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
+scene.add_actor( act )
+scene.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
 #values = np.ones( (len(vertices_location)) ) * 0.1
-#region.add_actor( Scatter( "MySphere", vertices_location[:,0], vertices_location[:,1], vertices_location[:,2], values, iterations = 2 ) )
+#scene.add_actor( Scatter( "MySphere", vertices_location[:,0], vertices_location[:,1], vertices_location[:,2], values, iterations = 2 ) )
 
-w.add_region ( region )
+w.add_scene ( scene )
 
 act.deselect_all()
 

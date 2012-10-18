@@ -5,7 +5,7 @@ from pylab import cm
 
 w = Window( width = 1200, height = 800, bgcolor = (0,0,0) )
 
-region = Region( regionname = "Main",
+scene = Scene( scenename = "Main",
                  extent_min = np.array( [-5.0, -5, -5] ),
                  extent_max = np.array( [5, 5, 5] )  )
 
@@ -30,8 +30,8 @@ vert = np.array( [ [8,0,0],[12,5,0],[12,10,0], [0,4, 2]], dtype = np.float32 )
 conn = np.array( [[ 0, 1, 2, 3 ]], dtype = np.uint32 )
 mesh2 = Mesh( "Quad", vertices = vert, connectivity = conn, vertices_colors = colors )
 
-region.add_actor( mesh1 )
-region.add_actor( mesh2 )
+scene.add_actor( mesh1 )
+scene.add_actor( mesh2 )
 
-w.add_region ( region )
+w.add_scene ( scene )
 w.refocus_camera()

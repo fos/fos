@@ -4,7 +4,7 @@ from fos import *
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 vert = np.array( [ [0,0,0], # skeleton node
                    [5,5,0], # skeleton node
@@ -77,10 +77,10 @@ act = Microcircuit(
     skeleton_linewidth=30.0
 )
 
-region.add_actor( act )
-region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
+scene.add_actor( act )
+scene.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
-w.add_region ( region )
+w.add_scene ( scene )
 
 act.deselect_all()
 

@@ -404,7 +404,7 @@ class Skeleton(Actor):
         self.program.bind()
 
         # we just retrieve the matrices from vsml. they are
-        # updated from the Region's transformation
+        # updated from the Scene's transformation
         self.program.setUniformValueArray( self.projMatrix,
             QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
             16 )
@@ -516,7 +516,7 @@ class Skeleton(Actor):
         self.program.bind()
 
         # we just retrieve the matrices from vsml. they are
-        # updated from the Region's transformation
+        # updated from the Scene's transformation
         self.program.setUniformValueArray( self.projMatrix,
             QMatrix4x4( tuple(vsml.projection.ravel().tolist()) ),
             16 )

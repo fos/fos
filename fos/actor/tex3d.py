@@ -224,7 +224,7 @@ if __name__=='__main__':
 
     import numpy as np
     import nibabel as nib
-    from fos import Window, Region
+    from fos import Window, Scene
     from fos.actor import Axes, Text3D
     
     #dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
@@ -241,7 +241,7 @@ if __name__=='__main__':
     i, j, k = data.shape[:3]
 	
     window = Window(bgcolor=(0, 0, 0.6))
-    region = Region()
+    scene = Scene()
     
     tex = Texture3D('Buzz', data, affine, type=GL_RGBA, interp=GL_LINEAR)
 
@@ -256,10 +256,10 @@ if __name__=='__main__':
     ptr = np.array([[.2,.2,.2]], dtype = np.float32)
     #text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
 
-    region.add_actor(tex)
-    #region.add_actor(ax)
-    #region.add_actor(text)
-    window.add_region(region)
+    scene.add_actor(tex)
+    #scene.add_actor(ax)
+    #scene.add_actor(text)
+    window.add_scene(scene)
     window.refocus_camera()
 
 

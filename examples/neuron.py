@@ -19,13 +19,13 @@ colors[:,3] = 1.0
 
 w = Window()
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 act = Skeleton( name = "Neuron",
                 vertices = pos,
                 connectivity = connectivity,
                 connectivity_colors=colors) #, radius = radius)
 
 
-region.add_actor( act )
-w.add_region( region )
+scene.add_actor( act )
+w.add_scene( scene )
 w.refocus_camera()

@@ -4,7 +4,7 @@ from fos import *
 
 w = Window( bgcolor = (0,0,0) )
 
-region = Region( regionname = "Main",
+scene = Scene( scenename = "Main",
                  extent_min = np.array( [-5.0, -5, -5] ),
                  extent_max = np.array( [5, 5, 5] ) )
 
@@ -13,8 +13,8 @@ ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
 
 tex = Text3D( "Text3D", vert, "Left", 40, 10, ptr)
 
-region.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
-region.add_actor( tex )
+scene.add_actor( Axes( name = "3 axes", linewidth = 2.0) )
+scene.add_actor( tex )
 
-w.add_region ( region )
+w.add_scene ( scene )
 w.refocus_camera()

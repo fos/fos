@@ -99,18 +99,18 @@ class Window(QtGui.QWidget):
     def test_actor(self):
         ''' Dummy test function
         '''
-        region = Region( regionname = 'Main',
+        scene = Scene( scenename = 'Main',
                          extent_min = np.array( [-5.0, -5, -5] ),
                          extent_max = np.array( [5, 5, 5] ) )
         sphere = Sphere( 'MySphere', radius = 2, iterations = 2 )
-        region.add_actor( sphere )
-        self.add_region( region )
+        scene.add_actor( sphere )
+        self.add_scene( scene )
         self.refocus_camera()
         self.glWidget.updateGL()
     """
 
-    def add_region(self, region):
-        self.glWidget.world.add_region( region )
+    def add_scene(self, scene):
+        self.glWidget.world.add_scene( scene )
 
     def set_camera(self, camera):
         self.glWidget.world.camera = camera

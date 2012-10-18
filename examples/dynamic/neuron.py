@@ -23,14 +23,14 @@ colors[:,3] = 1.0
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 act = DynamicSkeleton( name = "Neuron",
                 vertices = pos,
                 connectivity = connectivity,
                 connectivity_colors=colors) #, radius = radius)
 
-region.add_actor( act )
-w.add_region( region )
+scene.add_actor( act )
+w.add_scene( scene )
 w.refocus_camera()
 
 act.play()

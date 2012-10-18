@@ -18,7 +18,7 @@ con_prob = {
 }
 
 w = Window( )
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 act = Microcircuit(
     name = "Testcircuit",
@@ -28,9 +28,9 @@ act = Microcircuit(
     connectivity_properties = con_prob,
     #connectivity_colormap = conn_color_map
 )
-region.add_actor( act )
-region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
+scene.add_actor( act )
+scene.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
-w.add_region ( region )
+w.add_scene ( scene )
 
 w.refocus_camera()

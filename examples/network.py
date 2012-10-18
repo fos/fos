@@ -4,7 +4,7 @@ from fos import *
 
 w = Window()
 
-region = Region( regionname = "Main",
+scene = Scene( scenename = "Main",
                  extent_min = np.array( [-5.0, -5, -5] ),
                  extent_max = np.array( [5, 5, 5] ) )
 
@@ -19,6 +19,6 @@ conn = np.array( [ [0, 1],
 
 val = np.array( [ 1.0, 5.0, 10.0, 5.0], dtype = np.float32 )
 
-region.add_actor( Network( "MyNetwork", vertices = vert, edges = conn, values = val  ) )
+scene.add_actor( Network( "MyNetwork", vertices = vert, edges = conn, values = val  ) )
 
-w.add_region ( region )
+w.add_scene ( scene )

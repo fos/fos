@@ -102,7 +102,7 @@ if __name__ == '__main__':
     """
 
     streamlines = Line('fornix',tracks,colors,line_width=2)
-    from fos import Window, Region
+    from fos import Window, Scene
     from fos.actor.axes import Axes
     from fos.actor.text import Text3D
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                 width = 1200, 
                 height = 800, 
                 bgcolor = (0.,0.,0.2) )
-    region = Region( regionname = 'Main',
+    scene = Scene( scenename = 'Main',
                         extent_min = np.array([-5.0, -5, -5]),
                         extent_max = np.array([5, 5 ,5]))
     
@@ -121,11 +121,11 @@ if __name__ == '__main__':
     ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
     tex = Text3D( "Text3D", vert, "Reg", 10, 2, ptr)
 
-    region.add_actor(ax)
-    region.add_actor(tex)
-    region.add_actor(streamlines)
+    scene.add_actor(ax)
+    scene.add_actor(tex)
+    scene.add_actor(streamlines)
     #w.screenshot( 'red.png' )
-    w.add_region(region)
+    w.add_scene(scene)
     w.refocus_camera()
 
 

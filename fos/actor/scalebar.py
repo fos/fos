@@ -11,7 +11,7 @@ class ScaleBar(object):
         # - color
         # - text (aligned with up-direction vector)
         # - type; double-arrow, bar, ...
-        # - could compute euclidian distance and display value with Region unit
+        # - could compute euclidian distance and display value with Scene unit
         #   needs to consider perspective transformation to be accurate, maybe orthogonal perspective
-        #   would require a reference to the region it belongs to
+        #   would require a reference to the scene it belongs to
         #   would exist along the three axes

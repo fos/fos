@@ -4,7 +4,7 @@ from fos import *
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 vert = np.array( [ [0,0,0],
                    [5,5,0],
@@ -35,9 +35,9 @@ act = Skeleton( name = "Skeleton",
                 connectivity_ID = sel,
                 connectivity_radius = rad )
 
-region.add_actor( act )
+scene.add_actor( act )
 
-w.add_region( region )
+w.add_scene( scene )
 w.refocus_camera()
 
 act.deselect()

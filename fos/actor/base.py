@@ -14,7 +14,7 @@ class Actor(object):
         self.selected = False
 
         # affine transformation of the actor
-        # relative to the Region it is associated with
+        # relative to the Scene it is associated with
         self.transformation = None
 
     def show(self):

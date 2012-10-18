@@ -2,7 +2,7 @@ import numpy as np
 import nibabel as nib
 #fos modules
 from fos import Actor
-from fos import Window, Region
+from fos import Window, Scene
 from fos.actor import Axes, Text3D
 from fos.modelmat import screen_to_model
 import fos.interact.collision as cll
@@ -534,7 +534,7 @@ if __name__ == '__main__':
                 height = 800, 
                 bgcolor = (0.,0.,0.2) )
 
-    region = Region( regionname = 'Main',
+    scene = Scene( scenename = 'Main',
                         extent_min = np.array([-5.0, -5, -5]),
                         extent_max = np.array([5, 5 ,5]))
     
@@ -544,11 +544,11 @@ if __name__ == '__main__':
     ptr = np.array( [[.2,.2,.2]], dtype = np.float32 )
     tex = Text3D( "Text3D", vert, "(0,0,0)", 10*2.5, 10*.5, ptr)
 
-    #region.add_actor(ax)
-    #region.add_actor(tex)
-    region.add_actor(tl)
-    #region.add_actor(streamlines)
+    #scene.add_actor(ax)
+    #scene.add_actor(tex)
+    scene.add_actor(tl)
+    #scene.add_actor(streamlines)
     #w.screenshot( 'red.png' )
-    w.add_region(region)
+    w.add_scene(scene)
     w.refocus_camera()
 

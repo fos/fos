@@ -1,5 +1,5 @@
 import numpy as np
-from fos import Actor, Region, Window
+from fos import Actor, Scene, Window
 from fos.actor.tex3d import Texture3D
 from fos.actor.axes import Axes
 from pyglet.gl import *
@@ -103,14 +103,14 @@ if __name__ == '__main__':
     #data[70:100, 70:90, 70:80 ] = 140
     window = Window(caption="Interactive Slicer", 
                         bgcolor=(0.4, 0.4, 0.9))
-    region = Region(activate_aabb=False)
+    scene = Scene(activate_aabb=False)
     slicer = Slicer('VolumeSlicer', data)
-    region.add_actor(slicer)
-    window.add_region(region)
+    scene.add_actor(slicer)
+    window.add_scene(scene)
     window.refocus_camera()
     
     #ax = Axes(name="3 axes", scale=200, linewidth=10.0)
-    #region.add_actor(ax)
+    #scene.add_actor(ax)
     
 
 

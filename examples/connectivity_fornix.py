@@ -45,7 +45,7 @@ radii= np.random.randint(1,10,len(connectivity)).astype('f4')
 radii = np.ascontiguousarray(radii[:,None],'f4')
 
 w = Window(caption='Free on shades')
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 
 act = Skeleton( name = "Tractography",
@@ -56,6 +56,6 @@ act = Skeleton( name = "Tractography",
                #connectivity_radius = radii)
 
 
-region.add_actor( act )
-w.add_region( region )
+scene.add_actor( act )
+w.add_scene( scene )
 w.refocus_camera()

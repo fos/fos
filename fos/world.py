@@ -7,38 +7,38 @@ from vsml import vsml
 from actor.base import DynamicActor
 
 
-class Region(object):
+class Scene(object):
 
-    def __init__(self, regionname="Main", transform=None,
+    def __init__(self, scenename="Main", transform=None,
                  extent_min=None, extent_max=None,
                  aabb_color=(1.0, 1.0, 1.0, 1.0),
                  activate_aabb=True):
-        """Create a Region which is a spatial reference system
+        """Create a Scene which is a spatial reference system
         and acts as a container for Actors presenting datasets.
 
         Parameters
         ----------
-        regionname : str
-            The unique name of the Region
+        scenename : str
+            The unique name of the Scene
         transform : fos.transform.Transform3D
-            The affine transformation of the Region, defining
+            The affine transformation of the Scene, defining
             origo and the axes orientation, i.e. the local coordinate
-            system of the Region
+            system of the Scene
         extent_min, extent_max : two 3x1 numpy.array
-            Defines the minimum and maximum extent of the Region along
+            Defines the minimum and maximum extent of the Scene along
             all three axes. This implicitly defines an
             axis-aligned bounding box which can be overwritten by the
             addition of Actors bigger then the extent and calling the
-            update() function of the Region
+            update() function of the Scene
 
         Notes
         -----
-        Regions can be overlapping
+        Scenes can be overlapping
 
         """
-        super(Region, self).__init__()
+        super(Scene, self).__init__()
 
-        self.regionname = regionname
+        self.scenename = scenename
         self.aabb_color = aabb_color
         self.activate_aabb = activate_aabb
         if transform is None:
@@ -60,12 +60,12 @@ class Region(object):
             self.extent_max = None
 
     def get_centroid(self, apply_transform = True):
-        """Returns the centroid of the Region.
+        """Returns the centroid of the Scene.
 
         Parameters
         ----------
         apply_transform : bool
-            Applies the Region affine transformation to the centroid
+            Applies the Scene affine transformation to the centroid
             
         """
         if not self.extent_min is None and not self.extent_max is None:
@@ -99,7 +99,7 @@ class Region(object):
     def update_extent(self):
         """
         Loop over all contained actors and query for the min/max extent
-        and update the Region's extent accordingly
+        and update the Scene's extent accordingly
         """
         for name, actor in self.actors.items():
             if not self.extent_min is None:
@@ -131,7 +131,7 @@ class Region(object):
     def add_actor(self, actor, trigger_update = True):
         if isinstance( actor, Actor ):
             if actor.name in self.actors:
-                print("Actor {0} already exist in Region {1}".format(actor.name, self.regionname) )
+                print("Actor {0} already exist in Scene {1}".format(actor.name, self.scenename) )
             else:
                 self.actors[actor.name] = actor
                 self.update()
@@ -144,14 +144,14 @@ class Region(object):
                 del self.actors[actor.name]
                 self.update()
             else:
-                print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
+                print("Actor {0} does not exist in Scene {1}".format(actor.name, self.scenename) )
         elif isinstance( actor, str ):
             # actor is the unique name of the actor
             if actor in self.actors:
                 del self.actors[actor]
                 self.update()
             else:
-                print("Actor {0} does not exist in Region {1}".format(actor.name, self.regionname) )
+                print("Actor {0} does not exist in Scene {1}".format(actor.name, self.scenename) )
         else:
             print("Not a valid Actor instance or actor name.")
 
@@ -166,7 +166,7 @@ class Region(object):
                 actor.previous()
 
     def draw_actors(self):
-        """ Draw all visible actors in the region
+        """ Draw all visible actors in the scene
         """
         for k, actor in self.actors.items():
             if actor.visible:
@@ -174,7 +174,7 @@ class Region(object):
                 actor.draw()
 
     def pick_actors(self, x, y):
-        """ Pick all visible actors in the region
+        """ Pick all visible actors in the scene
         """
         for k, actor in self.actors.items():
             if actor.visible:
@@ -190,7 +190,7 @@ class Region(object):
 class World(object):
 
     def __init__(self):
-        self.regions = {}
+        self.scenes = {}
         self.set_camera( SimpleCamera() )
         self.light = None
 
@@ -200,11 +200,11 @@ class World(object):
     def update_lightposition(self, x, y, z):
         self.light.update_lightposition(x, y, z)
 
-    def add_region(self, region):
-        if region.regionname in self.regions:
-            print("Region {0} already exist.".format(region.regionname))
+    def add_scene(self, scene):
+        if scene.scenename in self.scenes:
+            print("Scene {0} already exist.".format(scene.scenename))
         else:
-            self.regions[region.regionname] = region
+            self.scenes[scene.scenename] = scene
 
     def set_camera(self, camera):
         self.camera = camera
@@ -216,22 +216,22 @@ class World(object):
         return self.camera
 
     def refocus_camera(self):
-        # loop over all regions, get global min, max, centroid
+        # loop over all scenes, get global min, max, centroid
         # set focus point to average, and location to centroid + 2x(max-min).z
 
-        centroids = np.zeros( (len(self.regions), 3), dtype = np.float32 )
-        maxextent = np.zeros( (len(self.regions), 3), dtype = np.float32 )
-        minextent = np.zeros( (len(self.regions), 3), dtype = np.float32 )
+        centroids = np.zeros( (len(self.scenes), 3), dtype = np.float32 )
+        maxextent = np.zeros( (len(self.scenes), 3), dtype = np.float32 )
+        minextent = np.zeros( (len(self.scenes), 3), dtype = np.float32 )
         
-        for i, region in enumerate(self.regions.items()):
-            centroids[i,:] = region[1].get_centroid()
-            maxextent[i,:] = region[1].get_extent_max()
-            minextent[i,:] = region[1].get_extent_min()
+        for i, scene in enumerate(self.scenes.items()):
+            centroids[i,:] = scene[1].get_centroid()
+            maxextent[i,:] = scene[1].get_extent_max()
+            minextent[i,:] = scene[1].get_extent_min()
 
         newfoc = centroids.mean( axis = 0 )
         self.camera.set_focal( newfoc )
         newloc = newfoc.copy()
-        # move along z axes sufficiently far to see all the regions
+        # move along z axes sufficiently far to see all the scenes
         # TODO: better
         dist = maxextent.max( axis = 0 ) - minextent.min( axis = 0 )
         newloc[2] += dist[0] 
@@ -239,25 +239,25 @@ class World(object):
         self.camera.update()
 
     def nextTimeFrame(self):
-        for k, region in self.regions.items():
-            region.nextTimeFrame()
+        for k, scene in self.scenes.items():
+            scene.nextTimeFrame()
 
     def previousTimeFrame(self):
-        for k, region in self.regions.items():
-            region.previousTimeFrame()
+        for k, scene in self.scenes.items():
+            scene.previousTimeFrame()
 
     def pick_all(self, x, y):
-        """ Calls the pick function on all Regions
+        """ Calls the pick function on all Scenes
         """
         self.camera.draw()
-        for k, region in self.regions.items():
-            # use transformation matrix of the region to setup the modelview
+        for k, scene in self.scenes.items():
+            # use transformation matrix of the scene to setup the modelview
             vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) 
             vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, 
-                                region.transform.get_transform_numpy() )
+                                scene.transform.get_transform_numpy() )
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(vsml.get_modelview())
-            region.pick_actors( x, y )
+            scene.pick_actors( x, y )
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
             
@@ -265,21 +265,21 @@ class World(object):
         """ Draw all actors
         """
         self.camera.draw()
-        for k, region in self.regions.items():
-            # use transformation matrix of the region to setup the modelview
+        for k, scene in self.scenes.items():
+            # use transformation matrix of the scene to setup the modelview
             vsml.pushMatrix( vsml.MatrixTypes.MODELVIEW ) # in fact, push the camera modelview
             vsml.multMatrix( vsml.MatrixTypes.MODELVIEW, 
-                    region.transform.get_transform_numpy() )
+                    scene.transform.get_transform_numpy() )
             glMatrixMode(GL_MODELVIEW)
             glLoadMatrixf(vsml.get_modelview())
-            region.draw_actors()
+            scene.draw_actors()
             # take back the old camera modelview
             vsml.popMatrix( vsml.MatrixTypes.MODELVIEW )
 
     def send_all_messages(self,messages):
-        #print 'regions.items',self.regions.items
-        #print self.regions.items()
-        for regname,region in self.regions.items():
-            #print 'Region name ',regname
-            region.send_messages(messages)
+        #print 'scenes.items',self.scenes.items
+        #print self.scenes.items()
+        for regname,scene in self.scenes.items():
+            #print 'Scene name ',regname
+            scene.send_messages(messages)
             #print 

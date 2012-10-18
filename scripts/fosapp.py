@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Example integrating an IPython kernel into a GUI App with fos
 
-A `foswin` variable exists in the IPython namespace where you can add Regions
+A `foswin` variable exists in the IPython namespace where you can add Scenes
 and Actors.
 
 """

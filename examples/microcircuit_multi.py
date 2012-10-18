@@ -59,7 +59,7 @@ con[(2*lenc)+nc:, 1] = np.arange(0,nc) + 2*lpos # to
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 conn_color_map = {
     1 : np.array([[0.0, 1.0, 1.0, 1.0]]),
@@ -92,10 +92,10 @@ act = Microcircuit(
     connectivity_properties = connectivity_properties,
     connectivity_colormap = conn_color_map
 )
-region.add_actor( act )
-region.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
+scene.add_actor( act )
+scene.add_actor( Axes( name = "3 axes", linewidth = 5.0) )
 
-w.add_region( region )
+w.add_scene( scene )
 
 act.deselect_all( 0.2 )
 #act.select_skeleton( [101], 1.0 )

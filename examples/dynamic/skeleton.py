@@ -4,7 +4,7 @@ from fos import *
 
 w = Window( dynamic = True )
 
-region = Region( regionname = "Main" )
+scene = Scene( scenename = "Main" )
 
 vert = np.array( [ [0,0,0],
                    [5,5,0],
@@ -31,8 +31,8 @@ act = DynamicSkeleton( name = "Dynamic Skeleton",
                 connectivity_colors = colt,
                 extruded = False )
 
-region.add_actor( act )
+scene.add_actor( act )
 
-w.add_region( region )
+w.add_scene( scene )
 
 # act.play()
