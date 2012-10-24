@@ -1,3 +1,4 @@
+from app import Init, Run 
 from window import *
 from actor import *
 from transform import *

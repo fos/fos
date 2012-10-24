@@ -57,9 +57,3 @@ class Axes(Actor):
         if self.light_state:
             glEnable(GL_LIGHTING)
 
-class CartesianAxes(object):
-
-    def __init__(self):
-            """ Actor displaying the three cartesian, orthogonal coordinates
-            """
-            pass
