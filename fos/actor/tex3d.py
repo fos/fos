@@ -68,8 +68,6 @@ class Texture3D(Actor):
         self.type = type
         self.interp = interp
         self.mode = mode
-        if self.affine is not None:
-            raise NotImplementedError()
 
         #volume center coordinates
         self.vertices = np.array([[-130, -130, -130], 
@@ -146,11 +144,22 @@ class Texture3D(Actor):
                                 [k-o, j+n, i], 
                                 [k+o, j+n, i],
                                 [k+o, j-n, i] ])
-        vertcoords = np.array([ [-O/2., -N/2., di - M/2],
-                                [-O/2., N/2., di - M/2],
-                                [O/2., N/2., di - M/2],
-                                [O/2, -N/2., di - M/2] ])
-        return texcoords, vertcoords    
+
+        if self.affine is None:
+            vertcoords = np.array([ [-O/2., -N/2., di - M/2],
+                                    [-O/2., N/2., di - M/2],
+                                    [O/2., N/2., di - M/2],
+                                    [O/2, -N/2., di - M/2] ])
+        else:
+            imcoords = np.array([[0, 0, di], 
+                                 [0, N, di],
+                                 [O, N, di],
+                                 [O, 0, di]]) #+ .5
+
+            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
+            vertcoords = vertcoords.T + self.affine[:3, 3]
+        
+        return texcoords, vertcoords
 
     def slice_j(self, j):
         I, J, K = self.container.shape[:3]
@@ -167,12 +176,21 @@ class Texture3D(Actor):
                                 [k-o, j, i+m], 
                                 [k+o, j, i+m],
                                 [k+o, j, i-m] ])
-        vertcoords = np.array([ [-O/2., -M/2., dj - N/2],
-                                [-O/2., M/2., dj - N/2],
-                                [O/2., M/2., dj - N/2],
-                                [O/2, -M/2., dj - N/2] ])
-        return texcoords, vertcoords    
+        if self.affine is None:
+            vertcoords = np.array([ [-O/2., -M/2., dj - N/2],
+                                    [-O/2., M/2., dj - N/2],
+                                    [O/2., M/2., dj - N/2],
+                                    [O/2, -M/2., dj - N/2] ])
+        else:
+            imcoords = np.array([[0, dj, 0],
+                                [0, dj, M],
+                                [O, dj, M],
+                                [O, dj, 0]]) #+ .5
 
+            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
+            vertcoords = vertcoords.T + self.affine[:3, 3]
+        
+        return texcoords, vertcoords    
 
     def slice_k(self, k):
         I, J, K = self.container.shape[:3]
@@ -189,10 +207,21 @@ class Texture3D(Actor):
                                 [k, j-n, i+m], 
                                 [k, j+n, i+m],
                                 [k, j+n, i-m] ])
-        vertcoords = np.array([ [-N/2., -M/2., dk - O/2],
-                                [-N/2., M/2., dk - O/2],
-                                [N/2., M/2., dk - O/2],
-                                [N/2, -M/2., dk - O/2] ])
+
+        if self.affine is None:
+            vertcoords = np.array([ [-N/2., -M/2., dk - O/2],
+                                    [-N/2., M/2., dk - O/2],
+                                    [N/2., M/2., dk - O/2],
+                                    [N/2, -M/2., dk - O/2] ])
+        else:
+            imcoords = np.array([ [dk, 0., 0], 
+                                 [dk, 0., M],
+                                 [dk, N, M],
+                                 [dk, N, 0] ]) #+ .5
+
+            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
+            vertcoords = vertcoords.T + self.affine[:3, 3]
+            
         return texcoords, vertcoords    
 
 
@@ -205,10 +234,11 @@ def prepare_volume(data, fill=(0, 0, 0, 255)):
     i, j, k = volume.shape[:3]
     ci, cj, ck = (i/2, j/2, k/2)
     di, dj, dk = data.shape
+    
     for i in range(3):
-        volume[ ci - di/2 : ci + di/2, \
-                cj - dj/2 : cj + dj/2, \
-                ck - dk/2 : ck + dk/2, i] = data.copy()
+        volume[ ci - di/2 : ci + di - di/2, \
+                cj - dj/2 : cj + dj - dj/2, \
+                ck - dk/2 : ck + dk - dk/2, i] = data.copy()
     return volume
 
 

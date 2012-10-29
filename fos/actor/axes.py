@@ -30,6 +30,7 @@ class Axes(Actor):
     def draw(self):
 
         glDisable(GL_LIGHTING)
+        glEnable(GL_DEPTH_TEST)
 
         self.x_cone.draw()
         self.y_cone.draw()

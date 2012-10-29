@@ -4,6 +4,7 @@ from fos.actor.tex3d import Texture3D
 from fos.actor.axes import Axes
 from pyglet.gl import *
 
+
 class Slicer(Actor):
     def __init__(self, name, data, affine=None):
         """ Volume Slicer
@@ -14,11 +15,6 @@ class Slicer(Actor):
         data : array, (X, Y, Z) or (X, Y, Z, 3) or (X, Y, Z, 4)
         affine : not implemented (default None)
 
-        Notes
-        ------
-        Coordinate Systems
-        http://www.grahamwideman.com/gw/brain/orientation/orientterms.htm
-        http://www.slicer.org/slicerWiki/index.php/Coordinate_systems
         """
 
         self.name = name
@@ -58,8 +54,8 @@ class Slicer(Actor):
         if self.show_i: 
             #i Slice
             glPushMatrix()
-            glRotatef(90, 0., 1., 0)
-            glRotatef(90, 0., 0., 1.)
+            #glRotatef(90, 0., 1., 0)
+            #glRotatef(90, 0., 0., 1.)
             self.tex.update_quad(self.texcoords_i, self.vertcoords_i)
             self.tex.set_state()
             self.tex.draw()
@@ -69,8 +65,8 @@ class Slicer(Actor):
         #j Slice
         if self.show_j:
             glPushMatrix()
-            glRotatef(180, 0., 1., 0) # added for fsl convention
-            glRotatef(90, 0., 0., 1.)
+            #glRotatef(180, 0., 1., 0) # added for fsl convention
+            #glRotatef(90, 0., 0., 1.)
             self.tex.update_quad(self.texcoords_j, self.vertcoords_j)
             self.tex.set_state()
             self.tex.draw()
@@ -80,9 +76,9 @@ class Slicer(Actor):
         if self.show_k:
             #k Slice
             glPushMatrix()
-            glRotatef(90, 1., 0, 0.)
-            glRotatef(90, 0., 0., 1)
-            glRotatef(180, 1., 0., 0.) # added for fsl
+            #glRotatef(90, 1., 0, 0.)
+            #glRotatef(90, 0., 0., 1)
+            #glRotatef(180, 1., 0., 0.) # added for fsl
             self.tex.update_quad(self.texcoords_k, self.vertcoords_k)
             self.tex.set_state()
             self.tex.draw()
@@ -95,17 +91,36 @@ if __name__ == '__main__':
     import nibabel as nib    
     dname = '/usr/share/fsl/data/standard/'
     fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+
+    dname = '/home/eg309/Data/111104/subj_05/'
+    fname = dname + '101_32/DTI/fa.nii.gz'
+ 
     img=nib.load(fname)
     data = img.get_data()
+    affine = img.get_affine()
+    data[np.isnan(data)] = 0
+
     data = np.interp(data, [data.min(), data.max()], [0, 255])
+    data = data.astype(np.ubyte)
     #data = np.ones((156, 122, 96), dtype=np.ubyte)
     #data = 255*data
     #data[70:100, 70:90, 70:80 ] = 140
     window = Window(caption="Interactive Slicer", 
                         bgcolor=(0.4, 0.4, 0.9))
     scene = Scene(activate_aabb=False)
-    slicer = Slicer('VolumeSlicer', data)
+
+    from nibabel.orientations import aff2axcodes
+
+    if aff2axcodes(affine) == ('L', 'A', 'S'):
+        las2ras = np.eye(4)
+        las2ras[0, 0] = -1
+        affine = np.dot(las2ras, affine)
+        assert aff2axcodes(affine) == ('R', 'A', 'S')
+
+    from fos.actor.axes import Axes
+    slicer = Slicer('VolumeSlicer', data, affine)
     scene.add_actor(slicer)
+    scene.add_actor(Axes('GL Axes', 200))
     window.add_scene(scene)
     window.refocus_camera()
     
