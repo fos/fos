@@ -1,4 +1,3 @@
-from PySide import QtCore
 
 class Actor(object):
 
@@ -54,6 +53,7 @@ class DynamicActor(Actor):
 
         # the reference to the first time frame
         self.current_time_frame = 0
+        from PySide import QtCore
 
         # init timer
         self.timer = QtCore.QTimer( None )
