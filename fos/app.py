@@ -2,7 +2,9 @@ import sys
 try:
     from PySide import QtGui
 except ImportError:
-    raise ImportError('PySide is not installed')
+    #raise ImportError('PySide is not installed')
+    print('PySide is not installed')
+
 
 
 def Init():
