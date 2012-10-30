@@ -154,7 +154,7 @@ class Texture3D(Actor):
             imcoords = np.array([[0, 0, di], 
                                  [0, N, di],
                                  [O, N, di],
-                                 [O, 0, di]]) #+ .5
+                                 [O, 0, di]]) 
 
             vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
             vertcoords = vertcoords.T + self.affine[:3, 3]

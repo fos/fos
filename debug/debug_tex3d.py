@@ -58,12 +58,12 @@ if __name__ == '__main__':
     import nibabel as nib
     from fos.actor.tex3d import Texture3D
 
-    volume = 255*np.ones((128, 128, 128) + (3,), dtype=np.ubyte)
+    volume = 255*np.ones((128, 128, 128), dtype=np.ubyte)
     print volume.shape, volume.min(), volume.max()
     affine = None
     
     tex = Texture3D('Buzz', volume, affine, type=GL_RGB)
-    w, h, d = volume.shape[:-1]
+    w, h, d = volume.shape[:3]
     depindex = 100
     dep = (0.5 + depindex) / np.float(d)
     texcoords = np.array([  [dep, 0, 0], 

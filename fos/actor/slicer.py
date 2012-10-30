@@ -86,11 +86,22 @@ class Slicer(Actor):
             glPopMatrix()
         
 
+def rotation_matrix(axis, theta_degree):
+    theta = 1. * theta_degree * np.pi / 180.
+    axis = 1. * axis / np.sqrt(np.dot(axis,axis))
+    a = np.cos(theta / 2)
+    b, c, d = - axis * np.sin(theta / 2)
+    return np.array([[a*a + b*b - c*c - d*d, 2*(b*c - a*d), 2*(b*d + a*c)],
+                     [2*(b*c + a*d), a*a + c*c - b*b - d*d, 2*(c*d - a*b)],
+                     [2*(b*d - a*c), 2*(c*d + a*b), a*a + d*d - b*b - c*c]])
+
+
 if __name__ == '__main__':
 
     import nibabel as nib    
-    dname = '/usr/share/fsl/data/standard/'
-    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    
+    #dname = '/usr/share/fsl/data/standard/'
+    #fname = dname + 'FMRIB58_FA_1mm.nii.gz'
 
     dname = '/home/eg309/Data/111104/subj_05/'
     fname = dname + '101_32/DTI/fa.nii.gz'
@@ -111,16 +122,35 @@ if __name__ == '__main__':
 
     from nibabel.orientations import aff2axcodes
 
+    np.set_printoptions(2, suppress = True)
     if aff2axcodes(affine) == ('L', 'A', 'S'):
+        print affine
         las2ras = np.eye(4)
         las2ras[0, 0] = -1
+        affine[:3, 3] = 0
+        print affine
         affine = np.dot(las2ras, affine)
-        assert aff2axcodes(affine) == ('R', 'A', 'S')
+        print affine
+        #affine[0, 0] = 1
+        #affine[1, 1] = 1
+        #affine[2, 2] = 1
+        #affine[:3, 3] = - np.array([27.5, 48., 48.]) * 2.5 
+        affine[:3, 3] = - (np.array(data.shape[:3][::-1]) / 2.) * np.diag(affine)[:3][::-1]
+        print affine
+        #affine[0, 3] += 2.5
+        #print affine
+        #assert aff2axcodes(affine) == ('R', 'A', 'S')
+        A = np.eye(4)
+        A[:3, :3] = rotation_matrix(np.array([1, 0., 0.]), -90)
+        B = np.eye(4)
+        B[:3, :3] = rotation_matrix(np.array([0, 0, 1.]), -90)
+        affine = np.dot(B, np.dot(A, affine))
+        print affine
 
     from fos.actor.axes import Axes
     slicer = Slicer('VolumeSlicer', data, affine)
     scene.add_actor(slicer)
-    scene.add_actor(Axes('GL Axes', 200))
+    #scene.add_actor(Axes('GL Axes', 200))
     window.add_scene(scene)
     window.refocus_camera()
     
