@@ -150,14 +150,6 @@ class Texture3D(Actor):
                                     [-O/2., N/2., di - M/2],
                                     [O/2., N/2., di - M/2],
                                     [O/2, -N/2., di - M/2] ])
-        else:
-            imcoords = np.array([[0, 0, di], 
-                                 [0, N, di],
-                                 [O, N, di],
-                                 [O, 0, di]]) 
-
-            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
-            vertcoords = vertcoords.T + self.affine[:3, 3]
         
         return texcoords, vertcoords
 
@@ -181,14 +173,6 @@ class Texture3D(Actor):
                                     [-O/2., M/2., dj - N/2],
                                     [O/2., M/2., dj - N/2],
                                     [O/2, -M/2., dj - N/2] ])
-        else:
-            imcoords = np.array([[0, dj, 0],
-                                [0, dj, M],
-                                [O, dj, M],
-                                [O, dj, 0]]) #+ .5
-
-            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
-            vertcoords = vertcoords.T + self.affine[:3, 3]
         
         return texcoords, vertcoords    
 
@@ -213,14 +197,6 @@ class Texture3D(Actor):
                                     [-N/2., M/2., dk - O/2],
                                     [N/2., M/2., dk - O/2],
                                     [N/2, -M/2., dk - O/2] ])
-        else:
-            imcoords = np.array([ [dk, 0., 0], 
-                                 [dk, 0., M],
-                                 [dk, N, M],
-                                 [dk, N, 0] ]) #+ .5
-
-            vertcoords = np.dot(self.affine[:3, :3], imcoords.T)
-            vertcoords = vertcoords.T + self.affine[:3, 3]
             
         return texcoords, vertcoords    
 
@@ -249,6 +225,58 @@ def texture_volume(shape, fill):
     return volume
 
 
+def ijktoras(ijk, data_shape, affine, container_shape, vol_viz = True):
+    """
+    Parameters
+    ----------
+    ijk : array, shape (N, 3)
+    data : array, shape (X, Y, Z)
+    container : array, shape (X'>X, Y'>Y, Z'>Z)
+    vol_viz : bool
+
+    Examples
+    --------
+    >>> ijktoras(np.array([[90., 126, 72.],[91., 109., 91.]]).T, data, affine, np.zeros(3*(256,)), False)
+    array([[  0.,  -1.],
+        [  0., -17.],
+        [  0.,  19.],
+        [  1.,   1.]])
+
+    """
+
+    from nibabel.affines import from_matvec
+
+    ijk = ijk.T
+
+    ijk1 = np.vstack((ijk, np.ones(ijk.shape[1])))
+    
+    if vol_viz:
+
+        KJI = from_matvec(np.flipud(np.eye(3)), [0, 0, 0])
+        
+        di, dj, dk = data_shape[:3]
+        ci, cj, ck = container_shape[:3]
+
+        CON = from_matvec(np.eye(3), [ci / 2 - di / 2, 
+                                      cj / 2 - dj / 2, 
+                                      ck / 2 - dk / 2])
+
+        xyz1 = np.dot(affine, np.dot(CON, np.dot(KJI, ijk1)))
+        ras2las = np.eye(4)
+        ras2las[0, 0] = -1
+        xyz1 = np.dot(ras2las, xyz1)
+        xyz = xyz1[:-1, :]
+        tex1 = np.dot(CON, np.dot(KJI, ijk1))
+        tex = tex1[:-1, :] / container_shape[0]
+
+    else:
+
+        xyz1 = np.dot(affine, ijk1)
+        xyz = xyz1[:-1, :]
+        tex = None
+
+    return xyz.T, tex.T
+
 
 if __name__=='__main__':
 
@@ -259,35 +287,78 @@ if __name__=='__main__':
     
     #dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
     #fname = dname + 'T1_flirt_out.nii.gz'
+    #dname = '/home/eg309/Data/111104/subj_05/'
+    #fname = dname + '101_32/DTI/fa.nii.gz'
     dname = '/usr/share/fsl/data/standard/'
     fname = dname + 'FMRIB58_FA_1mm.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
+    data[np.isnan(data)] = 0
     data = np.interp(data, [data.min(), data.max()], [0, 255])
-    #affine = img.get_affine()  
-    affine = None
+    affine = img.get_affine()  
+    #affine = None
 
     #volume = prepare_volume(data)
-    i, j, k = data.shape[:3]
+    I, J, K = data.shape[:3]
 	
-    window = Window(bgcolor=(0, 0, 0.6))
-    scene = Scene()
+    window = Window(bgcolor = (0, 0, 0.6))
+    scene = Scene(activate_aabb = False)
     
-    tex = Texture3D('Buzz', data, affine, type=GL_RGBA, interp=GL_LINEAR)
+    texi = Texture3D('i', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
+    texj = Texture3D('j', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
+    texk = Texture3D('k', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
 
-    #texcoords, vertcoords = tex.slice_i(i/2) 
-    #texcoords, vertcoords = tex.slice_j(j/2) 
-    texcoords, vertcoords = tex.slice_k(k/2 - 5) 
+    #texcoords, vertcoords = tex.slice_i(I/2) 
+    #texcoords, vertcoords = tex.slice_j(J/2) 
+    #texcoords, vertcoords = tex.slice_k(K/2 - 5)
 
-    tex.update_quad(texcoords, vertcoords)
+    container_size = 256
 
-    ax = Axes(name="3 axes", linewidth=2.0)
+    centershift, _ = ijktoras(np.array([[I/2., J/2., K/2.]]), data.shape,
+                            affine, 3*(container_size,), True)
+
+    i = I/2.
+    imgcoords = np.array([[i, 0, 0], 
+                          [i, 0, K], 
+                          [i, J, K], 
+                          [i, J, 0]], dtype='f8')
+    vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
+                                        affine, 3*(container_size,), True)
+    vertcoords = vertcoords - centershift
+    texi.update_quad(texcoords, vertcoords)
+    
+    j = J/2.
+    imgcoords = np.array([[0, j, 0], 
+                          [0, j, K], 
+                          [I, j, K], 
+                          [I, j, 0]], dtype='f8')
+    
+    vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
+                                        affine, 3*(container_size,), True)
+    vertcoords = vertcoords - centershift
+    texj.update_quad(texcoords, vertcoords)
+
+    k = K/2.
+    imgcoords = np.array([[0, 0, k], 
+                          [0, J, k], 
+                          [I, J, k], 
+                          [I, 0, k]], dtype='f8')
+
+    vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
+                                        affine, 3*(container_size,), True)
+    
+    vertcoords = vertcoords - centershift
+    texk.update_quad(texcoords, vertcoords)
+
+    ax = Axes(name="3 axes", scale=200, linewidth=2.0)
     vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
     ptr = np.array([[.2,.2,.2]], dtype = np.float32)
     #text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
 
-    scene.add_actor(tex)
-    #scene.add_actor(ax)
+    scene.add_actor(texi)
+    scene.add_actor(texj)
+    scene.add_actor(texk)
+    scene.add_actor(ax)
     #scene.add_actor(text)
     window.add_scene(scene)
     window.refocus_camera()
