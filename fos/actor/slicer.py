@@ -20,8 +20,7 @@ class Slicer(Actor):
         self.name = name
         self.data = data
         self.affine = affine 
-        self.tex = Texture3D('Buzz', self.data, self.affine, 
-                                type=GL_RGBA, interp=GL_LINEAR)
+        self.tex = Texture3D('Buzz', self.data, self.affine, interp='linear')
         self.vertices = self.tex.vertices
         self.visible = True
         self.I, self.J, self.K = self.data.shape[:3]
@@ -100,11 +99,11 @@ if __name__ == '__main__':
 
     import nibabel as nib    
     
-    #dname = '/usr/share/fsl/data/standard/'
-    #fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    dname = '/usr/share/fsl/data/standard/'
+    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
 
-    dname = '/home/eg309/Data/111104/subj_05/'
-    fname = dname + '101_32/DTI/fa.nii.gz'
+    #dname = '/home/eg309/Data/111104/subj_05/'
+    #fname = dname + '101_32/DTI/fa.nii.gz'
  
     img=nib.load(fname)
     data = img.get_data()
@@ -148,7 +147,7 @@ if __name__ == '__main__':
         print affine
 
     from fos.actor.axes import Axes
-    slicer = Slicer('VolumeSlicer', data, affine)
+    slicer = Slicer('VolumeSlicer', data, affine=None)
     scene.add_actor(slicer)
     #scene.add_actor(Axes('GL Axes', 200))
     window.add_scene(scene)

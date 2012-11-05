@@ -15,22 +15,30 @@ import numpy as np
 from ctypes import *
 from pyglet.gl import *
 from fos import Actor
+from nibabel.affines import from_matvec
 
 
 class Texture3D(Actor):
 
     def __init__(self, name, data, affine, 
-                    type=GL_RGB, interp=GL_NEAREST, mode=GL_CLAMP):
+                    interp='nearest', mode='clamp'):
         """ creates a 3D Texture
         
         Parameters
         ----------
         name : str
-        affine : array, shape (4,4), image affine                
-        data : array, shape (X,Y,Z), data volume
+        affine : array, shape (4, 4), image affine                
+        data : array, dtype ubyte,
+                shape (X, Y, Z), grayscale
+                or shape (X, Y, Z, 3), rgb
+                or shape (X, Y, Z, 4), rgba
+        interp : str,
+                nearest or linear
+        mode : str,
+                clamp
         
         Notes
-        ---------                
+        ------                
         http://content.gpwiki.org/index.php/OpenGL:Tutorials:3D_Textures
         CULLFACE is disabled here otherwise the texture needs to be drawn twice on for GL_FRONT and one for GL_BACK
 
@@ -65,13 +73,24 @@ class Texture3D(Actor):
         self.data = data
         self.container = container
         self.affine = affine
-        self.type = type
-        self.interp = interp
-        self.mode = mode
 
-        #volume center coordinates
+        if data.ndim == 3:
+            self.type = GL_LUMINANCE
+        if data.ndim == 4:
+            if data.shape[-1] == 3:
+                self.type = GL_RGB
+            if data.shape[-1] == 4:
+                self.type = GL_RGBA
+        if interp == 'linear':
+            self.interp = GL_LINEAR
+        if interp == 'nearest':
+            self.interp = GL_NEAREST
+        if mode == 'clamp':
+            self.mode = GL_CLAMP
+
         self.vertices = np.array([[-130, -130, -130], 
                                   [130, 130, 130]])
+        
         self.setup_texture(self.container)
 
     def setup_texture(self, volume):
@@ -151,7 +170,7 @@ class Texture3D(Actor):
                                     [O/2., N/2., di - M/2],
                                     [O/2, -N/2., di - M/2] ])
         
-        return texcoords, vertcoords
+            return texcoords, vertcoords
 
     def slice_j(self, j):
         I, J, K = self.container.shape[:3]
@@ -174,7 +193,7 @@ class Texture3D(Actor):
                                     [O/2., M/2., dj - N/2],
                                     [O/2, -M/2., dj - N/2] ])
         
-        return texcoords, vertcoords    
+            return texcoords, vertcoords    
 
     def slice_k(self, k):
         I, J, K = self.container.shape[:3]
@@ -198,32 +217,46 @@ class Texture3D(Actor):
                                     [N/2., M/2., dk - O/2],
                                     [N/2, -M/2., dk - O/2] ])
             
-        return texcoords, vertcoords    
+            return texcoords, vertcoords    
 
 
-def prepare_volume(data, fill=(0, 0, 0, 255)):
+def prepare_volume(data, fill=None):
+    """ add data in a container of size power of 2
+    """
+
+    if fill == None:
+        if data.ndim == 4:
+            if data.shape[-1] == 3:
+                fill = (0, 0, 0)
+            if data.shape[-1] == 4:
+                fill = (0, 0, 0, 255)
+        if data.ndim == 3:
+            fill = 0
+
     max_dimension = max(data.shape)
     pow2 = np.array([4, 8, 16, 32, 64, 128, 256, 512, 1024])
-    vol_dim = pow2[np.where(pow2>=max_dimension)[0][0]]
-    vol_shape = 3*(vol_dim,) + (4,) 
-    volume = texture_volume(vol_shape, fill) 
+    vol_dim = pow2[np.where(pow2 >= max_dimension)[0][0]]
+    
+    if data.ndim == 4:
+        volume = np.zeros(3 * (vol_dim,) + data.shape[-1])
+    if data.ndim == 3:
+        volume = np.zeros(3 * (vol_dim,))
+
+    volume = volume.astype(np.ubyte)
+    
+    if data.ndim >= 3:
+        volume[..., :] = fill 
+
     i, j, k = volume.shape[:3]
     ci, cj, ck = (i/2, j/2, k/2)
-    di, dj, dk = data.shape
+    di, dj, dk = data.shape[:3]
     
-    for i in range(3):
+    if data.ndim >= 3:
         volume[ ci - di/2 : ci + di - di/2, \
                 cj - dj/2 : cj + dj - dj/2, \
-                ck - dk/2 : ck + dk - dk/2, i] = data.copy()
+                ck - dk/2 : ck + dk - dk/2] = data.copy()
+
     return volume
-
-
-def texture_volume(shape, fill):
-    volume = np.zeros(shape)
-    volume = volume.astype(np.ubyte)    
-    volume[..., :] = fill #(255, 255 , 255, 255)
-    return volume
-
 
 def ijktoras(ijk, data_shape, affine, container_shape, vol_viz = True):
     """
@@ -244,8 +277,6 @@ def ijktoras(ijk, data_shape, affine, container_shape, vol_viz = True):
 
     """
 
-    from nibabel.affines import from_matvec
-
     ijk = ijk.T
 
     ijk1 = np.vstack((ijk, np.ones(ijk.shape[1])))
@@ -261,22 +292,24 @@ def ijktoras(ijk, data_shape, affine, container_shape, vol_viz = True):
                                       cj / 2 - dj / 2, 
                                       ck / 2 - dk / 2])
 
-        xyz1 = np.dot(affine, np.dot(CON, np.dot(KJI, ijk1)))
+        xyz1 = np.dot(affine, np.dot(KJI, np.dot(CON, ijk1)))
         ras2las = np.eye(4)
         ras2las[0, 0] = -1
         xyz1 = np.dot(ras2las, xyz1)
         xyz = xyz1[:-1, :]
-        tex1 = np.dot(CON, np.dot(KJI, ijk1))
+        tex1 = np.dot(KJI, np.dot(CON, ijk1))
         tex = tex1[:-1, :] / container_shape[0]
+        return xyz.T, tex.T
 
     else:
 
         xyz1 = np.dot(affine, ijk1)
+        #ras2las = np.eye(4)
+        #ras2las[0, 0] = -1
+        #xyz1 = np.dot(ras2las, xyz1)
         xyz = xyz1[:-1, :]
         tex = None
-
-    return xyz.T, tex.T
-
+        return xyz.T, tex
 
 if __name__=='__main__':
 
@@ -287,81 +320,76 @@ if __name__=='__main__':
     
     #dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
     #fname = dname + 'T1_flirt_out.nii.gz'
-    #dname = '/home/eg309/Data/111104/subj_05/'
-    #fname = dname + '101_32/DTI/fa.nii.gz'
+    dname = '/home/eg309/Data/111104/subj_05/'
+    fname = dname + '101_32/DTI/fa.nii.gz'
     dname = '/usr/share/fsl/data/standard/'
     fname = dname + 'FMRIB58_FA_1mm.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
     data[np.isnan(data)] = 0
     data = np.interp(data, [data.min(), data.max()], [0, 255])
-    affine = img.get_affine()  
+    data = data.astype(np.ubyte)
+    affine = img.get_affine() 
+    print data.shape
     #affine = None
 
     #volume = prepare_volume(data)
     I, J, K = data.shape[:3]
 	
-    window = Window(bgcolor = (0, 0, 0.6))
+    window = Window(caption='[F]OS',bgcolor = (0, 0, 0.6))
     scene = Scene(activate_aabb = False)
     
-    texi = Texture3D('i', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
-    texj = Texture3D('j', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
-    texk = Texture3D('k', data, affine=None, type=GL_RGBA, interp=GL_LINEAR)
+    texi = Texture3D('i', data, affine=None, interp='linear')
+    texj = Texture3D('j', data, affine=None, interp='linear')
+    texk = Texture3D('k', data, affine=None, interp='linear')
 
-    #texcoords, vertcoords = tex.slice_i(I/2) 
-    #texcoords, vertcoords = tex.slice_j(J/2) 
-    #texcoords, vertcoords = tex.slice_k(K/2 - 5)
-
-    container_size = 256
+    container_size = texi.container.shape[0]
 
     centershift, _ = ijktoras(np.array([[I/2., J/2., K/2.]]), data.shape,
-                            affine, 3*(container_size,), True)
+                            affine, 3 * (container_size,), True)
 
-    i = I/2.
+    i = I / 2.
     imgcoords = np.array([[i, 0, 0], 
                           [i, 0, K], 
                           [i, J, K], 
                           [i, J, 0]], dtype='f8')
     vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
-                                        affine, 3*(container_size,), True)
+                                        affine, 3 * (container_size,), True)
+    
     vertcoords = vertcoords - centershift
     texi.update_quad(texcoords, vertcoords)
     
-    j = J/2.
+    j = J / 2.
     imgcoords = np.array([[0, j, 0], 
                           [0, j, K], 
                           [I, j, K], 
                           [I, j, 0]], dtype='f8')
     
     vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
-                                        affine, 3*(container_size,), True)
+                                        affine, 3 * (container_size,), True)
+    
     vertcoords = vertcoords - centershift
     texj.update_quad(texcoords, vertcoords)
 
-    k = K/2.
+    k = K / 2.
     imgcoords = np.array([[0, 0, k], 
                           [0, J, k], 
                           [I, J, k], 
                           [I, 0, k]], dtype='f8')
 
     vertcoords, texcoords = ijktoras(imgcoords, data.shape, 
-                                        affine, 3*(container_size,), True)
+                                        affine, 3 * (container_size,), True)
     
     vertcoords = vertcoords - centershift
     texk.update_quad(texcoords, vertcoords)
 
-    ax = Axes(name="3 axes", scale=200, linewidth=2.0)
-    vert = np.array([[2.0,3.0,0.0]], dtype = np.float32)
-    ptr = np.array([[.2,.2,.2]], dtype = np.float32)
-    #text = Text3D("Text3D", vert, "Reg", 20, 6, ptr)
+    #ax = Axes(name="3 axes", scale=200, linewidth=2.0)
 
     scene.add_actor(texi)
     scene.add_actor(texj)
     scene.add_actor(texk)
-    scene.add_actor(ax)
-    #scene.add_actor(text)
+    #scene.add_actor(ax)
     window.add_scene(scene)
     window.refocus_camera()
-
 
 
