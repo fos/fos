@@ -15,7 +15,7 @@ def rotation_matrix(axis, theta_degree):
 
     Returns
     -------
-    mat : array, shape (4, 4)
+    mat : array, shape (3, 3)
 
     """
     theta = 1. * theta_degree * np.pi / 180.

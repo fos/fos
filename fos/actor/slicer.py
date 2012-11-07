@@ -8,7 +8,7 @@ from fos.coords import (img_to_ras_coords_container,
 
 
 class Slicer(Actor):
-    def __init__(self, name, data, affine):
+    def __init__(self, name, data, affine, post_mat=None):
         """ Volume Slicer
 
         Parameters
@@ -16,12 +16,14 @@ class Slicer(Actor):
         name : str
         data : array, (X, Y, Z) or (X, Y, Z, 3) or (X, Y, Z, 4)
         affine : array, shape (4, 4)
+        post_mat : array, shape (4, 4)
 
         """
 
         self.name = name
         self.data = data
-        self.affine = affine 
+        self.affine = affine
+        self.post_mat = post_mat
         self.tex = Texture3D('Buzz', self.data, self.affine, interp='linear')
         self.vertices = self.tex.vertices
         self.visible = True
@@ -47,6 +49,14 @@ class Slicer(Actor):
         texcoords = img_to_tex_coords(imgcoords, self.data.shape)
 
         vertcoords = vertcoords - self.centershift
+
+        if self.post_mat is not None:
+            vertcoords = vertcoords.T
+            vertcoords1 = np.vstack((vertcoords, 
+                                    np.ones(vertcoords.shape[1])))
+            vertcoords1 = np.dot(self.post_mat, vertcoords1)
+            vertcoords = vertcoords1[:-1, :].T
+    
         return texcoords, vertcoords
 
     def slicecoords_i(self):
@@ -124,10 +134,10 @@ if __name__ == '__main__':
     
     #dname='/home/eg309/Data/trento_processed/subj_03/MPRAGE_32/'
     #fname = dname + 'T1_flirt_out.nii.gz'
-    dname = '/home/eg309/Data/111104/subj_05/'
-    fname = dname + '101_32/DTI/fa.nii.gz'
-    #dname = '/usr/share/fsl/data/standard/'
-    #fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    #dname = '/home/eg309/Data/111104/subj_05/'
+    #fname = dname + '101_32/DTI/fa.nii.gz'
+    dname = '/usr/share/fsl/data/standard/'
+    fname = dname + 'FMRIB58_FA_1mm.nii.gz'
     img=nib.load(fname)
     data = img.get_data()
     data[np.isnan(data)] = 0
@@ -138,7 +148,7 @@ if __name__ == '__main__':
 	
     Init()
 
-    window = Window(caption='[F]OS',bgcolor = (0, 0, 0.6))
+    window = Window(caption='[F]OS',bgcolor = (0.1, 0.2, 0.6))
     scene = Scene(activate_aabb = False)
     
     sli = Slicer('Volume Slicer', data, affine)
