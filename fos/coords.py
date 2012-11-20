@@ -75,15 +75,13 @@ def from_matvec(matrix, vector=None):
     return t
 
 
-def img_to_ras_coords(ijk, data_shape, affine):
+def img_to_ras_coords(ijk, affine):
     """ Image coordinates to world (RAS) coordinates
 
     Parameters
     ----------
     ijk : array, shape (N, 3)
         image coordinates
-    data_shape : tuple,
-        data shape
     affine : array, shape (4, 4)
         transformation matrix 
 

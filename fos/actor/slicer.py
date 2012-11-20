@@ -2,13 +2,14 @@ import numpy as np
 from fos import Actor, Scene, Window
 from fos.actor.tex3d import Texture3D
 from pyglet.gl import *
-from fos.coords import (img_to_ras_coords_container, 
+from fos.coords import (img_to_ras_coords,
+                        img_to_ras_coords_container, 
                         ras_to_las_coords,
                         img_to_tex_coords)
 
 
 class Slicer(Actor):
-    def __init__(self, name, data, affine, post_mat=None):
+    def __init__(self, name, data, affine, convention='RAS', post_mat=None):
         """ Volume Slicer
 
         Parameters
@@ -16,6 +17,8 @@ class Slicer(Actor):
         name : str
         data : array, (X, Y, Z) or (X, Y, Z, 3) or (X, Y, Z, 4)
         affine : array, shape (4, 4)
+        convention : str,
+                'LAS' or 'RAS'
         post_mat : array, shape (4, 4)
 
         """
@@ -23,17 +26,29 @@ class Slicer(Actor):
         self.name = name
         self.data = data
         self.affine = affine
+        self.convention = convention
         self.post_mat = post_mat
         self.tex = Texture3D('Buzz', self.data, self.affine, interp='linear')
         self.vertices = self.tex.vertices
         self.visible = True
         self.I, self.J, self.K = self.data.shape[:3]
         self.i, self.j, self.k = self.I/2, self.J/2, self.K/2
+        
+        """
         centershift = img_to_ras_coords_container(
                         np.array([[self.I/2., self.J/2., self.K/2.]]), 
                         data.shape, 
                         affine)
         self.centershift = ras_to_las_coords(centershift)
+        """
+
+        self.centershift = img_to_ras_coords(
+                        np.array([[self.I/2., self.J/2., self.K/2.]]), 
+                        affine)
+        
+        if self.convention == 'LAS':
+            self.centershift = ras_to_las_coords(self.centershift)
+
         self.texcoords_i, self.vertcoords_i = self.slicecoords_i()
         self.texcoords_j, self.vertcoords_j = self.slicecoords_j()
         self.texcoords_k, self.vertcoords_k = self.slicecoords_k()
@@ -42,10 +57,17 @@ class Slicer(Actor):
         self.show_k = True
 
     def img_to_tex_vert_coords(self, imgcoords):
+        """
         vertcoords = img_to_ras_coords_container(imgcoords, 
                                                 self.data.shape, 
                                                 self.affine)
         vertcoords = ras_to_las_coords(vertcoords)
+        """
+        vertcoords = img_to_ras_coords(imgcoords, self.affine)
+        
+        if self.convention == 'LAS':
+            vertcoords = ras_to_las_coords(vertcoords)
+
         texcoords = img_to_tex_coords(imgcoords, self.data.shape)
 
         vertcoords = vertcoords - self.centershift
@@ -151,7 +173,7 @@ if __name__ == '__main__':
     window = Window(caption='[F]OS',bgcolor = (0.1, 0.2, 0.6))
     scene = Scene(activate_aabb = False)
     
-    sli = Slicer('Volume Slicer', data, affine)
+    sli = Slicer('Volume Slicer', data, affine, convention='RAS')
 
     scene.add_actor(sli)
     window.add_scene(scene)
