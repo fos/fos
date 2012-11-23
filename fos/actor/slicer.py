@@ -33,14 +33,6 @@ class Slicer(Actor):
         self.visible = True
         self.I, self.J, self.K = self.data.shape[:3]
         self.i, self.j, self.k = self.I/2, self.J/2, self.K/2
-        
-        """
-        centershift = img_to_ras_coords_container(
-                        np.array([[self.I/2., self.J/2., self.K/2.]]), 
-                        data.shape, 
-                        affine)
-        self.centershift = ras_to_las_coords(centershift)
-        """
 
         self.centershift = img_to_ras_coords(
                         np.array([[self.I/2., self.J/2., self.K/2.]]), 
@@ -57,12 +49,6 @@ class Slicer(Actor):
         self.show_k = True
 
     def img_to_tex_vert_coords(self, imgcoords):
-        """
-        vertcoords = img_to_ras_coords_container(imgcoords, 
-                                                self.data.shape, 
-                                                self.affine)
-        vertcoords = ras_to_las_coords(vertcoords)
-        """
         vertcoords = img_to_ras_coords(imgcoords, self.affine)
         
         if self.convention == 'LAS':
