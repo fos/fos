@@ -146,6 +146,7 @@ if __name__ == '__main__':
     #fname = dname + '101_32/DTI/fa.nii.gz'
     dname = '/usr/share/fsl/data/standard/'
     fname = dname + 'FMRIB58_FA_1mm.nii.gz'
+    #fname = '/home/eleftherios/Data/trento_processed/subj_01/MPRAGE_32/raw.nii'
     img=nib.load(fname)
     data = img.get_data()
     data[np.isnan(data)] = 0
