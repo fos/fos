@@ -225,7 +225,7 @@ def prepare_volume(data, fill=None):
     vol_dim = pow2[np.where(pow2 >= max_dimension)[0][0]]
     
     if data.ndim == 4:
-        volume = np.zeros(3 * (vol_dim,) + data.shape[-1])
+        volume = np.zeros(3 * (vol_dim,) + (data.shape[-1],))
     if data.ndim == 3:
         volume = np.zeros(3 * (vol_dim,))
 
