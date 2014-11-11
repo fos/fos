@@ -28,7 +28,7 @@ setup(name='fos',
       author='Fos Devels',
       author_email='garyfallidis@gmail.com',
       url='http://github.com/Garyfallidis/Fos',
-      packages=['fos','fos.interact','fos.actor'],
+      packages=['fos', 'fos.interact','fos.actor', 'fos.shader', 'fos.external', 'fos.external.freetype', 'fos.data', 'fos.actor.dynamic'],
       ext_modules = [col_ext],
       cmdclass    = cmdclass,
       )
